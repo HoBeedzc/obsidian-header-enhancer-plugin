@@ -270,14 +270,17 @@ class HeaderEnhancerSettingTab extends PluginSettingTab {
 				}));
 		new Setting(containerEl)
 			.setName('Separator')
-			.setDesc('Separator between numbers')
+			.setDesc('Separator between numbers. Only support one of \'.,/-\'')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
+				.setPlaceholder('Enter your separator')
 				.setValue(this.plugin.settings.autoNumberingSeparator)
 				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.autoNumberingSeparator = value;
-					await this.plugin.saveSettings();
+					if (this.checkSeparator(value)) {
+						this.plugin.settings.autoNumberingSeparator = value;
+						await this.plugin.saveSettings();
+					} else {
+						new Notice('Separator should be one of \'.,/-\'');
+					}
 				}));
 		new Setting(containerEl)
 			.setName('Your auto numbering format is like ' +
@@ -298,5 +301,13 @@ class HeaderEnhancerSettingTab extends PluginSettingTab {
 				}));
 
 		containerEl.createEl('h2', { text: 'About Author' });
+	}
+
+	checkSeparator(separator: string): boolean {
+		if (separator.length != 1) {
+			return false;
+		}
+		const separators = ['.', ',', '-', '/'];
+		return separators.includes(separator);
 	}
 }
