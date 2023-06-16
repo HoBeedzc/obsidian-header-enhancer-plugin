@@ -1,11 +1,11 @@
 {
 	"id": "obsidian-header-enhancer-plugin",
 	"name": "Header Enhancer",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
+	"description": "This plugin is used to enhance the title and header of Obsidian.",
 	"author": "Hobee Liu",
-	"authorUrl": "https://obsidian.md",
+	"authorUrl": "https://github.com/HoBeedzc",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
