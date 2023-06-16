@@ -7,12 +7,26 @@ import { EditorView, keymap, ViewUpdate } from '@codemirror/view';
 
 interface HeaderEnhancerSettings {
 	mySetting: string;
+	language: string;
 	startHeaderLevel: string;
+	isAutoNumbering: boolean;
+	autoNumberingStartNumber: string;
+	autoNumberingSeparator: string;
+	isSeparateTitleFont: boolean;
+	titleFontFamily: string;
+	titleFontSize: string;
 }
 
 const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	mySetting: 'default',
-	startHeaderLevel: '1',
+	language: 'en',
+	startHeaderLevel: 'H1',
+	isAutoNumbering: true,
+	autoNumberingStartNumber: '1',
+	autoNumberingSeparator: '.',
+	isSeparateTitleFont: true,
+	titleFontFamily: 'inherit',
+	titleFontSize: 'inherit'
 }
 
 export default class HeaderEnhancerPlugin extends Plugin {
@@ -99,7 +113,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new HeaderEnhancerSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -140,7 +154,7 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class HeaderEnhancerSettingTab extends PluginSettingTab {
 	plugin: HeaderEnhancerPlugin;
 
 	constructor(app: App, plugin: HeaderEnhancerPlugin) {
@@ -157,38 +171,51 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h2', { text: 'General' });
 		new Setting(containerEl)
-			.setName('font')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+			.setName('Language')
+			.setDesc('Language for automatic numbering')
+			.addDropdown((dropdown) => {
+				dropdown.addOption('en', 'English');
+				dropdown.addOption('zh', 'Chinese');
+				dropdown.setValue(this.plugin.settings.language);
+				dropdown.onChange(async (value) => {
+					console.log('Language: ' + value);
+					this.plugin.settings.language = value;
 					await this.plugin.saveSettings();
-				}));
+				});
+			});
 
-		containerEl.createEl('h2', { text: 'Title' });
+		containerEl.createEl('h2', { text: 'Separate Title Font' });
 		new Setting(containerEl)
-			.setName('font')
-			.setDesc('It\'s a secret')
+			.setName('Enable')
+			.setDesc('Separate title font from content')
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.isSeparateTitleFont)
+					.onChange(async (value) => {
+						console.log('Secret: ' + value);
+						this.plugin.settings.isSeparateTitleFont = value;
+						await this.plugin.saveSettings();
+					})
+			});
+		new Setting(containerEl)
+			.setName('Font Family')
+			.setDesc('Title font family, inherit from global font by default')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('global font')
+				.setValue(this.plugin.settings.titleFontFamily)
 				.onChange(async (value) => {
 					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.titleFontFamily = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('font-size')
-			.setDesc('It\'s a secret')
+			.setName('Font Size')
+			.setDesc('Title font size, inherit from global font size by default')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('global font size')
+				.setValue(this.plugin.settings.titleFontSize)
 				.onChange(async (value) => {
 					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.titleFontSize = value;
 					await this.plugin.saveSettings();
 				}));
 
@@ -196,36 +223,46 @@ class SampleSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Start Header Level')
 			.setDesc('Start numbering at this header level')
+			.addDropdown((dropdown) => {
+				dropdown.addOption('H1', 'H1');
+				dropdown.addOption('H2', 'H2');
+				dropdown.addOption('H3', 'H3');
+				dropdown.addOption('H4', 'H4');
+				dropdown.addOption('H5', 'H5');
+				dropdown.addOption('H6', 'H6');
+				dropdown.setValue(this.plugin.settings.startHeaderLevel);
+				dropdown.onChange(async (value) => {
+					console.log('startHeaderLevel: ' + value);
+					this.plugin.settings.startHeaderLevel = value;
+					await this.plugin.saveSettings();
+				});
+			});
+		new Setting(containerEl)
+			.setName('Start Number')
+			.setDesc('Start numbering at this number')
 			.addText(text => text
-				.setPlaceholder('Enter starting header level')
-				.setValue(this.plugin.settings.startHeaderLevel)
+				.setPlaceholder('Enter your secret')
+				.setValue(this.plugin.settings.autoNumberingStartNumber)
 				.onChange(async (value) => {
 					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.autoNumberingStartNumber = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Start Number')
-			.setDesc('It\'s a secret')
+			.setName('Separator')
+			.setDesc('Separator between numbers')
 			.addText(text => text
 				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setValue(this.plugin.settings.autoNumberingSeparator)
 				.onChange(async (value) => {
 					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.autoNumberingSeparator = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Start Number')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			.setName('Your auto numbering format is like ' +
+				this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
+
 
 		containerEl.createEl('h2', { text: 'Advance' });
 		new Setting(containerEl)
