@@ -1,13 +1,11 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { EditorState, Extension, StateField, Transaction, TransactionSpec, Text } from '@codemirror/state';
-import { SelectionRange, Prec } from "@codemirror/state";
-import { EditorView, keymap, ViewUpdate } from '@codemirror/view';
 
 // Remember to rename these classes and interfaces!
 
 interface HeaderEnhancerSettings {
 	mySetting: string;
 	language: string;
+	showOnStatusBar: boolean;
 	startHeaderLevel: string;
 	isAutoNumbering: boolean;
 	autoNumberingStartNumber: string;
@@ -20,6 +18,7 @@ interface HeaderEnhancerSettings {
 const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	mySetting: 'default',
 	language: 'en',
+	showOnStatusBar: true,
 	startHeaderLevel: 'H1',
 	isAutoNumbering: true,
 	autoNumberingStartNumber: '1',
@@ -31,6 +30,7 @@ const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
+	statusBarItemEl: HTMLElement;
 
 	async onload() {
 		await this.loadSettings();
@@ -45,8 +45,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		this.statusBarItemEl = this.addStatusBarItem();
+		this.handleShowStateBarChange();
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -62,21 +62,6 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			id: 'header-automatic-numbering',
 			name: 'Header Automatic Numbering',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				const editorView = editor.cm as EditorView;
-				let state = editorView.state;
-				let line = state.doc.line(lineNumber)
-
-				if (getPosLineType(state, line.from) == LineType.text) {
-					let oldLine = line.text;
-					let newLine = this.Formater.formatLine(state, lineNumber, this.settings, oldLine.length, 0)[0];
-					if (oldLine != newLine) {
-						editor.replaceRange(newLine, { line: lineNumber - 1, ch: 0 }, { line: lineNumber - 1, ch: oldLine.length });
-						editor.setCursor({ line: lineNumber - 1, ch: editor.getLine(lineNumber - 1).length });
-					}
-				}
-				return;
-
-
 				// 选中所有类名包含 ".cm-header" 的元素
 				const elements = document.querySelectorAll('.cm-header');
 				console.log(elements);
@@ -112,6 +97,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			}
 		});
 
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new HeaderEnhancerSettingTab(this.app, this));
 
@@ -126,7 +112,6 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	}
 
 	onunload() {
-
 	}
 
 	async loadSettings() {
@@ -136,6 +121,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	handleShowStateBarChange() {
+		if (this.settings.showOnStatusBar) {
+			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
+			const autoNumberingStatus = this.settings.isAutoNumbering ? 'On' : 'Off';
+			this.statusBarItemEl.setText('Automatic Numbering: ' + autoNumberingStatus);
+		} else {
+			this.statusBarItemEl.setText('');
+		}
+	}
+
 }
 
 class SampleModal extends Modal {
@@ -183,6 +179,18 @@ class HeaderEnhancerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+		new Setting(containerEl)
+			.setName('Show on status bar')
+			.setDesc('Show automatic numbering status on status bar')
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.showOnStatusBar)
+					.onChange(async (value) => {
+						console.log('Secret: ' + value);
+						this.plugin.settings.showOnStatusBar = value;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowStateBarChange();
+					})
+			});
 
 		containerEl.createEl('h2', { text: 'Separate Title Font' });
 		new Setting(containerEl)
@@ -220,6 +228,18 @@ class HeaderEnhancerSettingTab extends PluginSettingTab {
 				}));
 
 		containerEl.createEl('h2', { text: 'Header Automatic Numbering' });
+		new Setting(containerEl)
+			.setName('Enable')
+			.setDesc('Enable automatic numbering')
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.isAutoNumbering)
+					.onChange(async (value) => {
+						console.log('Secret: ' + value);
+						this.plugin.settings.isAutoNumbering = value;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowStateBarChange();
+					})
+			});
 		new Setting(containerEl)
 			.setName('Start Header Level')
 			.setDesc('Start numbering at this header level')
