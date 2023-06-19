@@ -1,4 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { EditorView, keymap, ViewUpdate } from '@codemirror/view';
+import { SelectionRange, Prec } from "@codemirror/state";
+import { getHeaderLevel, getNextNumber, isNeedUpdateNumber, isNeedInsertNumber } from './core';
 
 interface HeaderEnhancerSettings {
 	mySetting: string;
@@ -45,6 +48,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		this.statusBarItemEl = this.addStatusBarItem();
 		this.handleShowStateBarChange();
+
+		// 
+		this.registerEditorExtension(Prec.highest(keymap.of([
+			{
+				key: "Enter",
+				run: (view: EditorView): boolean => {
+					const success = this.handleChange(view);
+					return success;
+				}
+			}
+		])));
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -128,6 +142,75 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		} else {
 			this.statusBarItemEl.setText('');
 		}
+	}
+
+	handleChange(view: EditorView): boolean {
+		let state = view.state;
+		let doc = state.doc;
+		const pos = state.selection.main.to;
+		// let posLine = doc.lineAt(pos)
+		const lineCount = doc.lines;
+		const changes = [];
+		let docCharCount = 0;
+		let insertCharCount = 0;
+		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
+
+		// instert a new line in current pos first
+		changes.push({
+			from: pos,
+			to: pos,
+			insert: '\n',
+		});
+
+		if (this.settings.isAutoNumbering) {
+			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
+			for (let i = 1; i <= lineCount; i++) {
+				const line = doc.line(i);
+				const fromPos = line.from;
+				docCharCount += line.length;
+
+				if (!line.text.startsWith('#')) continue; // not a header
+				else if (line.text.startsWith('######')) continue; // H7
+				else {
+					const headerLevel = getHeaderLevel(line.text);
+					insertNumber = getNextNumber(insertNumber, headerLevel);
+					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
+
+					if (isNeedInsertNumber(line.text)) {
+						if (docCharCount < pos) {
+							insertCharCountBeforePos += insertNumberStr.length + 1;
+						}
+						insertCharCount += insertNumberStr.length + 1;
+						changes.push({
+							from: fromPos + headerLevel + 1,
+							to: fromPos + headerLevel + 1,
+							insert: insertNumberStr + '\t',
+						});
+					} else if (isNeedUpdateNumber(insertNumberStr, line.text)) {
+						const fromPos = line.from + headerLevel + 1;
+						const toPos = fromPos + line.text.split('\t')[0].split(' ')[1].length;
+						if (docCharCount < pos) {
+							insertCharCountBeforePos += insertNumberStr.length - toPos + fromPos;
+						}
+						insertCharCount += insertNumberStr.length - toPos + fromPos;
+						changes.push({
+							from: fromPos,
+							to: toPos,
+							insert: insertNumberStr,
+						});
+					}
+				}
+			}
+		}
+
+		view.dispatch({
+			changes,
+			selection: { anchor: pos + 1 + insertCharCountBeforePos },
+			userEvent: "HeaderEnhancer.changeAutoNumbering",
+		});
+
+		return true;
+
 	}
 
 }
