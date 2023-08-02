@@ -25,3 +25,9 @@ export function isNeedUpdateNumber(nextNumsStr: string, text: string): boolean {
     let cntNumsStr = text.split('\t')[0].split(' ')[0];
     return nextNumsStr !== cntNumsStr;
 }
+
+export function removeHeaderNumber(text: string): string {
+    // remove '1.1\t' from '## 1.1\ttext'
+    const sharp = text.split('\t')[0].split(' ')[0];
+    return sharp + ' ' + text.split('\t')[1];
+}

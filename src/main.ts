@@ -1,7 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, } from 'obsidian';
 import { EditorView, keymap, ViewUpdate } from '@codemirror/view';
 import { SelectionRange, Prec } from "@codemirror/state";
-import { getHeaderLevel, getNextNumber, isNeedUpdateNumber, isNeedInsertNumber } from './core';
+import { getHeaderLevel, getNextNumber, isNeedUpdateNumber, isNeedInsertNumber, removeHeaderNumber } from './core';
 import { HeaderEnhancerSettingTab, DEFAULT_SETTINGS, HeaderEnhancerSettings } from './setting';
 
 export default class HeaderEnhancerPlugin extends Plugin {
@@ -11,10 +11,25 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
+		// Creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('document', 'Header Enhancer', (evt: MouseEvent) => {
-			// toggle the plugin on and off
-			console.log('click', evt);
+			const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+			if (!activeView) {
+				new Notice('No active MarkdownView, cannot toggle automatic numbering.');
+				return;
+			}
+			// toggle header numbering on/off
+			if (this.settings.isAutoNumbering) {
+				this.settings.isAutoNumbering = false;
+				new Notice('Automatic numbering is off');
+				this.handleRemoveHeaderNumber(activeView);
+			} else {
+				// turn on auto-numbering
+				this.settings.isAutoNumbering = true;
+				new Notice('Automatic numbering is on');
+				this.handleAddHeaderNumber(activeView);
+			}
+			this.handleShowStateBarChange();
 		});
 
 		// Perform additional things with the ribbon
@@ -29,7 +44,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			{
 				key: "Enter",
 				run: (view: EditorView): boolean => {
-					const success = this.handleChange(view);
+					const success = this.handlePressEnter(view);
 					return success;
 				}
 			}
@@ -48,7 +63,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			id: 'toggle-automatic-numbering-v2',
 			name: 'Toggle automatic numbering v2',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				this.settings.isAutoNumbering = !this.settings.isAutoNumbering;
+				this.handleAddHeaderNumber(view);
 			}
 		});
 
@@ -127,7 +142,60 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		}
 	}
 
-	handleChange(view: EditorView): boolean {
+	handleAddHeaderNumber(view: MarkdownView): boolean {
+		const editor = view.editor;
+		const lineCount = editor.lineCount();
+		let docCharCount = 0;
+
+		if (this.settings.isAutoNumbering) {
+			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
+			for (let i = 0; i <= lineCount; i++) {
+				const line = editor.getLine(i);
+				// const fromPos = line.from;
+				docCharCount += line.length;
+
+				if (!line.startsWith('#')) continue; // not a header
+				else if (line.startsWith('######')) continue; // H7 ignore
+				else {
+					const headerLevel = getHeaderLevel(line);
+					insertNumber = getNextNumber(insertNumber, headerLevel);
+					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
+					if (isNeedInsertNumber(line)) {
+						editor.setLine(i, '#'.repeat(headerLevel) + ' ' + insertNumberStr + '\t' + line.substring(headerLevel + 1));
+					}
+					else if (isNeedUpdateNumber(insertNumberStr, line)) {
+						const originNumberLength = line.split('\t')[0].split(' ')[1].length;
+						editor.setLine(i, '#'.repeat(headerLevel) + ' ' + insertNumberStr + line.substring(headerLevel + originNumberLength + 1));
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	handleRemoveHeaderNumber(view: MarkdownView): boolean {
+		const editor = view.editor;
+		const lineCount = editor.lineCount();
+		let docCharCount = 0;
+
+		if (!this.settings.isAutoNumbering) {
+			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
+			for (let i = 0; i <= lineCount; i++) {
+				const line = editor.getLine(i);
+				// const fromPos = line.from;
+				docCharCount += line.length;
+
+				if (!line.startsWith('#')) continue; // not a header
+				else if (line.startsWith('######')) continue; // H7 ignore
+				else {
+					editor.setLine(i, removeHeaderNumber(line));
+				}
+			}
+		}
+		return true;
+	}
+
+	handlePressEnter(view: EditorView): boolean {
 		let state = view.state;
 		let doc = state.doc;
 		const pos = state.selection.main.to;
