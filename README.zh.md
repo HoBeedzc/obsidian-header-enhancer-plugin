@@ -14,7 +14,7 @@
 标题自动编号提供了为标题添加序号的功能。当您按`Enter`键创建新行时,序号将被添加到标题中,并在您更改标题级别时更新。
 
 示例:
-![](https://raw.githubusercontent.com/hobeen/obsidian-header-enhancer/master/images/header-auto-numbering.gif)
+![](./doc/header-auto-numbering-example.gif)
 
 警告:
 - 标题自动编号使用`\t`分隔自动编号和标题。如果您的标题包含`\t`,则标题自动编号可能无法正常工作。  

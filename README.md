@@ -12,7 +12,7 @@ This plugin is designed to enhance the header of [Obsidian](https://obsidian.md)
 Header auto numbering provides the ability to add number to the header. The number will be added to the header when you press `Enter` key to create a new line and it will be updated when you change the header level.
 
 example:
-![](https://raw.githubusercontent.com/hobeen/obsidian-header-enhancer/master/images/header-auto-numbering.gif)
+![](./doc/header-auto-numbering-example.gif)
 
 warning:
 - Header Auto Numbering use `\t` split auto-number and your header. If your header contains `\t`, Header Auto Numbering may not work properly.
