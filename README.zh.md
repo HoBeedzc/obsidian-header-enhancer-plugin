@@ -1,7 +1,7 @@
 <h1 align="center">Obsidian Header Enhancer｜Obsidian 标题增强插件</h1>
 <div align="center">
 
-[[中文](.README.zh.md)] [[English](./README.md)]
+[[中文](./README.zh.md)] [[English](./README.md)]
 
 </div>
 
