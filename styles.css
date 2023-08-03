@@ -6,14 +6,3 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
-
-.inline-title {
-    font-family: "Source Sans Pro", sans-serif;
-    border: 1px solid #e8b19e;
-    border-radius: 5px;
-}
-
-.cm-header {
-    border: 1px solid #df663d;
-    border-radius: 5px;
-}
