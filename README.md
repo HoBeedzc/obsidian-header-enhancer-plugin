@@ -1,6 +1,8 @@
 <h1 align="center">Obsidian Header Enhancer</h1>
 <div align="center">
-[[中文](./README.zh.md)] [[English](./README.md)]
+
+[[中文](.README.zh.md)] [[English](./README.md)]
+
 </div>
 
 This plugin is designed to enhance the header of [Obsidian](https://obsidian.md). The plugin will auto detect the header level and add number to the header.
