@@ -196,10 +196,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
 
 					if (isNeedInsertNumber(line.text)) {
-						if (docCharCount < pos) {
+						if (docCharCount <= pos) {
 							insertCharCountBeforePos += insertNumberStr.length + 1;
 						}
 						insertCharCount += insertNumberStr.length + 1;
+						docCharCount += insertNumberStr.length + 1;
 						changes.push({
 							from: fromPos + headerLevel + 1,
 							to: fromPos + headerLevel + 1,
@@ -208,10 +209,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					} else if (isNeedUpdateNumber(insertNumberStr, line.text)) {
 						const fromPos = line.from + headerLevel + 1;
 						const toPos = fromPos + line.text.split('\t')[0].split(' ')[1].length;
-						if (docCharCount < pos) {
+						if (docCharCount <= pos) {
 							insertCharCountBeforePos += insertNumberStr.length - toPos + fromPos;
 						}
 						insertCharCount += insertNumberStr.length - toPos + fromPos;
+						docCharCount += insertNumberStr.length - toPos + fromPos;
 						changes.push({
 							from: fromPos,
 							to: toPos,
