@@ -71,41 +71,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                     })
             });
 
-        containerEl.createEl('h2', { text: 'Isolate Title Font [W.I.P]' });
-        new Setting(containerEl)
-            .setName('Enable')
-            .setDesc('Isolate title font from content')
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.isSeparateTitleFont)
-                    .onChange(async (value) => {
-                        console.log('Secret: ' + value);
-                        this.plugin.settings.isSeparateTitleFont = value;
-                        await this.plugin.saveSettings();
-                    })
-            });
-        new Setting(containerEl)
-            .setName('Font Family')
-            .setDesc('Title font family, inherit from global font by default')
-            .addText(text => text
-                .setPlaceholder('global font')
-                .setValue(this.plugin.settings.titleFontFamily)
-                .onChange(async (value) => {
-                    console.log('Secret: ' + value);
-                    this.plugin.settings.titleFontFamily = value;
-                    await this.plugin.saveSettings();
-                }));
-        new Setting(containerEl)
-            .setName('Font Size')
-            .setDesc('Title font size, inherit from global font size by default')
-            .addText(text => text
-                .setPlaceholder('global font size')
-                .setValue(this.plugin.settings.titleFontSize)
-                .onChange(async (value) => {
-                    console.log('Secret: ' + value);
-                    this.plugin.settings.titleFontSize = value;
-                    await this.plugin.saveSettings();
-                }));
-
         containerEl.createEl('h2', { text: 'Header Auto Numbering' });
         new Setting(containerEl)
             .setName('Enable')
@@ -165,15 +130,57 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .setName('Your auto numbering format is like ' +
                 this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
 
+        containerEl.createEl('h2', { text: 'Isolate Title Font [W.I.P]' });
+        new Setting(containerEl)
+            .setName('Enable')
+            .setDesc('Isolate title font from content')
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.isSeparateTitleFont)
+                    .onChange(async (value) => {
+                        console.log('Secret: ' + value);
+                        this.plugin.settings.isSeparateTitleFont = value;
+                        await this.plugin.saveSettings();
+                    })
+            });
+        new Setting(containerEl)
+            .setName('Font Family')
+            .setDesc('Title font family, inherit from global font by default')
+            .addText(text => text
+                .setPlaceholder('global font')
+                .setValue(this.plugin.settings.titleFontFamily)
+                .onChange(async (value) => {
+                    console.log('Secret: ' + value);
+                    this.plugin.settings.titleFontFamily = value;
+                    await this.plugin.saveSettings();
+                }));
+        new Setting(containerEl)
+            .setName('Font Size')
+            .setDesc('Title font size, inherit from global font size by default')
+            .addText(text => text
+                .setPlaceholder('global font size')
+                .setValue(this.plugin.settings.titleFontSize)
+                .onChange(async (value) => {
+                    console.log('Secret: ' + value);
+                    this.plugin.settings.titleFontSize = value;
+                    await this.plugin.saveSettings();
+                }));
 
         containerEl.createEl('h2', { text: 'More Info' });
-        containerEl.createEl("p", { text: "Author: Hobee Liu. More detail: " }).createEl("a", {
-            text: "obsidian-header-enhancer",
+        containerEl.createEl("p", { text: "Author: " }).createEl("a", {
+            text: "Hobee Liu",
             href: "https://github.com/HoBeedzc",
         });
-        containerEl.createEl("p", { text: "Lis: Hobee Liu. More detail: " }).createEl("a", {
+        containerEl.createEl("p", { text: "License: " }).createEl("a", {
+            text: "MIT",
+            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/blob/master/LICENSE",
+        });
+        containerEl.createEl("p", { text: "Feedback: " }).createEl("a", {
+            text: "Github Issues",
+            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
+        });
+        containerEl.createEl("p", { text: "Github Repo: " }).createEl("a", {
             text: "obsidian-header-enhancer",
-            href: "https://github.com/HoBeedzc",
+            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
         });
     }
 
