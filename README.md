@@ -5,18 +5,19 @@
 
 </div>
 
-This plugin is designed to enhance the header of [Obsidian](https://obsidian.md). The plugin will auto detect the header level and add number to the header.
+This plugin is designed to enhance the header of [Obsidian](https://obsidian.md). The plugin will auto-detect the header level and add the number to the header.
 
 ## Core Features
 ### 1. Header Auto Numbering
-Header auto numbering provides the ability to add number to the header. The number will be added to the header when you press `Enter` key to create a new line and it will be updated when you change the header level.
+Header auto numbering provides the ability to add numbers to the header. The number will be added to the header when you press `Enter` key to create a new line and it will be updated when you change the header level.
 
-example:
+**Example:**
+
 ![](./doc/header-auto-numbering-example.gif)
 
-warning:
+**Warning:**
 - Header Auto Numbering use `\t` split auto-number and your header. If your header contains `\t`, Header Auto Numbering may not work properly.
-- Header Auto Numbering will modify your Markdown source file directly, so that can be render in other Markdown editor. 
+- Header Auto Numbering will modify your Markdown source file directly, so that can be rendered in other Markdown editors. 
 
 ### 2. Isolate Title Font [W.I.P]
 Isolate title font provides the ability to isolate the title font from the content. 
@@ -39,7 +40,7 @@ Isolate title font provides the ability to isolate the title font from the conte
 
 ## Usage
 ### Header Auto Numbering
-Header auto numbering is enabled by default. You can disable it in the plugin settings.
+Header auto-numbering is enabled by default. You can disable it in the plugin settings.
 
 ## ChangeLog
 Full changelog can be found [here](CHANGELOG.md). [W.I.P]
