@@ -2,7 +2,6 @@ import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import HeaderEnhancerPlugin from './main';
 
 export interface HeaderEnhancerSettings {
-    mySetting: string;
     language: string;
     showOnStatusBar: boolean;
     startHeaderLevel: string;
@@ -15,7 +14,6 @@ export interface HeaderEnhancerSettings {
 }
 
 export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
-    mySetting: 'default',
     language: 'en',
     showOnStatusBar: true,
     startHeaderLevel: 'H1',
@@ -41,6 +39,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h1', { text: 'Header Enhancer Settings' });
+        containerEl.createEl("p", { text: "More detail is in Github: " }).createEl("a", {
+            text: "obsidian-header-enhancer",
+            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
+        });
 
         containerEl.createEl('h2', { text: 'General' });
         new Setting(containerEl)
@@ -69,10 +71,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                     })
             });
 
-        containerEl.createEl('h2', { text: 'Separate Title Font' });
+        containerEl.createEl('h2', { text: 'Isolate Title Font [W.I.P]' });
         new Setting(containerEl)
             .setName('Enable')
-            .setDesc('Separate title font from content')
+            .setDesc('Isolate title font from content')
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isSeparateTitleFont)
                     .onChange(async (value) => {
@@ -104,10 +106,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        containerEl.createEl('h2', { text: 'Header Automatic Numbering' });
+        containerEl.createEl('h2', { text: 'Header Auto Numbering' });
         new Setting(containerEl)
             .setName('Enable')
-            .setDesc('Enable automatic numbering')
+            .setDesc('Enable auto numbering')
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isAutoNumbering)
                     .onChange(async (value) => {
@@ -164,20 +166,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
 
 
-        containerEl.createEl('h2', { text: 'Advance' });
-        new Setting(containerEl)
-            .setName('Start Header Level')
-            .setDesc('Start numbering at this header level')
-            .addText(text => text
-                .setPlaceholder('Enter starting header level')
-                .setValue(this.plugin.settings.startHeaderLevel)
-                .onChange(async (value) => {
-                    console.log('Secret: ' + value);
-                    this.plugin.settings.mySetting = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        containerEl.createEl('h2', { text: 'About Author' });
+        containerEl.createEl('h2', { text: 'More Info' });
+        containerEl.createEl("p", { text: "Author: Hobee Liu. More detail: " }).createEl("a", {
+            text: "obsidian-header-enhancer",
+            href: "https://github.com/HoBeedzc",
+        });
+        containerEl.createEl("p", { text: "Lis: Hobee Liu. More detail: " }).createEl("a", {
+            text: "obsidian-header-enhancer",
+            href: "https://github.com/HoBeedzc",
+        });
     }
 
     checkSeparator(separator: string): boolean {
