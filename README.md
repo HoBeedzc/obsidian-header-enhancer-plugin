@@ -43,7 +43,7 @@ Isolate title font provides the ability to isolate the title font from the conte
 Header auto-numbering is enabled by default. You can disable it in the plugin settings.
 
 ## ChangeLog
-Full changelog can be found [here](CHANGELOG.md). [W.I.P]
+Full changelog can be found [here](./doc/changelog.md).
 
 ## Acknowledgements
 - https://github.com/Yaozhuwa/easy-typing-obsidian

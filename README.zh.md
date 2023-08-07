@@ -45,7 +45,7 @@
 标题自动编号默认启用。您可以在插件设置中禁用它。
 
 ## 更新日志
-完整的更新日志可以在[这里](CHANGELOG.md)找到。 [开发中] 
+完整的更新日志可以在[这里](./doc/changelog.md).找到。
 
 ## 致谢
 - https://github.com/Yaozhuwa/easy-typing-obsidian
