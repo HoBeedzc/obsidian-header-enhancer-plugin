@@ -33,7 +33,7 @@ Isolate title font provides the ability to isolate the title font from the conte
 6. Once installed, close the community plugins window and enable the newly installed plugin
 
 ### From GitHub
-1. Download the [Latest release]
+1. Download the [Latest release](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
 2. Extract the zip archive in `<vault>/.obsidian/plugins/` so that the `main.js` file is within the folder `<vault>/.obsidian/plugins/header-enhancer/`.
 3. Reload Obsidian
 4. If prompted about Safe Mode, you can disable safe mode and enable the plugin.

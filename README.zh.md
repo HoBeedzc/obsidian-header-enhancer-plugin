@@ -35,7 +35,7 @@
 6. 安装完成后,关闭社区插件窗口并启用新安装的插件
 
 ### 从GitHub
-1. 下载 [最新版本]
+1. 下载 [最新版本](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
 2. 将zip归档提取到`<vault>/.obsidian/plugins/`中,以便`main.js`文件在`<vault>/.obsidian/plugins/header-enhancer/`文件夹中。
 3. 重新加载Obsidian
 4. 如果提示安全模式,可以禁用安全模式并启用插件。
