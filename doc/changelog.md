@@ -1,5 +1,11 @@
 # 更新记录 - Changelog
 
+## [0.0.2] - 2023-08-07
+
+### Changed
+
+- 更新插件 id ，为发布做准备 - Update plugin id for release
+
 ## [0.0.1] - 2023-08-07
 
 ### Added
