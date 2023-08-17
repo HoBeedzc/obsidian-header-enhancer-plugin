@@ -39,10 +39,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h1', { text: 'Header Enhancer Settings' });
-        containerEl.createEl("p", { text: "More detail is in Github: " }).createEl("a", {
-            text: "obsidian-header-enhancer",
-            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
-        });
 
         containerEl.createEl('h2', { text: 'General' });
         new Setting(containerEl)
@@ -53,7 +49,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 dropdown.addOption('zh', 'Chinese');
                 dropdown.setValue(this.plugin.settings.language);
                 dropdown.onChange(async (value) => {
-                    console.log('Language: ' + value);
                     this.plugin.settings.language = value;
                     await this.plugin.saveSettings();
                 });
@@ -64,7 +59,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.showOnStatusBar)
                     .onChange(async (value) => {
-                        console.log('Secret: ' + value);
                         this.plugin.settings.showOnStatusBar = value;
                         await this.plugin.saveSettings();
                         this.plugin.handleShowStateBarChange();
@@ -78,14 +72,13 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isAutoNumbering)
                     .onChange(async (value) => {
-                        console.log('Secret: ' + value);
                         this.plugin.settings.isAutoNumbering = value;
                         await this.plugin.saveSettings();
                         this.plugin.handleShowStateBarChange();
                     })
             });
         new Setting(containerEl)
-            .setName('Start Header Level')
+            .setName('Start header level')
             .setDesc('Start numbering at this header level')
             .addDropdown((dropdown) => {
                 dropdown.addOption('H1', 'H1');
@@ -96,19 +89,17 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 dropdown.addOption('H6', 'H6');
                 dropdown.setValue(this.plugin.settings.startHeaderLevel);
                 dropdown.onChange(async (value) => {
-                    console.log('startHeaderLevel: ' + value);
                     this.plugin.settings.startHeaderLevel = value;
                     await this.plugin.saveSettings();
                 });
             });
         new Setting(containerEl)
-            .setName('Start Number')
+            .setName('Start number')
             .setDesc('Start numbering at this number')
             .addText(text => text
                 .setPlaceholder('Enter your secret')
                 .setValue(this.plugin.settings.autoNumberingStartNumber)
                 .onChange(async (value) => {
-                    console.log('Secret: ' + value);
                     this.plugin.settings.autoNumberingStartNumber = value;
                     await this.plugin.saveSettings();
                 }));
@@ -137,30 +128,27 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isSeparateTitleFont)
                     .onChange(async (value) => {
-                        console.log('Secret: ' + value);
                         this.plugin.settings.isSeparateTitleFont = value;
                         await this.plugin.saveSettings();
                     })
             });
         new Setting(containerEl)
-            .setName('Font Family')
+            .setName('Font family')
             .setDesc('Title font family, inherit from global font by default')
             .addText(text => text
                 .setPlaceholder('global font')
                 .setValue(this.plugin.settings.titleFontFamily)
                 .onChange(async (value) => {
-                    console.log('Secret: ' + value);
                     this.plugin.settings.titleFontFamily = value;
                     await this.plugin.saveSettings();
                 }));
         new Setting(containerEl)
-            .setName('Font Size')
+            .setName('Font size')
             .setDesc('Title font size, inherit from global font size by default')
             .addText(text => text
                 .setPlaceholder('global font size')
                 .setValue(this.plugin.settings.titleFontSize)
                 .onChange(async (value) => {
-                    console.log('Secret: ' + value);
                     this.plugin.settings.titleFontSize = value;
                     await this.plugin.saveSettings();
                 }));

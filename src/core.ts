@@ -31,3 +31,7 @@ export function removeHeaderNumber(text: string): string {
     const sharp = text.split('\t')[0].split(' ')[0];
     return sharp + ' ' + text.split('\t')[1];
 }
+
+export function isHeader(text: string): boolean {
+    return /^#{1,6} .*/.test(text.trim());
+}
