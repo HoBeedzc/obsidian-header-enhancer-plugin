@@ -14,6 +14,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		// Creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('document', 'Header Enhancer', (evt: MouseEvent) => {
+			const app = this.app; // this is the obsidian App instance
 			const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 			if (!activeView) {
 				new Notice('No active MarkdownView, cannot toggle automatic numbering.');
