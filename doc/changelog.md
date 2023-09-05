@@ -1,5 +1,11 @@
 # 更新记录 - Changelog
 
+## [0.0.3] - 2023-09-05
+
+### Changed
+
+- 根据审核意见完成插件修改 - Complete plugin modification according to review opinions
+
 ## [0.0.2] - 2023-08-07
 
 ### Changed
