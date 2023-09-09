@@ -4,7 +4,7 @@ import HeaderEnhancerPlugin from './main';
 export interface HeaderEnhancerSettings {
     language: string;
     showOnStatusBar: boolean;
-    startHeaderLevel: string;
+    startHeaderLevel: number;
     isAutoNumbering: boolean;
     autoNumberingStartNumber: string;
     autoNumberingSeparator: string;
@@ -16,7 +16,7 @@ export interface HeaderEnhancerSettings {
 export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
     language: 'en',
     showOnStatusBar: true,
-    startHeaderLevel: 'H1',
+    startHeaderLevel: 1,
     isAutoNumbering: true,
     autoNumberingStartNumber: '1',
     autoNumberingSeparator: '.',
@@ -81,15 +81,16 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .setName('Start header level')
             .setDesc('Start numbering at this header level')
             .addDropdown((dropdown) => {
-                dropdown.addOption('H1', 'H1');
-                dropdown.addOption('H2', 'H2');
-                dropdown.addOption('H3', 'H3');
-                dropdown.addOption('H4', 'H4');
-                dropdown.addOption('H5', 'H5');
-                dropdown.addOption('H6', 'H6');
-                dropdown.setValue(this.plugin.settings.startHeaderLevel);
+                dropdown.addOption('1', 'H1');
+                dropdown.addOption('2', 'H2');
+                dropdown.addOption('3', 'H3');
+                dropdown.addOption('4', 'H4');
+                dropdown.addOption('5', 'H5');
+                dropdown.addOption('6', 'H6');
+                dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
                 dropdown.onChange(async (value) => {
-                    this.plugin.settings.startHeaderLevel = value;
+                    this.plugin.settings.startHeaderLevel = parseInt(value, 10);
+                    console.log(this.plugin.settings.startHeaderLevel)
                     await this.plugin.saveSettings();
                 });
             });
@@ -100,12 +101,18 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 .setPlaceholder('Enter your secret')
                 .setValue(this.plugin.settings.autoNumberingStartNumber)
                 .onChange(async (value) => {
-                    this.plugin.settings.autoNumberingStartNumber = value;
-                    await this.plugin.saveSettings();
+                    if (this.checkStartNumber(value)) {
+                        this.plugin.settings.autoNumberingStartNumber = value;
+                        await this.plugin.saveSettings();
+                        formatExample.setName('Your auto numbering format is like : \t' +
+                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1');
+                    } else {
+                        new Notice('Start number should be a number');
+                    }
                 }));
         new Setting(containerEl)
             .setName('Separator')
-            .setDesc('Separator between numbers. Only support one of \'.,/-\'')
+            .setDesc('Separator between numbers. Only support one of \'. , / -\'')
             .addText(text => text
                 .setPlaceholder('Enter your separator')
                 .setValue(this.plugin.settings.autoNumberingSeparator)
@@ -113,13 +120,22 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                     if (this.checkSeparator(value)) {
                         this.plugin.settings.autoNumberingSeparator = value;
                         await this.plugin.saveSettings();
+                        formatExample.setName('Your auto numbering format is like : \t' +
+                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1');
                     } else {
-                        new Notice('Separator should be one of \'.,/-\'');
+                        new Notice('Separator should be one of \'. , / -\'');
                     }
                 }));
-        new Setting(containerEl)
-            .setName('Your auto numbering format is like ' +
-                this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
+        const formatExample = new Setting(containerEl)
+            .setName('Your auto numbering format is like : \t' +
+                this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+            );
+        //.addText(text => text
+        //    .setValue(this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
+        //    .setDisabled(true)
+        //    .onChange(async (value) => {
+        //        await this.plugin.saveSettings();
+        //    }));
 
         containerEl.createEl('h2', { text: 'Isolate Title Font [W.I.P]' });
         new Setting(containerEl)
@@ -162,14 +178,19 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             text: "MIT",
             href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/blob/master/LICENSE",
         });
-        containerEl.createEl("p", { text: "Feedback: " }).createEl("a", {
-            text: "Github Issues",
-            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
-        });
         containerEl.createEl("p", { text: "Github Repo: " }).createEl("a", {
             text: "obsidian-header-enhancer",
             href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
         });
+        containerEl.createEl("p", { text: "Any question? Send feedback on " }).createEl("a", {
+            text: "Github Issues",
+            href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
+        });
+    }
+
+    checkStartNumber(startNumber: string): boolean {
+        const reg = /^[0-9]*$/;
+        return reg.test(startNumber);
     }
 
     checkSeparator(separator: string): boolean {

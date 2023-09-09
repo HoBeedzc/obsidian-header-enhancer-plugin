@@ -7,13 +7,17 @@
 
 This plugin is designed to enhance the header of [Obsidian](https://obsidian.md). The plugin will auto-detect the header level and add the number to the header.
 
+**Warning:**
+- This plugin is still in the early stage of development, so there may be some bugs. If you find any bugs, please feel free to report them in the [issue](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)
+- Data is invaluable, so please remember to create backups when using the beta plugin (which version number like 0.x.x).
+
 ## Core Features
 ### 1. Header Auto Numbering
 Header auto numbering provides the ability to add numbers to the header. The number will be added to the header when you press `Enter` key to create a new line and it will be updated when you change the header level.
 
 **Example:**
 
-![](./doc/header-auto-numbering-example.gif)
+![header-auto-numbering-example](./doc/header-auto-numbering-example.gif)
 
 **Warning:**
 - Header Auto Numbering use `\t` split auto-number and your header. If your header contains `\t`, Header Auto Numbering may not work properly.
@@ -41,6 +45,16 @@ Isolate title font provides the ability to isolate the title font from the conte
 ## Usage
 ### Header Auto Numbering
 Header auto-numbering is enabled by default. You can disable it in the plugin settings.
+
+#### a. Change auto number start header level
+You can change the auto number start header level in the plugin settings. The default value is `1` which means auto number start from H1 or `#`.
+
+#### b. Custom your numbering style
+You can customize your numbering style and observe the style preview in the plugin settings. Currently, only custom separator are supported. 
+
+## Todolist
+- [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
+- [ ] Setting support Chinese. - Header Enhancer
 
 ## ChangeLog
 Full changelog can be found [here](./doc/changelog.md).
