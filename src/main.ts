@@ -111,19 +111,21 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
-				// const fromPos = line.from;
 				docCharCount += line.length;
 
 				if (isHeader(line)) {
-					const headerLevel = getHeaderLevel(line);
+					const [headerLevel, realHeaderLevel] = getHeaderLevel(line, this.settings.startHeaderLevel);
+					if (headerLevel <= 0) {
+						continue;
+					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
 					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
 					if (isNeedInsertNumber(line)) {
-						editor.setLine(i, '#'.repeat(headerLevel) + ' ' + insertNumberStr + '\t' + line.substring(headerLevel + 1));
+						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + '\t' + line.substring(realHeaderLevel + 1));
 					}
 					else if (isNeedUpdateNumber(insertNumberStr, line)) {
 						const originNumberLength = line.split('\t')[0].split(' ')[1].length;
-						editor.setLine(i, '#'.repeat(headerLevel) + ' ' + insertNumberStr + line.substring(headerLevel + originNumberLength + 1));
+						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + line.substring(realHeaderLevel + originNumberLength + 1));
 					}
 				}
 			}
@@ -134,15 +136,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	handleRemoveHeaderNumber(view: MarkdownView): boolean {
 		const editor = view.editor;
 		const lineCount = editor.lineCount();
-		let docCharCount = 0;
 
 		if (!this.settings.isAutoNumbering) {
 			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
-				// const fromPos = line.from;
-				docCharCount += line.length;
-
 				if (isHeader(line)) {
 					editor.setLine(i, removeHeaderNumber(line));
 				}
@@ -177,7 +175,10 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				docCharCount += line.length;
 
 				if (isHeader(line.text)) {
-					const headerLevel = getHeaderLevel(line.text);
+					const [headerLevel, realHeaderLevel] = getHeaderLevel(line.text, this.settings.startHeaderLevel);
+					if (headerLevel <= 0) {
+						continue;
+					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
 					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
 
@@ -188,12 +189,12 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						insertCharCount += insertNumberStr.length + 1;
 						docCharCount += insertNumberStr.length + 1;
 						changes.push({
-							from: fromPos + headerLevel + 1,
-							to: fromPos + headerLevel + 1,
+							from: fromPos + realHeaderLevel + 1,
+							to: fromPos + realHeaderLevel + 1,
 							insert: insertNumberStr + '\t',
 						});
 					} else if (isNeedUpdateNumber(insertNumberStr, line.text)) {
-						const fromPos = line.from + headerLevel + 1;
+						const fromPos = line.from + realHeaderLevel + 1;
 						const toPos = fromPos + line.text.split('\t')[0].split(' ')[1].length;
 						if (docCharCount <= pos) {
 							insertCharCountBeforePos += insertNumberStr.length - toPos + fromPos;
