@@ -53,9 +53,8 @@ You can change the auto number start header level in the plugin settings. The de
 You can customize your numbering style and observe the style preview in the plugin settings. Currently, only custom separator are supported. 
 
 ## Todolist
-[ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
-
-[ ] Setting support Chinese. - Header Enhancer
+- [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
+- [ ] Setting support Chinese. - Header Enhancer
 
 ## ChangeLog
 Full changelog can be found [here](./doc/changelog.md).
