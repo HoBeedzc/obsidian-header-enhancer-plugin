@@ -52,7 +52,13 @@ You can change the auto number start header level in the plugin settings. The de
 #### b. Custom your numbering style
 You can customize your numbering style and observe the style preview in the plugin settings. Currently, only custom separator are supported. 
 
-## Todolist
+## Known bugs
+Here are some known bugs, I will fix them as soon as possible.
+- [ ] Header Auto Numbering will not work properly when the header contains `\t`.
+- [ ] When you change the header level, the auto number will not be updated immediately. You need move cursor to header line and press `Enter` key to update it.
+- [ ] Markdown Table may not work properly when the plugin is enabled. 
+
+## Todo list
 - [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
 - [ ] Setting support Chinese. - Header Enhancer
 
