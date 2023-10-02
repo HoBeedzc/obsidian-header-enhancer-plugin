@@ -38,12 +38,22 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.statusBarItemEl = this.addStatusBarItem();
 		this.handleShowStateBarChange();
 
-		// 
+		// register keymap
 		this.registerEditorExtension(Prec.highest(keymap.of([
 			{
 				key: "Enter",
 				run: (view: EditorView): boolean => {
 					const success = this.handlePressEnter(view);
+					return success;
+				}
+			}
+		])));
+
+		this.registerEditorExtension(Prec.highest(keymap.of([
+			{
+				key: "Backspace",
+				run: (view: EditorView): boolean => {
+					const success = this.handlePressBackspace(view);
 					return success;
 				}
 			}
@@ -159,6 +169,10 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		let docCharCount = 0;
 		let insertCharCount = 0;
 		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
+
+		if (!isHeader(doc.lineAt(pos).text)) {
+			return false;
+		}
 
 		// instert a new line in current pos first
 		changes.push({
