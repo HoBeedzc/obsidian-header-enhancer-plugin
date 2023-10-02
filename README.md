@@ -28,7 +28,7 @@ Isolate title font provides the ability to isolate the title font from the conte
 
 ## Installation
 
-### From Obsidian
+### From Obsidian \[Recommended\]
 1. Open Settings -> Third-party plugins
 2. Disable Safe mode
 3. Click Browse community plugins
@@ -56,7 +56,7 @@ You can customize your numbering style and observe the style preview in the plug
 Here are some known bugs, I will fix them as soon as possible.
 - [ ] Header Auto Numbering will not work properly when the header contains `\t`.
 - [ ] When you change the header level, the auto number will not be updated immediately. You need move cursor to header line and press `Enter` key to update it.
-- [ ] Markdown Table may not work properly when the plugin is enabled. 
+- [x] Markdown Table may not work properly when the plugin is enabled. (Solved in v0.0.5)
 
 ## Todo list
 - [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
