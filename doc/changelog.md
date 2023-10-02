@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.0.5] - 2023-10-02
+### Fixed
+- 修复 issue#5 中提到的【列表中插入新行】的问题 - Fixed the problem of "Insert New Line in List" mentioned in issue#5
+
 ## [0.0.4] - 2023-09-09
 ### Added
 - 增加设置中【预览自定义编号样式】实时渲染的功能 - Added the function of real-time rendering of "Preview Custom Numbering Style" in the settings
