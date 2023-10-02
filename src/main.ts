@@ -235,4 +235,40 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 	}
 
+	handlePressBackspace(view: EditorView): boolean {
+		let state = view.state;
+		let doc = state.doc;
+		const pos = state.selection.main.to;
+		// let posLine = doc.lineAt(pos)
+		const lineCount = doc.lines;
+		const changes = [];
+		let docCharCount = 0;
+		let insertCharCount = 0;
+		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
+
+		if (!isHeader(doc.lineAt(pos).text)) {
+			return false;
+		}
+
+		// instert a new line in current pos first
+		changes.push({
+			from: pos - 1,
+			to: pos,
+			insert: '',
+		});
+
+		if (this.settings.isAutoNumbering) {
+			// some header may be deleted, so we need to recalculate the number
+			// TODO: feature
+		}
+
+		view.dispatch({
+			changes,
+			selection: { anchor: pos - 1 },
+			userEvent: "HeaderEnhancer.changeAutoNumbering",
+		});
+
+		return true;
+	}
+
 }
