@@ -6,6 +6,7 @@ export interface HeaderEnhancerSettings {
     showOnStatusBar: boolean;
     startHeaderLevel: number;
     isAutoNumbering: boolean;
+    isUseYaml: boolean;
     autoNumberingStartNumber: string;
     autoNumberingSeparator: string;
     isSeparateTitleFont: boolean;
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
     showOnStatusBar: true,
     startHeaderLevel: 1,
     isAutoNumbering: true,
+    isUseYaml: true,
     autoNumberingStartNumber: '1',
     autoNumberingSeparator: '.',
     isSeparateTitleFont: true,
@@ -73,6 +75,17 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.isAutoNumbering)
                     .onChange(async (value) => {
                         this.plugin.settings.isAutoNumbering = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.handleShowStateBarChange();
+                    })
+            });
+        new Setting(containerEl)
+            .setName('Use yaml')
+            .setDesc('use yaml control the format of header-number.')
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.isUseYaml)
+                    .onChange(async (value) => {
+                        this.plugin.settings.isUseYaml = value;
                         await this.plugin.saveSettings();
                         this.plugin.handleShowStateBarChange();
                     })

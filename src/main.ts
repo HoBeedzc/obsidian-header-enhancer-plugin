@@ -3,6 +3,7 @@ import { EditorView, keymap } from '@codemirror/view';
 import { Prec } from "@codemirror/state";
 
 import { getHeaderLevel, getNextNumber, isNeedUpdateNumber, isNeedInsertNumber, removeHeaderNumber, isHeader } from './core';
+import { getAutoNumberingYaml, setAutoNumberingYaml } from './utils';
 import { HeaderEnhancerSettingTab, DEFAULT_SETTINGS, HeaderEnhancerSettings } from './setting';
 
 export default class HeaderEnhancerPlugin extends Plugin {
@@ -17,18 +18,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			const app = this.app; // this is the obsidian App instance
 			const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 			if (!activeView) {
-				new Notice('No active MarkdownView, cannot toggle automatic numbering.');
+				new Notice('No active MarkdownView, cannot toggle auto numbering.');
 				return;
 			}
 			// toggle header numbering on/off
 			if (this.settings.isAutoNumbering) {
 				this.settings.isAutoNumbering = false;
-				new Notice('Automatic numbering is off');
+				new Notice('Auto numbering is off');
 				this.handleRemoveHeaderNumber(activeView);
 			} else {
 				// turn on auto-numbering
 				this.settings.isAutoNumbering = true;
-				new Notice('Automatic numbering is on');
+				new Notice('Auto numbering is on');
 				this.handleAddHeaderNumber(activeView);
 			}
 			this.handleShowStateBarChange();
@@ -59,28 +60,93 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			}
 		])));
 
-		// This adds a simple command that can be triggered anywhere
+		// This adds a command that can be triggered anywhere
 		this.addCommand({
-			id: 'toggle-automatic-numbering',
-			name: 'Toggle automatic numbering',
+			id: 'toggle-auto-numbering',
+			name: 'toggle auto numbering',
 			callback: () => {
 				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice('No active MarkdownView, cannot toggle automatic numbering.');
+					new Notice('No active MarkdownView, cannot toggle auto numbering.');
 					return;
 				}
 				// toggle header numbering on/off
 				if (this.settings.isAutoNumbering) {
 					this.settings.isAutoNumbering = false;
-					new Notice('Automatic numbering is off');
+					new Notice('Auto numbering is off');
 					this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
 					this.settings.isAutoNumbering = true;
-					new Notice('Automatic numbering is on');
+					new Notice('Auto numbering is on');
 					this.handleAddHeaderNumber(activeView);
 				}
 				this.handleShowStateBarChange();
+			}
+		});
+
+		this.addCommand({
+			id: "add-auto-numbering-yaml",
+			name: 'add auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot add auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						const value = ['state on', 'first-level h2', 'max 1', 'start-at 1', 'separator .'];
+						setAutoNumberingYaml(editor, value);
+					} else {
+						new Notice('auto numbering yaml already exists');
+					}
+				}
+			}
+		});
+
+		this.addCommand({
+			id: "reset-auto-numbering-yaml",
+			name: 'reset auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot reset auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						new Notice('auto numbering yaml not exists');
+					} else {
+						const value = ['state on', 'first-level h2', 'max 1', 'start-at 1', 'separator .'];
+						setAutoNumberingYaml(editor, value);
+					}
+				}
+			}
+		});
+
+		this.addCommand({
+			id: "remove-auto-numbering-yaml",
+			name: 'remove auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot remove auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						new Notice('auto numbering yaml not exists');
+					} else {
+						setAutoNumberingYaml(editor, []);
+					}
+				}
 			}
 		});
 
@@ -106,7 +172,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		if (this.settings.showOnStatusBar) {
 			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 			const autoNumberingStatus = this.settings.isAutoNumbering ? 'On' : 'Off';
-			this.statusBarItemEl.setText('Automatic Numbering: ' + autoNumberingStatus);
+			this.statusBarItemEl.setText('Auto Numbering: ' + autoNumberingStatus);
 		} else {
 			this.statusBarItemEl.setText('');
 		}
