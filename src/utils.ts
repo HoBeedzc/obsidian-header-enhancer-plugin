@@ -2,7 +2,7 @@
 import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
 const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
-const DEFAULT_YAML_SETTING = ['state on', 'start-level h2', 'max-level 1', 'start-number 1', 'separator .']
+const DEFAULT_YAML_SETTING = ['state on', 'start-level h2', 'max-level h1', 'start-number 1', 'separator .']
 
 // Get yaml section
 function getYaml(editor: Editor): string {
