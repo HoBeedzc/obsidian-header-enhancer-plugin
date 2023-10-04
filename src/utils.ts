@@ -1,7 +1,8 @@
 // reference https://github.com/lijyze/obsidian-state-switcher/blob/main/src/util.ts
 import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
-export const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
+const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
+const DEFAULT_YAML_SETTING = ['state on', 'start-level h2', 'max-level 1', 'start-number 1', 'separator .']
 
 // Get yaml section
 function getYaml(editor: Editor): string {
@@ -17,7 +18,7 @@ export function getAutoNumberingYaml(editor: Editor): string {
     return parsedYaml?.["header-auto-numbering"] ?? '';
 }
 
-export function setAutoNumberingYaml(editor: Editor, value: string[]): void {
+export function setAutoNumberingYaml(editor: Editor, value: string[] = DEFAULT_YAML_SETTING): void {
     const yaml = getYaml(editor);
     const parsedYaml = parseYaml(yaml.slice(4, -4));
 

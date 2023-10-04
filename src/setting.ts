@@ -5,6 +5,7 @@ export interface HeaderEnhancerSettings {
     language: string;
     showOnStatusBar: boolean;
     startHeaderLevel: number;
+    maxHeaderLevel: number;
     isAutoNumbering: boolean;
     isUseYaml: boolean;
     autoNumberingStartNumber: string;
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
     language: 'en',
     showOnStatusBar: true,
     startHeaderLevel: 1,
+    maxHeaderLevel: 6,
     isAutoNumbering: true,
     isUseYaml: true,
     autoNumberingStartNumber: '1',
@@ -91,8 +93,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                     })
             });
         new Setting(containerEl)
-            .setName('Start header level')
-            .setDesc('Start numbering at this header level')
+            .setName('Numbering header level')
+            .setDesc('The range of header level to be numbered')
             .addDropdown((dropdown) => {
                 dropdown.addOption('1', 'H1');
                 dropdown.addOption('2', 'H2');
@@ -103,8 +105,30 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
                 dropdown.onChange(async (value) => {
                     this.plugin.settings.startHeaderLevel = parseInt(value, 10);
-                    console.log(this.plugin.settings.startHeaderLevel)
                     await this.plugin.saveSettings();
+                    formatExample.setName('Your auto numbering format is like : \t' +
+                        this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+                        + '\tfrom H' + this.plugin.settings.startHeaderLevel + ' to H' + this.plugin.settings.maxHeaderLevel);
+                });
+            })
+            .addDropdown((dropdown) => {
+                dropdown.addOption('1', 'H1');
+                dropdown.addOption('2', 'H2');
+                dropdown.addOption('3', 'H3');
+                dropdown.addOption('4', 'H4');
+                dropdown.addOption('5', 'H5');
+                dropdown.addOption('6', 'H6');
+                dropdown.setValue(this.plugin.settings.maxHeaderLevel.toString());
+                dropdown.onChange(async (value) => {
+                    if (this.checkMaxLevel(parseInt(value, 10))) {
+                        this.plugin.settings.maxHeaderLevel = parseInt(value, 10);
+                        await this.plugin.saveSettings();
+                        formatExample.setName('Your auto numbering format is like : \t' +
+                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+                            + '\tfrom H' + this.plugin.settings.startHeaderLevel + ' to H' + this.plugin.settings.maxHeaderLevel);
+                    } else {
+                        new Notice('Max header level should be greater than or equal to start header level');
+                    }
                 });
             });
         new Setting(containerEl)
@@ -118,7 +142,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                         this.plugin.settings.autoNumberingStartNumber = value;
                         await this.plugin.saveSettings();
                         formatExample.setName('Your auto numbering format is like : \t' +
-                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1');
+                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+                            + '\tfrom H' + this.plugin.settings.startHeaderLevel + ' to H' + this.plugin.settings.maxHeaderLevel);
                     } else {
                         new Notice('Start number should be a number');
                     }
@@ -134,7 +159,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                         this.plugin.settings.autoNumberingSeparator = value;
                         await this.plugin.saveSettings();
                         formatExample.setName('Your auto numbering format is like : \t' +
-                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1');
+                            this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+                            + '\tfrom H' + this.plugin.settings.startHeaderLevel + ' to H' + this.plugin.settings.maxHeaderLevel);
                     } else {
                         new Notice('Separator should be one of \'. , / -\'');
                     }
@@ -142,6 +168,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
         const formatExample = new Setting(containerEl)
             .setName('Your auto numbering format is like : \t' +
                 this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'
+                + '\tfrom H' + this.plugin.settings.startHeaderLevel + ' to H' + this.plugin.settings.maxHeaderLevel
             );
         //.addText(text => text
         //    .setValue(this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
@@ -199,6 +226,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             text: "Github Issues",
             href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
         });
+    }
+
+    checkMaxLevel(maxLevel: number): boolean {
+        return this.plugin.settings.startHeaderLevel <= maxLevel;
     }
 
     checkStartNumber(startNumber: string): boolean {
