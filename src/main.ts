@@ -3,7 +3,9 @@ import { EditorView, keymap } from '@codemirror/view';
 import { Prec } from "@codemirror/state";
 
 import { getHeaderLevel, getNextNumber, isNeedUpdateNumber, isNeedInsertNumber, removeHeaderNumber, isHeader } from './core';
+import { getAutoNumberingYaml, setAutoNumberingYaml } from './utils';
 import { HeaderEnhancerSettingTab, DEFAULT_SETTINGS, HeaderEnhancerSettings } from './setting';
+import { getAutoNumberingConfig } from './config';
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
@@ -17,18 +19,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			const app = this.app; // this is the obsidian App instance
 			const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 			if (!activeView) {
-				new Notice('No active MarkdownView, cannot toggle automatic numbering.');
+				new Notice('No active MarkdownView, cannot toggle auto numbering.');
 				return;
 			}
 			// toggle header numbering on/off
 			if (this.settings.isAutoNumbering) {
 				this.settings.isAutoNumbering = false;
-				new Notice('Automatic numbering is off');
+				new Notice('Auto numbering is off');
 				this.handleRemoveHeaderNumber(activeView);
 			} else {
 				// turn on auto-numbering
 				this.settings.isAutoNumbering = true;
-				new Notice('Automatic numbering is on');
+				new Notice('Auto numbering is on');
 				this.handleAddHeaderNumber(activeView);
 			}
 			this.handleShowStateBarChange();
@@ -59,28 +61,93 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			}
 		])));
 
-		// This adds a simple command that can be triggered anywhere
+		// This adds a command that can be triggered anywhere
 		this.addCommand({
-			id: 'toggle-automatic-numbering',
-			name: 'Toggle automatic numbering',
+			id: 'toggle-auto-numbering',
+			name: 'toggle auto numbering',
 			callback: () => {
+				const app = this.app; // this is the obsidian App instance
 				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice('No active MarkdownView, cannot toggle automatic numbering.');
+					new Notice('No active MarkdownView, cannot toggle auto numbering.');
 					return;
 				}
 				// toggle header numbering on/off
 				if (this.settings.isAutoNumbering) {
 					this.settings.isAutoNumbering = false;
-					new Notice('Automatic numbering is off');
+					new Notice('Auto numbering is off');
 					this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
 					this.settings.isAutoNumbering = true;
-					new Notice('Automatic numbering is on');
+					new Notice('Auto numbering is on');
 					this.handleAddHeaderNumber(activeView);
 				}
 				this.handleShowStateBarChange();
+			}
+		});
+
+		this.addCommand({
+			id: "add-auto-numbering-yaml",
+			name: 'add auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot add auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						setAutoNumberingYaml(editor);
+					} else {
+						new Notice('auto numbering yaml already exists');
+					}
+				}
+			}
+		});
+
+		this.addCommand({
+			id: "reset-auto-numbering-yaml",
+			name: 'reset auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot reset auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						new Notice('auto numbering yaml not exists');
+					} else {
+						const value = ['state on', 'first-level h2', 'max 1', 'start-at 1', 'separator .'];
+						setAutoNumberingYaml(editor, value);
+					}
+				}
+			}
+		});
+
+		this.addCommand({
+			id: "remove-auto-numbering-yaml",
+			name: 'remove auto numbering yaml',
+			callback: () => {
+				app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice('No active MarkdownView, cannot remove auto numbering yaml.');
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml === '') {
+						new Notice('auto numbering yaml not exists');
+					} else {
+						setAutoNumberingYaml(editor, []);
+					}
+				}
 			}
 		});
 
@@ -106,7 +173,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		if (this.settings.showOnStatusBar) {
 			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 			const autoNumberingStatus = this.settings.isAutoNumbering ? 'On' : 'Off';
-			this.statusBarItemEl.setText('Automatic Numbering: ' + autoNumberingStatus);
+			this.statusBarItemEl.setText('Auto Numbering: ' + autoNumberingStatus);
 		} else {
 			this.statusBarItemEl.setText('');
 		}
@@ -117,19 +184,25 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		const lineCount = editor.lineCount();
 		let docCharCount = 0;
 
-		if (this.settings.isAutoNumbering) {
-			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
+		const config = getAutoNumberingConfig(this.settings, editor);
+
+		if (!this.settings.isAutoNumbering) {
+			return false;
+		}
+
+		if (config.state) {
+			let insertNumber = [Number(config.startNumber) - 1];
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
 				docCharCount += line.length;
 
 				if (isHeader(line)) {
-					const [headerLevel, realHeaderLevel] = getHeaderLevel(line, this.settings.startHeaderLevel);
+					const [headerLevel, realHeaderLevel] = getHeaderLevel(line, config.startLevel);
 					if (headerLevel <= 0) {
 						continue;
 					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
-					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
+					const insertNumberStr = insertNumber.join(config.separator);
 					if (isNeedInsertNumber(line)) {
 						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + '\t' + line.substring(realHeaderLevel + 1));
 					}
@@ -147,8 +220,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		const editor = view.editor;
 		const lineCount = editor.lineCount();
 
+		const config = getAutoNumberingConfig(this.settings, editor);
+
 		if (!this.settings.isAutoNumbering) {
-			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
 				if (isHeader(line)) {
@@ -170,6 +244,20 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		let insertCharCount = 0;
 		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
 
+		const app = this.app; // this is the obsidian App instance
+		const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView) {
+			new Notice('No active MarkdownView, cannot toggle auto numbering.');
+			return false;
+		}
+
+		if (!this.settings.isAutoNumbering) {
+			return false;
+		}
+
+		const editor = activeView.editor;
+		const config = getAutoNumberingConfig(this.settings, editor);
+
 		if (!isHeader(doc.lineAt(pos).text)) {
 			return false;
 		}
@@ -181,20 +269,20 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			insert: '\n',
 		});
 
-		if (this.settings.isAutoNumbering) {
-			let insertNumber = [Number(this.settings.autoNumberingStartNumber) - 1];
+		if (config.state) {
+			let insertNumber = [Number(config.startNumber) - 1];
 			for (let i = 1; i <= lineCount; i++) {
 				const line = doc.line(i);
 				const fromPos = line.from;
 				docCharCount += line.length;
 
 				if (isHeader(line.text)) {
-					const [headerLevel, realHeaderLevel] = getHeaderLevel(line.text, this.settings.startHeaderLevel);
+					const [headerLevel, realHeaderLevel] = getHeaderLevel(line.text, config.startLevel);
 					if (headerLevel <= 0) {
 						continue;
 					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
-					const insertNumberStr = insertNumber.join(this.settings.autoNumberingSeparator);
+					const insertNumberStr = insertNumber.join(config.separator);
 
 					if (isNeedInsertNumber(line.text)) {
 						if (docCharCount <= pos) {
