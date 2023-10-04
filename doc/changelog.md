@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.0.6] - 2023-10-05
+### Added
+- 增加【使用Yaml控制标题编号】的功能 - Added the function of "Use Yaml to Control Header Numbering"
+
 ## [0.0.5] - 2023-10-02
 ### Fixed
 - 修复 issue#5 中提到的【列表中插入新行】的问题 - Fixed the problem of "Insert New Line in List" mentioned in issue#5

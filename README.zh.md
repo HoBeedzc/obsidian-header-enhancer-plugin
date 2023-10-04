@@ -18,7 +18,7 @@
 
 **示例:**
 
-![](./doc/header-auto-numbering-example.gif)
+![header-auto-numbering-example](./doc/img/header-auto-numbering-example.gif)
 
 **警告:**
 - 标题自动编号使用`\t`分隔自动编号和标题。如果您的标题包含`\t`,则标题自动编号可能无法正常工作。  
@@ -53,11 +53,16 @@
 #### b. 自定义编号样式
 您可以在插件设置中自定义编号样式并预览样式。目前仅支持自定义分隔符。
 
+#### c. 使用Yaml控制标题编号
+您可以在插件设置中使用Yaml控制标题编号。默认值为`false`,这意味着使用自动编号。如果您将其设置为`true`,则可以使用Yaml控制标题编号。
+
+**示例:**
+![yaml-example](./doc/img/yaml-example.gif)
+
 ## 已知 bug
 这里列出了一些已知的bug,我会尽快修复它们。
 - [ ] 当标题包含`\t`时,自动编号标题将无法正常工作。
 - [ ] 当您更改标题级别时,自动编号不会立即更新。您需要将光标移动到标题行并按`Enter`键来更新它。  
-- [x] 启用该插件时,Markdown表格可能无法正常工作。(在 v0.0.5 中解决)
 
 ## 待办事项
 - [ ] 支持不同的分隔符来分割自动编号和标题。(现在只支持`\t`) - 标题自动编号
@@ -68,6 +73,8 @@
 
 ## 致谢
 - https://github.com/Yaozhuwa/easy-typing-obsidian
+- https://github.com/lijyze/obsidian-state-switcher
+- https://github.com/onlyafly/number-headings-obsidian
 
 ## 支持
 如果您喜欢这个插件,您可以通过以下方式支持我:
