@@ -17,7 +17,7 @@ Header auto numbering provides the ability to add numbers to the header. The num
 
 **Example:**
 
-![header-auto-numbering-example](./doc/header-auto-numbering-example.gif)
+![header-auto-numbering-example](./doc/img/header-auto-numbering-example.gif)
 
 **Warning:**
 - Header Auto Numbering use `\t` split auto-number and your header. If your header contains `\t`, Header Auto Numbering may not work properly.
@@ -52,11 +52,16 @@ You can change the auto number start header level in the plugin settings. The de
 #### b. Custom your numbering style
 You can customize your numbering style and observe the style preview in the plugin settings. Currently, only custom separator are supported. 
 
+#### c. Use Yaml to Control Header Numbering
+You can use Yaml to control header numbering in the plugin settings. The default value is `false` which means use auto numbering. If you set it to `true`, you can use Yaml to control header numbering.
+
+**Example:**
+![yaml-example](./doc/img/yaml-example.gif)
+
 ## Known bugs
 Here are some known bugs, I will fix them as soon as possible.
 - [ ] Header Auto Numbering will not work properly when the header contains `\t`.
 - [ ] When you change the header level, the auto number will not be updated immediately. You need move cursor to header line and press `Enter` key to update it.
-- [x] Markdown Table may not work properly when the plugin is enabled. (Solved in v0.0.5)
 
 ## Todo list
 - [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
@@ -67,6 +72,8 @@ Full changelog can be found [here](./doc/changelog.md).
 
 ## Acknowledgements
 - https://github.com/Yaozhuwa/easy-typing-obsidian
+- https://github.com/lijyze/obsidian-state-switcher
+- https://github.com/onlyafly/number-headings-obsidian
 
 ## Support
 If you like this plugin, you can support me by:
