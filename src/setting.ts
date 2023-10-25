@@ -10,6 +10,7 @@ export interface HeaderEnhancerSettings {
     isUseYaml: boolean;
     autoNumberingStartNumber: string;
     autoNumberingSeparator: string;
+    autoNumberingHeaderSeparator: string;
     isSeparateTitleFont: boolean;
     titleFontFamily: string;
     titleFontSize: string;
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
     isUseYaml: true,
     autoNumberingStartNumber: '1',
     autoNumberingSeparator: '.',
+    autoNumberingHeaderSeparator: '\t',
     isSeparateTitleFont: true,
     titleFontFamily: 'inherit',
     titleFontSize: 'inherit'
@@ -165,6 +167,18 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                         new Notice('Separator should be one of \'. , / -\'');
                     }
                 }));
+        new Setting(containerEl)
+            .setName('Header separator')
+            .setDesc('Separator between header and number. default is tab')
+            .addDropdown((dropdown) => {
+                dropdown.addOption('\t', 'Tab');
+                dropdown.addOption(' ', 'Space');
+                dropdown.setValue(this.plugin.settings.autoNumberingHeaderSeparator);
+                dropdown.onChange(async (value) => {
+                    this.plugin.settings.autoNumberingHeaderSeparator = value;
+                    await this.plugin
+                })
+            });
         const formatExample = new Setting(containerEl)
             .setName('Your auto numbering format is like : \t' +
                 this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1'

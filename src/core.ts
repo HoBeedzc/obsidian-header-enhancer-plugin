@@ -18,21 +18,21 @@ export function getNextNumber(cntNums: number[], headerLevel: number): number[] 
     return nextNums;
 }
 
-export function isNeedInsertNumber(text: string): boolean {
-    if (text.contains('\t')) return false; // '###\ttext
+export function isNeedInsertNumber(text: string, splitor: string): boolean {
+    if (text.contains(splitor)) return false; // '## splitor text
     return true;
 }
 
-export function isNeedUpdateNumber(nextNumsStr: string, text: string): boolean {
-    let cntNumsStr = text.split('\t')[0].split(' ')[0];
+export function isNeedUpdateNumber(nextNumsStr: string, text: string, splitor: string): boolean {
+    let cntNumsStr = text.split(splitor)[0].split(' ')[0];
     return nextNumsStr !== cntNumsStr;
 }
 
-export function removeHeaderNumber(text: string): string {
-    // remove '1.1\t' from '## 1.1\ttext'
-    if (!text.contains('\t')) return text;
-    const sharp = text.split('\t')[0].split(' ')[0];
-    return sharp + ' ' + text.split('\t')[1];
+export function removeHeaderNumber(text: string, splitor: string): string {
+    // remove '1.1 splitor' from '## 1.1 splitor text'
+    if (!text.contains(splitor)) return text;
+    const sharp = text.split(splitor)[0].split(' ')[0];
+    return sharp + ' ' + text.split(splitor)[1];
 }
 
 export function isHeader(text: string): boolean {
