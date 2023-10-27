@@ -226,6 +226,10 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
 				if (isHeader(line)) {
+					const [headerLevel, _] = getHeaderLevel(line, config.startLevel);
+					if (headerLevel <= 0) {
+						continue;
+					}
 					editor.setLine(i, removeHeaderNumber(line, this.settings.autoNumberingHeaderSeparator));
 				}
 			}

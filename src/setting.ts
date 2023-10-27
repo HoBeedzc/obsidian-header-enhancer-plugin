@@ -75,13 +75,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Enable')
             .setDesc('Enable auto numbering')
+            .setDisabled(true)
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isAutoNumbering)
-                    .onChange(async (value) => {
-                        this.plugin.settings.isAutoNumbering = value;
-                        await this.plugin.saveSettings();
-                        this.plugin.handleShowStateBarChange();
-                    })
+                .onChange(async (value) => {
+                    new Notice('You can only change this option in side bar');
+                });
             });
         new Setting(containerEl)
             .setName('Use yaml')
@@ -175,8 +174,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
                 dropdown.addOption(' ', 'Space');
                 dropdown.setValue(this.plugin.settings.autoNumberingHeaderSeparator);
                 dropdown.onChange(async (value) => {
-                    this.plugin.settings.autoNumberingHeaderSeparator = value;
-                    await this.plugin
+                    if (this.checkHeaderSeparator(value)) {
+                        this.plugin.settings.autoNumberingHeaderSeparator = value;
+                        await this.plugin.saveSettings();
+                    } else {
+                        new Notice('you can\'t change header separator when auto numbering is enabled');
+                    }
                 })
             });
         const formatExample = new Setting(containerEl)
@@ -197,10 +200,9 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
             .setDesc('Isolate title font from content')
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.isSeparateTitleFont)
-                    .onChange(async (value) => {
-                        this.plugin.settings.isSeparateTitleFont = value;
-                        await this.plugin.saveSettings();
-                    })
+                .onChange(async (value) => {
+                    new Notice('This feature is not available now, please wait for the next version');
+                })
             });
         new Setting(containerEl)
             .setName('Font family')
@@ -257,5 +259,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
         }
         const separators = ['.', ',', '-', '/'];
         return separators.includes(separator);
+    }
+
+    checkHeaderSeparator(separator: string): boolean {
+        if (this.plugin.settings.isAutoNumbering) {
+            return false;
+        }
+        return true;
     }
 }
