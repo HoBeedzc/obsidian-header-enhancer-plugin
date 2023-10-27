@@ -203,11 +203,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
 					const insertNumberStr = insertNumber.join(config.separator);
-					if (isNeedInsertNumber(line)) {
-						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + '\t' + line.substring(realHeaderLevel + 1));
+					if (isNeedInsertNumber(line, this.settings.autoNumberingHeaderSeparator)) {
+						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + this.settings.autoNumberingHeaderSeparator + line.substring(realHeaderLevel + 1));
 					}
-					else if (isNeedUpdateNumber(insertNumberStr, line)) {
-						const originNumberLength = line.split('\t')[0].split(' ')[1].length;
+					else if (isNeedUpdateNumber(insertNumberStr, line, this.settings.autoNumberingHeaderSeparator)) {
+						const originNumberLength = line.split(this.settings.autoNumberingHeaderSeparator)[0].split(' ')[1].length;
 						editor.setLine(i, '#'.repeat(realHeaderLevel) + ' ' + insertNumberStr + line.substring(realHeaderLevel + originNumberLength + 1));
 					}
 				}
@@ -226,7 +226,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
 				if (isHeader(line)) {
-					editor.setLine(i, removeHeaderNumber(line));
+					const [headerLevel, _] = getHeaderLevel(line, config.startLevel);
+					if (headerLevel <= 0) {
+						continue;
+					}
+					editor.setLine(i, removeHeaderNumber(line, this.settings.autoNumberingHeaderSeparator));
 				}
 			}
 		}
@@ -284,7 +288,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					insertNumber = getNextNumber(insertNumber, headerLevel);
 					const insertNumberStr = insertNumber.join(config.separator);
 
-					if (isNeedInsertNumber(line.text)) {
+					if (isNeedInsertNumber(line.text, this.settings.autoNumberingHeaderSeparator)) {
 						if (docCharCount <= pos) {
 							insertCharCountBeforePos += insertNumberStr.length + 1;
 						}
@@ -293,11 +297,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						changes.push({
 							from: fromPos + realHeaderLevel + 1,
 							to: fromPos + realHeaderLevel + 1,
-							insert: insertNumberStr + '\t',
+							insert: insertNumberStr + this.settings.autoNumberingHeaderSeparator,
 						});
-					} else if (isNeedUpdateNumber(insertNumberStr, line.text)) {
+					} else if (isNeedUpdateNumber(insertNumberStr, line.text, this.settings.autoNumberingHeaderSeparator)) {
 						const fromPos = line.from + realHeaderLevel + 1;
-						const toPos = fromPos + line.text.split('\t')[0].split(' ')[1].length;
+						const toPos = fromPos + line.text.split(this.settings.autoNumberingHeaderSeparator)[0].split(' ')[1].length;
 						if (docCharCount <= pos) {
 							insertCharCountBeforePos += insertNumberStr.length - toPos + fromPos;
 						}
