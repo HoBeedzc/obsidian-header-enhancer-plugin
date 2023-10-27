@@ -10,7 +10,6 @@ This plugin is designed to enhance the header of [Obsidian](https://obsidian.md)
 **Warning:**
 - This plugin is still in the early stage of development, so there may be some bugs. If you find any bugs, please feel free to report them in the [issue](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)
 - Data is invaluable, so please remember to create backups when using the beta plugin (which version number like 0.x.x).
-- Please make sure your header not inculde space if you set `Space` as separator.
 
 ## Core Features
 ### 1. Header Auto Numbering
@@ -23,6 +22,7 @@ Header auto numbering provides the ability to add numbers to the header. The num
 **Warning:**
 - Header Auto Numbering use `\t` split auto-number and your header. If your header contains `\t`, Header Auto Numbering may not work properly.
 - Header Auto Numbering will modify your Markdown source file directly, so that can be rendered in other Markdown editors. 
+- Please make sure your header not inculde space if you set `Space` as separator.
 
 ### 2. Isolate Title Font [W.I.P]
 Isolate title font provides the ability to isolate the title font from the content. 

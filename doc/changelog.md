@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.1] - 2023-10-27
+### Fixed
+- 修复发版错误 - Fixed release error
+
 ## [0.1.0] - 2023-10-27
 ### Added
 - 增加【支持空格作为分隔符】的功能 - Added the function of "Support Space as Separator"
