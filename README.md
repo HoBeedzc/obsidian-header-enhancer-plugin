@@ -10,6 +10,7 @@ This plugin is designed to enhance the header of [Obsidian](https://obsidian.md)
 **Warning:**
 - This plugin is still in the early stage of development, so there may be some bugs. If you find any bugs, please feel free to report them in the [issue](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)
 - Data is invaluable, so please remember to create backups when using the beta plugin (which version number like 0.x.x).
+- Please make sure your header not inculde space if you set `Space` as separator.
 
 ## Core Features
 ### 1. Header Auto Numbering
@@ -60,11 +61,9 @@ You can use Yaml to control header numbering in the plugin settings. The default
 
 ## Known bugs
 Here are some known bugs, I will fix them as soon as possible.
-- [ ] Header Auto Numbering will not work properly when the header contains `\t`.
 - [ ] When you change the header level, the auto number will not be updated immediately. You need move cursor to header line and press `Enter` key to update it.
 
 ## Todo list
-- [ ] Support diffierent separator split auto-number and your header.(Now only supprot `\t`) - Header Auto Numbering
 - [ ] Setting support Chinese. - Header Enhancer
 
 ## ChangeLog

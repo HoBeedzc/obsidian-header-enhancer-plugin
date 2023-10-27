@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.0] - 2023-10-27
+### Added
+- 增加【支持空格作为分隔符】的功能 - Added the function of "Support Space as Separator"
+
 ## [0.0.6] - 2023-10-05
 ### Added
 - 增加【使用Yaml控制标题编号】的功能 - Added the function of "Use Yaml to Control Header Numbering"
