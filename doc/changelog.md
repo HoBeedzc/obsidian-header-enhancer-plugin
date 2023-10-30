@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.2] - 2023-10-30
+### Fixed
+- 修复发版错误 - Fixed release error
+
 ## [0.1.1] - 2023-10-27
 ### Fixed
 - 修复发版错误 - Fixed release error
