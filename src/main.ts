@@ -250,7 +250,14 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				const line = editor.getLine(i);
 				docCharCount += line.length;
 
-				if (1) {
+				if (line.startsWith("```")) {
+					isCodeBlock = !isCodeBlock;
+					if (line.slice(3).contains("```")) {
+						isCodeBlock = !isCodeBlock;
+					}
+				}
+
+				if (isCodeBlock) {
 					continue;
 				}
 
@@ -374,10 +381,23 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		if (config.state) {
 			let insertNumber = [Number(config.startNumber) - 1];
+			let isCodeBlock :boolean = false;
 			for (let i = 1; i <= lineCount; i++) {
 				const line = doc.line(i);
 				const fromPos = line.from;
 				docCharCount += line.length;
+				
+				if (line.text.startsWith("```")) {
+					isCodeBlock = !isCodeBlock;
+					if (line.text.slice(3).contains("```")) {
+						isCodeBlock = !isCodeBlock;
+					}
+				}
+
+				if (isCodeBlock) {
+					continue;
+				}
+				
 
 				if (isHeader(line.text)) {
 					const [headerLevel, realHeaderLevel] = getHeaderLevel(
