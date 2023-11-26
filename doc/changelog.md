@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.3] - 2023-11-27
+### Fixed
+- 修复 issue#16 中提到的【无法忽略代码块中 '#' 的问题 - Fixed the problem of "Unable to Ignore '#' in Code Block" mentioned in issue#16
+
 ## [0.1.2] - 2023-10-30
 ### Fixed
 - 修复发版错误 - Fixed release error
