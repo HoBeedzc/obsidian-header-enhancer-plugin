@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	startHeaderLevel: 1,
 	maxHeaderLevel: 6,
 	isAutoNumbering: true,
-	isUseYaml: true,
+	isUseYaml: false,
 	autoNumberingStartNumber: "1",
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
@@ -116,15 +116,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 					formatExample.setName(
 						"Your auto numbering format is like : \t" +
-							this.plugin.settings.autoNumberingStartNumber +
-							this.plugin.settings.autoNumberingSeparator +
-							"1" +
-							this.plugin.settings.autoNumberingSeparator +
-							"1" +
-							"\tfrom H" +
-							this.plugin.settings.startHeaderLevel +
-							" to H" +
-							this.plugin.settings.maxHeaderLevel
+						this.plugin.settings.autoNumberingStartNumber +
+						this.plugin.settings.autoNumberingSeparator +
+						"1" +
+						this.plugin.settings.autoNumberingSeparator +
+						"1" +
+						"\tfrom H" +
+						this.plugin.settings.startHeaderLevel +
+						" to H" +
+						this.plugin.settings.maxHeaderLevel
 					);
 				});
 			})
@@ -147,15 +147,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						formatExample.setName(
 							"Your auto numbering format is like : \t" +
-								this.plugin.settings.autoNumberingStartNumber +
-								this.plugin.settings.autoNumberingSeparator +
-								"1" +
-								this.plugin.settings.autoNumberingSeparator +
-								"1" +
-								"\tfrom H" +
-								this.plugin.settings.startHeaderLevel +
-								" to H" +
-								this.plugin.settings.maxHeaderLevel
+							this.plugin.settings.autoNumberingStartNumber +
+							this.plugin.settings.autoNumberingSeparator +
+							"1" +
+							this.plugin.settings.autoNumberingSeparator +
+							"1" +
+							"\tfrom H" +
+							this.plugin.settings.startHeaderLevel +
+							" to H" +
+							this.plugin.settings.maxHeaderLevel
 						);
 					} else {
 						new Notice(
@@ -178,18 +178,18 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 							formatExample.setName(
 								"Your auto numbering format is like : \t" +
-									this.plugin.settings
-										.autoNumberingStartNumber +
-									this.plugin.settings
-										.autoNumberingSeparator +
-									"1" +
-									this.plugin.settings
-										.autoNumberingSeparator +
-									"1" +
-									"\tfrom H" +
-									this.plugin.settings.startHeaderLevel +
-									" to H" +
-									this.plugin.settings.maxHeaderLevel
+								this.plugin.settings
+									.autoNumberingStartNumber +
+								this.plugin.settings
+									.autoNumberingSeparator +
+								"1" +
+								this.plugin.settings
+									.autoNumberingSeparator +
+								"1" +
+								"\tfrom H" +
+								this.plugin.settings.startHeaderLevel +
+								" to H" +
+								this.plugin.settings.maxHeaderLevel
 							);
 						} else {
 							new Notice("Start number should be a number");
@@ -209,18 +209,18 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 							formatExample.setName(
 								"Your auto numbering format is like : \t" +
-									this.plugin.settings
-										.autoNumberingStartNumber +
-									this.plugin.settings
-										.autoNumberingSeparator +
-									"1" +
-									this.plugin.settings
-										.autoNumberingSeparator +
-									"1" +
-									"\tfrom H" +
-									this.plugin.settings.startHeaderLevel +
-									" to H" +
-									this.plugin.settings.maxHeaderLevel
+								this.plugin.settings
+									.autoNumberingStartNumber +
+								this.plugin.settings
+									.autoNumberingSeparator +
+								"1" +
+								this.plugin.settings
+									.autoNumberingSeparator +
+								"1" +
+								"\tfrom H" +
+								this.plugin.settings.startHeaderLevel +
+								" to H" +
+								this.plugin.settings.maxHeaderLevel
 							);
 						} else {
 							new Notice("Separator should be one of '. , / -'");
@@ -250,15 +250,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			});
 		const formatExample = new Setting(containerEl).setName(
 			"Your auto numbering format is like : \t" +
-				this.plugin.settings.autoNumberingStartNumber +
-				this.plugin.settings.autoNumberingSeparator +
-				"1" +
-				this.plugin.settings.autoNumberingSeparator +
-				"1" +
-				"\tfrom H" +
-				this.plugin.settings.startHeaderLevel +
-				" to H" +
-				this.plugin.settings.maxHeaderLevel
+			this.plugin.settings.autoNumberingStartNumber +
+			this.plugin.settings.autoNumberingSeparator +
+			"1" +
+			this.plugin.settings.autoNumberingSeparator +
+			"1" +
+			"\tfrom H" +
+			this.plugin.settings.startHeaderLevel +
+			" to H" +
+			this.plugin.settings.maxHeaderLevel
 		);
 		//.addText(text => text
 		//    .setValue(this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
@@ -306,6 +306,20 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.addButton((button) => {
+				button.setButtonText("Reset settings").onClick(async () => {
+					if (
+						confirm(
+							"Are you sure you want to reset settings to default?"
+						)
+					) {
+						this.plugin.settings = DEFAULT_SETTINGS;
+						await this.plugin.saveSettings();
+						this.display();
+					}
+				});
+			});
 
 		containerEl.createEl("h2", { text: "More Info" });
 		containerEl.createEl("p", { text: "Author: " }).createEl("a", {
