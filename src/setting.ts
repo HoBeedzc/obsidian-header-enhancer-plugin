@@ -4,6 +4,7 @@ import HeaderEnhancerPlugin from "./main";
 export interface HeaderEnhancerSettings {
 	language: string;
 	showOnStatusBar: boolean;
+	isAutoDetectHeaderLevel: boolean;
 	startHeaderLevel: number;
 	maxHeaderLevel: number;
 	isAutoNumbering: boolean;
@@ -19,6 +20,7 @@ export interface HeaderEnhancerSettings {
 export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	language: "en",
 	showOnStatusBar: true,
+	isAutoDetectHeaderLevel: false, // TODO: auto detect header level is not available now
 	startHeaderLevel: 1,
 	maxHeaderLevel: 6,
 	isAutoNumbering: true,
@@ -48,7 +50,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: "General" });
 		new Setting(containerEl)
-			.setName("Language")
+			.setName("Language [W.I.P]")
 			.setDesc("Language for automatic numbering")
 			.addDropdown((dropdown) => {
 				dropdown.addOption("en", "English");
@@ -58,6 +60,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					this.plugin.settings.language = value;
 					await this.plugin.saveSettings();
 				});
+				dropdown.setDisabled(true);
 			});
 		new Setting(containerEl)
 			.setName("Show on status bar")
@@ -101,6 +104,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Numbering header level")
 			.setDesc("The range of header level to be numbered")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
+					.onChange(async (value) => {
+						this.plugin.settings.isAutoDetectHeaderLevel = value;
+						await this.plugin.saveSettings();
+						this.display();
+					})
+					.setDisabled(true);
+			})
 			.addDropdown((dropdown) => {
 				dropdown.addOption("1", "H1");
 				dropdown.addOption("2", "H2");
@@ -111,21 +123,11 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.setValue(
 					this.plugin.settings.startHeaderLevel.toString()
 				);
+				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel);
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.startHeaderLevel = parseInt(value, 10);
 					await this.plugin.saveSettings();
-					formatExample.setName(
-						"Your auto numbering format is like : \t" +
-						this.plugin.settings.autoNumberingStartNumber +
-						this.plugin.settings.autoNumberingSeparator +
-						"1" +
-						this.plugin.settings.autoNumberingSeparator +
-						"1" +
-						"\tfrom H" +
-						this.plugin.settings.startHeaderLevel +
-						" to H" +
-						this.plugin.settings.maxHeaderLevel
-					);
+					this.display();
 				});
 			})
 			.addDropdown((dropdown) => {
@@ -138,6 +140,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.setValue(
 					this.plugin.settings.maxHeaderLevel.toString()
 				);
+				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel);
 				dropdown.onChange(async (value) => {
 					if (this.checkMaxLevel(parseInt(value, 10))) {
 						this.plugin.settings.maxHeaderLevel = parseInt(
@@ -145,18 +148,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							10
 						);
 						await this.plugin.saveSettings();
-						formatExample.setName(
-							"Your auto numbering format is like : \t" +
-							this.plugin.settings.autoNumberingStartNumber +
-							this.plugin.settings.autoNumberingSeparator +
-							"1" +
-							this.plugin.settings.autoNumberingSeparator +
-							"1" +
-							"\tfrom H" +
-							this.plugin.settings.startHeaderLevel +
-							" to H" +
-							this.plugin.settings.maxHeaderLevel
-						);
+						this.display();
 					} else {
 						new Notice(
 							"Max header level should be greater than or equal to start header level"
@@ -176,21 +168,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							this.plugin.settings.autoNumberingStartNumber =
 								value;
 							await this.plugin.saveSettings();
-							formatExample.setName(
-								"Your auto numbering format is like : \t" +
-								this.plugin.settings
-									.autoNumberingStartNumber +
-								this.plugin.settings
-									.autoNumberingSeparator +
-								"1" +
-								this.plugin.settings
-									.autoNumberingSeparator +
-								"1" +
-								"\tfrom H" +
-								this.plugin.settings.startHeaderLevel +
-								" to H" +
-								this.plugin.settings.maxHeaderLevel
-							);
+							this.display();
 						} else {
 							new Notice("Start number should be a number");
 						}
@@ -207,21 +185,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						if (this.checkSeparator(value)) {
 							this.plugin.settings.autoNumberingSeparator = value;
 							await this.plugin.saveSettings();
-							formatExample.setName(
-								"Your auto numbering format is like : \t" +
-								this.plugin.settings
-									.autoNumberingStartNumber +
-								this.plugin.settings
-									.autoNumberingSeparator +
-								"1" +
-								this.plugin.settings
-									.autoNumberingSeparator +
-								"1" +
-								"\tfrom H" +
-								this.plugin.settings.startHeaderLevel +
-								" to H" +
-								this.plugin.settings.maxHeaderLevel
-							);
+							this.display();
 						} else {
 							new Notice("Separator should be one of '. , / -'");
 						}
@@ -248,7 +212,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 				});
 			});
-		const formatExample = new Setting(containerEl).setName(
+		new Setting(containerEl).setName(
 			"Your auto numbering format is like : \t" +
 			this.plugin.settings.autoNumberingStartNumber +
 			this.plugin.settings.autoNumberingSeparator +
@@ -259,13 +223,9 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			this.plugin.settings.startHeaderLevel +
 			" to H" +
 			this.plugin.settings.maxHeaderLevel
+			+ " " +
+			(this.plugin.settings.isAutoDetectHeaderLevel ? "[Auto Detect]" : "[Manual]")
 		);
-		//.addText(text => text
-		//    .setValue(this.plugin.settings.autoNumberingStartNumber + this.plugin.settings.autoNumberingSeparator + '1' + this.plugin.settings.autoNumberingSeparator + '1')
-		//    .setDisabled(true)
-		//    .onChange(async (value) => {
-		//        await this.plugin.saveSettings();
-		//    }));
 
 		containerEl.createEl("h2", { text: "Isolate Title Font [W.I.P]" });
 		new Setting(containerEl)
