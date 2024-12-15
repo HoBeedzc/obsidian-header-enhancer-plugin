@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.5] - 2024-12-15
+### Added
+- 增加多语言支持 - Added multi-language support
+
 ## [0.1.4] - 2024-06-12
 ### Refactor
 - 重构了代码，提高了代码质量 - Refactored the code to improve code quality
