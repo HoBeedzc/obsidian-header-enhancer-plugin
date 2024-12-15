@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import HeaderEnhancerPlugin from "./main";
+import { I18n } from './i18n';
 
 export interface HeaderEnhancerSettings {
 	language: string;
@@ -43,28 +44,30 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
+		const i18n = I18n.getInstance();
 
 		containerEl.empty();
 
-		containerEl.createEl("h1", { text: "Header Enhancer Settings" });
+		containerEl.createEl("h1", { text: i18n.t("settings.title") });
 
-		containerEl.createEl("h2", { text: "General" });
+		containerEl.createEl("h2", { text: i18n.t("settings.general") });
 		new Setting(containerEl)
-			.setName("Language [W.I.P]")
-			.setDesc("Language for automatic numbering")
+			.setName(i18n.t("settings.language.name"))
+			.setDesc(i18n.t("settings.language.desc"))
 			.addDropdown((dropdown) => {
 				dropdown.addOption("en", "English");
-				dropdown.addOption("zh", "Chinese");
+				dropdown.addOption("zh", "中文");
 				dropdown.setValue(this.plugin.settings.language);
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.language = value;
+					i18n.setLanguage(value);
 					await this.plugin.saveSettings();
+					this.display(); // Refresh the settings page
 				});
-				dropdown.setDisabled(true);
 			});
 		new Setting(containerEl)
-			.setName("Show on status bar")
-			.setDesc("Show automatic numbering status on status bar")
+			.setName(i18n.t("settings.statusBar.name"))
+			.setDesc(i18n.t("settings.statusBar.desc"))
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.showOnStatusBar)
@@ -75,23 +78,23 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					});
 			});
 
-		containerEl.createEl("h2", { text: "Header Auto Numbering" });
+		containerEl.createEl("h2", { text: i18n.t("settings.autoNumbering.title") });
 		new Setting(containerEl)
-			.setName("Enable")
-			.setDesc("Enable auto numbering")
+			.setName(i18n.t("settings.autoNumbering.enable.name"))
+			.setDesc(i18n.t("settings.autoNumbering.enable.desc"))
 			.setDisabled(true)
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.isAutoNumbering)
 					.onChange(async (value) => {
 						new Notice(
-							"You can only change this option in side bar"
+							i18n.t("settings.autoNumbering.enable.notice")
 						);
 					});
 			});
 		new Setting(containerEl)
-			.setName("Use yaml")
-			.setDesc("use yaml control the format of header-number.")
+			.setName(i18n.t("settings.autoNumbering.useYaml.name"))
+			.setDesc(i18n.t("settings.autoNumbering.useYaml.desc"))
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.isUseYaml)
@@ -102,8 +105,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					});
 			});
 		new Setting(containerEl)
-			.setName("Numbering header level")
-			.setDesc("The range of header level to be numbered")
+			.setName(i18n.t("settings.autoNumbering.headerLevel.name"))
+			.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc"))
 			.addToggle((toggle) => {
 				toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
 					.onChange(async (value) => {
@@ -157,43 +160,38 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				});
 			});
 		new Setting(containerEl)
-			.setName("Start number")
-			.setDesc("Start numbering at this number")
+			.setName(i18n.t("settings.autoNumbering.startNumber.name"))
+			.setDesc(i18n.t("settings.autoNumbering.startNumber.desc"))
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
+					.setPlaceholder(i18n.t("settings.autoNumbering.startNumber.placeholder"))
 					.setValue(this.plugin.settings.autoNumberingStartNumber)
 					.onChange(async (value) => {
 						if (this.checkStartNumber(value)) {
-							this.plugin.settings.autoNumberingStartNumber =
-								value;
+							this.plugin.settings.autoNumberingStartNumber = value;
 							await this.plugin.saveSettings();
 							this.display();
-						} else {
-							new Notice("Start number should be a number");
 						}
 					})
 			);
 		new Setting(containerEl)
-			.setName("Separator")
-			.setDesc("Separator between numbers. Only support one of '. , / -'")
+			.setName(i18n.t("settings.autoNumbering.separator.name"))
+			.setDesc(i18n.t("settings.autoNumbering.separator.desc"))
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your separator")
+					.setPlaceholder(i18n.t("settings.autoNumbering.separator.placeholder"))
 					.setValue(this.plugin.settings.autoNumberingSeparator)
 					.onChange(async (value) => {
 						if (this.checkSeparator(value)) {
 							this.plugin.settings.autoNumberingSeparator = value;
 							await this.plugin.saveSettings();
 							this.display();
-						} else {
-							new Notice("Separator should be one of '. , / -'");
 						}
 					})
 			);
 		new Setting(containerEl)
-			.setName("Header separator")
-			.setDesc("Separator between header and number. default is tab")
+			.setName(i18n.t("settings.autoNumbering.headerSeparator.name"))
+			.setDesc(i18n.t("settings.autoNumbering.headerSeparator.desc"))
 			.addDropdown((dropdown) => {
 				dropdown.addOption("\t", "Tab");
 				dropdown.addOption(" ", "Space");
@@ -206,46 +204,45 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							value;
 						await this.plugin.saveSettings();
 					} else {
-						new Notice(
-							"you can't change header separator when auto numbering is enabled"
-						);
+						new Notice(i18n.t("settings.autoNumbering.headerSeparator.error"));
 					}
 				});
 			});
 		new Setting(containerEl).setName(
-			"Your auto numbering format is like : \t" +
+			i18n.t("settings.autoNumbering.format.name") +
+			": \t" +
 			this.plugin.settings.autoNumberingStartNumber +
 			this.plugin.settings.autoNumberingSeparator +
 			"1" +
 			this.plugin.settings.autoNumberingSeparator +
 			"1" +
-			"\tfrom H" +
+			"\t" + i18n.t("settings.autoNumbering.format.fromLevel") + " " +
 			this.plugin.settings.startHeaderLevel +
-			" to H" +
-			this.plugin.settings.maxHeaderLevel
-			+ " " +
-			(this.plugin.settings.isAutoDetectHeaderLevel ? "[Auto Detect]" : "[Manual]")
+			" " + i18n.t("settings.autoNumbering.format.toLevel") + " " +
+			this.plugin.settings.maxHeaderLevel +
+			" " +
+			(this.plugin.settings.isAutoDetectHeaderLevel 
+				? i18n.t("settings.autoNumbering.format.autoDetect")
+				: i18n.t("settings.autoNumbering.format.manual"))
 		);
 
-		containerEl.createEl("h2", { text: "Isolate Title Font [W.I.P]" });
+		containerEl.createEl("h2", { text: i18n.t("settings.font.title") });
 		new Setting(containerEl)
-			.setName("Enable")
-			.setDesc("Isolate title font from content")
+			.setName(i18n.t("settings.font.separate.name"))
+			.setDesc(i18n.t("settings.font.separate.desc"))
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.isSeparateTitleFont)
 					.onChange(async (value) => {
-						new Notice(
-							"This feature is not available now, please wait for the next version"
-						);
+						new Notice(i18n.t("settings.font.separate.notice"));
 					});
 			});
 		new Setting(containerEl)
-			.setName("Font family")
-			.setDesc("Title font family, inherit from global font by default")
+			.setName(i18n.t("settings.font.family.name"))
+			.setDesc(i18n.t("settings.font.family.desc"))
 			.addText((text) =>
 				text
-					.setPlaceholder("global font")
+					.setPlaceholder(i18n.t("settings.font.family.placeholder"))
 					.setValue(this.plugin.settings.titleFontFamily)
 					.onChange(async (value) => {
 						this.plugin.settings.titleFontFamily = value;
@@ -253,13 +250,11 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Font size")
-			.setDesc(
-				"Title font size, inherit from global font size by default"
-			)
+			.setName(i18n.t("settings.font.size.name"))
+			.setDesc(i18n.t("settings.font.size.desc"))
 			.addText((text) =>
 				text
-					.setPlaceholder("global font size")
+					.setPlaceholder(i18n.t("settings.font.size.placeholder"))
 					.setValue(this.plugin.settings.titleFontSize)
 					.onChange(async (value) => {
 						this.plugin.settings.titleFontSize = value;
@@ -268,10 +263,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			);
 		new Setting(containerEl)
 			.addButton((button) => {
-				button.setButtonText("Reset settings").onClick(async () => {
+				button.setButtonText(i18n.t("settings.resetSettings.name")).onClick(async () => {
 					if (
 						confirm(
-							"Are you sure you want to reset settings to default?"
+							i18n.t("settings.resetSettings.confirm")
 						)
 					) {
 						this.plugin.settings = DEFAULT_SETTINGS;
@@ -281,21 +276,21 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				});
 			});
 
-		containerEl.createEl("h2", { text: "More Info" });
-		containerEl.createEl("p", { text: "Author: " }).createEl("a", {
+		containerEl.createEl("h2", { text: i18n.t("settings.moreInfo") });
+		containerEl.createEl("p", { text: i18n.t("settings.author") }).createEl("a", {
 			text: "Hobee Liu",
 			href: "https://github.com/HoBeedzc",
 		});
-		containerEl.createEl("p", { text: "License: " }).createEl("a", {
+		containerEl.createEl("p", { text: i18n.t("settings.license") }).createEl("a", {
 			text: "MIT",
 			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/blob/master/LICENSE",
 		});
-		containerEl.createEl("p", { text: "Github Repo: " }).createEl("a", {
+		containerEl.createEl("p", { text: i18n.t("settings.githubRepo") }).createEl("a", {
 			text: "obsidian-header-enhancer",
 			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
 		});
 		containerEl
-			.createEl("p", { text: "Any question? Send feedback on " })
+			.createEl("p", { text: i18n.t("settings.anyQuestion") })
 			.createEl("a", {
 				text: "Github Issues",
 				href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",

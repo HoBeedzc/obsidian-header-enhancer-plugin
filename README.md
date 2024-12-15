@@ -64,7 +64,7 @@ Here are some known bugs, I will fix them as soon as possible.
 - [ ] When you change the header level, the auto number will not be updated immediately. You need move cursor to header line and press `Enter` key to update it.
 
 ## Todo list
-- [ ] Setting support Chinese. - Header Enhancer
+- [x] Setting support Chinese. - Header Enhancer
 
 ## ChangeLog
 Full changelog can be found [here](./doc/changelog.md).
