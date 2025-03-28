@@ -65,8 +65,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					{
 						key: "Enter",
 						run: (view: EditorView): boolean => {
-							const success = this.handlePressEnter(view);
-							return success;
+							const state = view.state;
+                    		const pos = state.selection.main.to;
+                    		const currentLine = state.doc.lineAt(pos);
+                    
+                    		// 只有在标题行并且自动编号开启时才进行处理
+                    		if (!isHeader(currentLine.text) || !this.settings.isAutoNumbering) {
+                        		return false; // 不处理，让默认处理程序处理
+                    		}
+                    
+                    		// 执行自定义Enter处理
+                    		return this.handlePressEnter(view);
 						},
 					},
 				])
@@ -79,8 +88,16 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					{
 						key: "Backspace",
 						run: (view: EditorView): boolean => {
-							const success = this.handlePressBackspace(view);
-							return success;
+							const state = view.state;
+                    		const pos = state.selection.main.to;
+                    		const currentLine = state.doc.lineAt(pos);
+                    
+                    		// 只有在标题行时才进行处理
+                    		if (!isHeader(currentLine.text)) {
+                        		return false; // 不处理，让默认处理程序处理
+                    		}
+                    
+                    		return this.handlePressBackspace(view);
 						},
 					},
 				])
@@ -343,131 +360,56 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		return true;
 	}
 
-	handlePressEnter(view: EditorView): boolean {
+	async handlePressEnter(view: EditorView): Promise<boolean> {
 		let state = view.state;
 		let doc = state.doc;
 		const pos = state.selection.main.to;
-		// let posLine = doc.lineAt(pos)
-		const lineCount = doc.lines;
-		const changes = [];
-		let docCharCount = 0;
-		let insertCharCount = 0;
-		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
-
-		const app = this.app; // this is the obsidian App instance
+		
+		const app = this.app;
 		const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
-			new Notice("No active MarkdownView, cannot toggle auto numbering.");
+			return false; // 让默认处理程序处理
+		}
+	
+		// 获取当前行信息
+		const currentLine = doc.lineAt(pos);
+		
+		// 注意：这个检查已经在外层run函数做过了，这里可以简化
+		// 但保留这个检查作为额外的安全措施
+		if (!isHeader(currentLine.text) || !this.settings.isAutoNumbering) {
 			return false;
 		}
-
-		if (!this.settings.isAutoNumbering) {
-			return false;
-		}
-
+	
 		const editor = activeView.editor;
 		const config = getAutoNumberingConfig(this.settings, editor);
-
-		if (!isHeader(doc.lineAt(pos).text)) {
-			return false;
-		}
-
-		// instert a new line in current pos first
-		changes.push({
-			from: pos,
-			to: pos,
-			insert: "\n",
-		});
-
-		if (config.state) {
-			let insertNumber = [Number(config.startNumber) - 1];
-			let isCodeBlock :boolean = false;
-			for (let i = 1; i <= lineCount; i++) {
-				const line = doc.line(i);
-				const fromPos = line.from;
-				docCharCount += line.length;
-				
-				if (line.text.startsWith("```")) {
-					isCodeBlock = !isCodeBlock;
-					if (line.text.slice(3).contains("```")) {
-						isCodeBlock = !isCodeBlock;
-					}
-				}
-
-				if (isCodeBlock) {
-					continue;
-				}
-				
-
-				if (isHeader(line.text)) {
-					const [headerLevel, realHeaderLevel] = getHeaderLevel(
-						line.text,
-						config.startLevel
-					);
-					if (headerLevel <= 0) {
-						continue;
-					}
-					insertNumber = getNextNumber(insertNumber, headerLevel);
-					const insertNumberStr = insertNumber.join(config.separator);
-
-					if (
-						isNeedInsertNumber(
-							line.text,
-							this.settings.autoNumberingHeaderSeparator
-						)
-					) {
-						if (docCharCount <= pos) {
-							insertCharCountBeforePos +=
-								insertNumberStr.length + 1;
-						}
-						insertCharCount += insertNumberStr.length + 1;
-						docCharCount += insertNumberStr.length + 1;
-						changes.push({
-							from: fromPos + realHeaderLevel + 1,
-							to: fromPos + realHeaderLevel + 1,
-							insert:
-								insertNumberStr +
-								this.settings.autoNumberingHeaderSeparator,
-						});
-					} else if (
-						isNeedUpdateNumber(
-							insertNumberStr,
-							line.text,
-							this.settings.autoNumberingHeaderSeparator
-						)
-					) {
-						const fromPos = line.from + realHeaderLevel + 1;
-						const toPos =
-							fromPos +
-							line.text
-								.split(
-									this.settings.autoNumberingHeaderSeparator
-								)[0]
-								.split(" ")[1].length;
-						if (docCharCount <= pos) {
-							insertCharCountBeforePos +=
-								insertNumberStr.length - toPos + fromPos;
-						}
-						insertCharCount +=
-							insertNumberStr.length - toPos + fromPos;
-						docCharCount +=
-							insertNumberStr.length - toPos + fromPos;
-						changes.push({
-							from: fromPos,
-							to: toPos,
-							insert: insertNumberStr,
-						});
-					}
-				}
-			}
-		}
-
+		
+		// 处理在标题中间按Enter的情况
+		// 获取光标前后的文本
+		const textBeforeCursor = currentLine.text.substring(0, pos - currentLine.from);
+		const textAfterCursor = currentLine.text.substring(pos - currentLine.from);
+		
+		// 创建更改操作 - 直接替换整行，而不是分多次操作
+		const changes = [{
+			from: currentLine.from,
+			to: currentLine.to,
+			insert: textBeforeCursor + "\n" + textAfterCursor
+		}];
+		
+		// 应用更改并设置光标位置
 		view.dispatch({
 			changes,
-			selection: { anchor: pos + 1 + insertCharCountBeforePos },
+			selection: { anchor: currentLine.from + textBeforeCursor.length + 1 },
 			userEvent: "HeaderEnhancer.changeAutoNumbering",
 		});
-
+		
+		// 在操作完成后更新标题编号
+		if (config.state) {
+			// 使用setTimeout确保编辑操作已完成
+			setTimeout(() => {
+				this.handleAddHeaderNumber(activeView);
+			}, 10);
+		}
+		
 		return true;
 	}
 
