@@ -78,7 +78,7 @@ export default {
                 placeholder: "global font size"
             }
         },
-        reset: {
+        resetSettings: {
             name: "Reset Settings",
             confirm: "Are you sure you want to reset settings to default?"
         },
