@@ -26,14 +26,12 @@ export default {
         },
         autoNumbering: {
             title: "Header Auto Numbering",
-            enable: {
-                name: "Enable Auto Numbering",
-                desc: "Enable automatic header numbering",
-                notice: "You can only change this option in side bar"
-            },
-            useYaml: {
-                name: "Use YAML",
-                desc: "Use YAML to control the format of header numbers"
+            mode: {
+                name: "Auto Numbering Mode",
+                desc: "Control how header auto numbering works",
+                off: "Off",
+                on: "On",
+                yaml: "Controlled by YAML"
             },
             headerLevel: {
                 name: "Header Level Settings",
@@ -87,7 +85,13 @@ export default {
         moreInfo: "More Information",
         author: "Author: ",
         license: "License: ",
-        githubRepo: "Github Repository: ",
-        anyQuestion: "Any questions? Send feedback on "
+        githubRepo: "GitHub Repository: ",
+        anyQuestion: "Any questions? "
+    },
+    statusBar: {
+        title: "Header Enhancer",
+        off: "Off",
+        on: "On",
+        yaml: "YAML"
     }
 };

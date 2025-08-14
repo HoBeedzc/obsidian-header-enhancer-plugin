@@ -1,5 +1,5 @@
 import { Editor } from "obsidian";
-import { HeaderEnhancerSettings } from "./setting";
+import { HeaderEnhancerSettings, AutoNumberingMode } from "./setting";
 import { getAutoNumberingYaml } from "./utils";
 
 export interface AutoNumberingConfig {
@@ -15,14 +15,14 @@ export function getAutoNumberingConfig(
 	editor: Editor
 ): AutoNumberingConfig {
 	const config: AutoNumberingConfig = {
-		state: setting.isAutoNumbering,
+		state: setting.autoNumberingMode !== AutoNumberingMode.OFF,
 		startLevel: setting.startHeaderLevel,
 		maxLevel: setting.maxHeaderLevel,
 		startNumber: parseInt(setting.autoNumberingStartNumber),
 		separator: setting.autoNumberingSeparator,
 	};
 
-	if (setting.isUseYaml) {
+	if (setting.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
 		const yaml = getAutoNumberingYaml(editor);
 		if (yaml === "") return config;
 

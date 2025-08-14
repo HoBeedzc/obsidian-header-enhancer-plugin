@@ -2,14 +2,19 @@ import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import HeaderEnhancerPlugin from "./main";
 import { I18n } from './i18n';
 
+export enum AutoNumberingMode {
+	OFF = "off",
+	ON = "on", 
+	YAML_CONTROLLED = "yaml"
+}
+
 export interface HeaderEnhancerSettings {
 	language: string;
 	showOnStatusBar: boolean;
 	isAutoDetectHeaderLevel: boolean;
 	startHeaderLevel: number;
 	maxHeaderLevel: number;
-	isAutoNumbering: boolean;
-	isUseYaml: boolean;
+	autoNumberingMode: AutoNumberingMode;
 	autoNumberingStartNumber: string;
 	autoNumberingSeparator: string;
 	autoNumberingHeaderSeparator: string;
@@ -24,8 +29,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	isAutoDetectHeaderLevel: false, // TODO: auto detect header level is not available now
 	startHeaderLevel: 1,
 	maxHeaderLevel: 6,
-	isAutoNumbering: true,
-	isUseYaml: false,
+	autoNumberingMode: AutoNumberingMode.ON,
 	autoNumberingStartNumber: "1",
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
@@ -62,6 +66,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					this.plugin.settings.language = value;
 					i18n.setLanguage(value);
 					await this.plugin.saveSettings();
+					this.plugin.handleShowStateBarChange(); // Refresh status bar with new language
 					this.display(); // Refresh the settings page
 				});
 			});
@@ -80,29 +85,19 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: i18n.t("settings.autoNumbering.title") });
 		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.enable.name"))
-			.setDesc(i18n.t("settings.autoNumbering.enable.desc"))
-			.setDisabled(true)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.isAutoNumbering)
-					.onChange(async (value) => {
-						new Notice(
-							i18n.t("settings.autoNumbering.enable.notice")
-						);
-					});
-			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.useYaml.name"))
-			.setDesc(i18n.t("settings.autoNumbering.useYaml.desc"))
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.isUseYaml)
-					.onChange(async (value) => {
-						this.plugin.settings.isUseYaml = value;
-						await this.plugin.saveSettings();
-						this.plugin.handleShowStateBarChange();
-					});
+			.setName(i18n.t("settings.autoNumbering.mode.name"))
+			.setDesc(i18n.t("settings.autoNumbering.mode.desc"))
+			.addDropdown((dropdown) => {
+				dropdown.addOption(AutoNumberingMode.OFF, i18n.t("settings.autoNumbering.mode.off"));
+				dropdown.addOption(AutoNumberingMode.ON, i18n.t("settings.autoNumbering.mode.on"));
+				dropdown.addOption(AutoNumberingMode.YAML_CONTROLLED, i18n.t("settings.autoNumbering.mode.yaml"));
+				dropdown.setValue(this.plugin.settings.autoNumberingMode);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.autoNumberingMode = value as AutoNumberingMode;
+					await this.plugin.saveSettings();
+					this.plugin.handleShowStateBarChange();
+					this.display();
+				});
 			});
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.headerLevel.name"))
@@ -114,7 +109,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.display();
 					})
-					.setDisabled(true);
+					.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 			})
 			.addDropdown((dropdown) => {
 				dropdown.addOption("1", "H1");
@@ -126,7 +121,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.setValue(
 					this.plugin.settings.startHeaderLevel.toString()
 				);
-				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel);
+				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.startHeaderLevel = parseInt(value, 10);
 					await this.plugin.saveSettings();
@@ -143,7 +138,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.setValue(
 					this.plugin.settings.maxHeaderLevel.toString()
 				);
-				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel);
+				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
 					if (this.checkMaxLevel(parseInt(value, 10))) {
 						this.plugin.settings.maxHeaderLevel = parseInt(
@@ -198,6 +193,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.setValue(
 					this.plugin.settings.autoNumberingHeaderSeparator
 				);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
 					if (this.checkHeaderSeparator(value)) {
 						this.plugin.settings.autoNumberingHeaderSeparator =
@@ -315,7 +311,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	}
 
 	checkHeaderSeparator(separator: string): boolean {
-		if (this.plugin.settings.isAutoNumbering) {
+		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
 			return false;
 		}
 		return true;
