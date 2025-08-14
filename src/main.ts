@@ -15,8 +15,10 @@ import {
 	HeaderEnhancerSettingTab,
 	DEFAULT_SETTINGS,
 	HeaderEnhancerSettings,
+	AutoNumberingMode,
 } from "./setting";
 import { getAutoNumberingConfig } from "./config";
+import { I18n } from "./i18n";
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
@@ -40,13 +42,13 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					return;
 				}
 				// toggle header numbering on/off
-				if (this.settings.isAutoNumbering) {
-					this.settings.isAutoNumbering = false;
+				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
+					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
-					this.settings.isAutoNumbering = true;
+					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					this.handleAddHeaderNumber(activeView);
 				}
@@ -70,7 +72,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
                     		const currentLine = state.doc.lineAt(pos);
                     
                     		// 只有在标题行并且自动编号开启时才进行处理
-                    		if (!isHeader(currentLine.text) || !this.settings.isAutoNumbering) {
+                    		if (!isHeader(currentLine.text) || this.settings.autoNumberingMode === AutoNumberingMode.OFF) {
                         		return false; // 不处理，让默认处理程序处理
                     		}
                     
@@ -119,13 +121,13 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					return;
 				}
 				// toggle header numbering on/off
-				if (this.settings.isAutoNumbering) {
-					this.settings.isAutoNumbering = false;
+				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
+					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
-					this.settings.isAutoNumbering = true;
+					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					this.handleAddHeaderNumber(activeView);
 				}
@@ -238,14 +240,28 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	handleShowStateBarChange() {
 		if (this.settings.showOnStatusBar) {
 			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-			const autoNumberingStatus = this.settings.isAutoNumbering
-				? "On"
-				: "Off";
+			const i18n = I18n.getInstance();
+			let autoNumberingStatus: string;
+			switch (this.settings.autoNumberingMode) {
+				case AutoNumberingMode.OFF:
+					autoNumberingStatus = i18n.t("statusBar.off");
+					break;
+				case AutoNumberingMode.ON:
+					autoNumberingStatus = i18n.t("statusBar.on");
+					break;
+				case AutoNumberingMode.YAML_CONTROLLED:
+					autoNumberingStatus = i18n.t("statusBar.yaml");
+					break;
+				default:
+					autoNumberingStatus = "Unknown";
+					break;
+			}
 			this.statusBarItemEl.setText(
-				"Auto Numbering: " + autoNumberingStatus
+				`${i18n.t("statusBar.title")}: ${autoNumberingStatus}`
 			);
+			this.statusBarItemEl.show();
 		} else {
-			this.statusBarItemEl.setText("");
+			this.statusBarItemEl.hide();
 		}
 	}
 
@@ -256,7 +272,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		const config = getAutoNumberingConfig(this.settings, editor);
 
-		if (!this.settings.isAutoNumbering) {
+		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
 			return false;
 		}
 
@@ -336,7 +352,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		const config = getAutoNumberingConfig(this.settings, editor);
 
-		if (!this.settings.isAutoNumbering) {
+		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
 			for (let i = 0; i <= lineCount; i++) {
 				const line = editor.getLine(i);
 				if (isHeader(line)) {
@@ -376,7 +392,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		
 		// 注意：这个检查已经在外层run函数做过了，这里可以简化
 		// 但保留这个检查作为额外的安全措施
-		if (!isHeader(currentLine.text) || !this.settings.isAutoNumbering) {
+		if (!isHeader(currentLine.text) || this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
 			return false;
 		}
 	
@@ -435,7 +451,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			insert: "",
 		});
 
-		if (this.settings.isAutoNumbering) {
+		if (this.settings.autoNumberingMode === AutoNumberingMode.ON) {
 			// some header may be deleted, so we need to recalculate the number
 			// TODO: feature
 		}

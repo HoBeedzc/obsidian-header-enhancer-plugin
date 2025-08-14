@@ -21,4 +21,8 @@ data.json
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
+# Exclude ai files
+.claude
+CLAUDE.md
+
 .git.backup

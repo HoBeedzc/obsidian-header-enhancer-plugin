@@ -40,7 +40,7 @@ export function isNeedUpdateNumber(
 	if (splitor == " ") {
 		cntNumsStr = text.split(splitor)[1];
 	} else {
-		cntNumsStr = text.split(splitor)[0].split(" ")[0];
+		cntNumsStr = text.split(splitor)[0].split(" ")[1];
 	}
 	return nextNumsStr !== cntNumsStr;
 }
@@ -50,7 +50,7 @@ export function removeHeaderNumber(text: string, splitor: string): string {
 	let sharp: string, header: string;
 	if (splitor == " ") {
 		sharp = text.split(splitor)[0];
-		header = text.split(splitor)[2];
+		header = text.split(splitor).slice(2).join(splitor);
 	} else {
 		if (!text.contains(splitor)) return text;
 		sharp = text.split(splitor)[0].split(" ")[0];
