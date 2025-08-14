@@ -68,16 +68,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						key: "Enter",
 						run: (view: EditorView): boolean => {
 							const state = view.state;
-                    		const pos = state.selection.main.to;
-                    		const currentLine = state.doc.lineAt(pos);
-                    
-                    		// 只有在标题行并且自动编号开启时才进行处理
-                    		if (!isHeader(currentLine.text) || this.settings.autoNumberingMode === AutoNumberingMode.OFF) {
-                        		return false; // 不处理，让默认处理程序处理
-                    		}
-                    
-                    		// 执行自定义Enter处理
-                    		return this.handlePressEnter(view);
+							const pos = state.selection.main.to;
+							const currentLine = state.doc.lineAt(pos);
+
+							// 只有在标题行并且自动编号开启时才进行处理
+							if (!isHeader(currentLine.text) || this.settings.autoNumberingMode === AutoNumberingMode.OFF) {
+								return false; // 不处理，让默认处理程序处理
+							}
+
+							// 执行自定义Enter处理 - 异步调用但不等待结果
+							this.handlePressEnter(view);
+							return true; // 表示我们已经处理了这个事件
 						},
 					},
 				])
