@@ -1,5 +1,10 @@
 # 更新记录 - Changelog
 
+## [0.1.7] - 2025-08-14
+### Fixed
+- 修复 TypeScript 编译错误：异步函数返回类型不匹配问题 - Fixed TypeScript compilation error: async function return type mismatch
+- 修复 Enter 键处理器中 Promise<boolean> 与 boolean 类型冲突 - Fixed Promise<boolean> vs boolean type conflict in Enter key handler
+
 ## [0.1.6] - 2025-08-14
 ### Refactor
 - 将布尔标志替换为枚举 AutoNumberingMode（OFF/ON/YAML_CONTROLLED），提升配置清晰度 - Replace boolean flags with AutoNumberingMode enum for clarity
