@@ -1,5 +1,15 @@
 # 更新记录 - Changelog
 
+## [0.1.6] - 2025-08-14
+### Refactor
+- 将布尔标志替换为枚举 AutoNumberingMode（OFF/ON/YAML_CONTROLLED），提升配置清晰度 - Replace boolean flags with AutoNumberingMode enum for clarity
+- 设置页将开关改为下拉选择，交互更一致 - Settings UI: toggles replaced by dropdown
+### Fixed
+- 修复 `removeHeaderNumber` 中标题文本提取问题 - Fix header text extraction bug in `removeHeaderNumber`
+### Changed
+- 改进状态栏显示并完善国际化 - Improve status bar display with proper internationalization
+- 更新中英文翻译以匹配新模式 - Update i18n strings to match new mode system
+
 ## [0.1.5] - 2024-12-15
 ### Added
 - 增加多语言支持 - Added multi-language support
