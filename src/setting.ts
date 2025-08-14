@@ -157,33 +157,33 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.startNumber.name"))
 			.setDesc(i18n.t("settings.autoNumbering.startNumber.desc"))
-			.addText((text) =>
-				text
-					.setPlaceholder(i18n.t("settings.autoNumbering.startNumber.placeholder"))
-					.setValue(this.plugin.settings.autoNumberingStartNumber)
-					.onChange(async (value) => {
-						if (this.checkStartNumber(value)) {
-							this.plugin.settings.autoNumberingStartNumber = value;
-							await this.plugin.saveSettings();
-							this.display();
-						}
-					})
-			);
+			.addDropdown((dropdown) => {
+				dropdown.addOption("0", "0");
+				dropdown.addOption("1", "1");
+				dropdown.setValue(this.plugin.settings.autoNumberingStartNumber);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.autoNumberingStartNumber = value;
+					await this.plugin.saveSettings();
+					this.display();
+				});
+			});
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.separator.name"))
 			.setDesc(i18n.t("settings.autoNumbering.separator.desc"))
-			.addText((text) =>
-				text
-					.setPlaceholder(i18n.t("settings.autoNumbering.separator.placeholder"))
-					.setValue(this.plugin.settings.autoNumberingSeparator)
-					.onChange(async (value) => {
-						if (this.checkSeparator(value)) {
-							this.plugin.settings.autoNumberingSeparator = value;
-							await this.plugin.saveSettings();
-							this.display();
-						}
-					})
-			);
+			.addDropdown((dropdown) => {
+				dropdown.addOption(".", ".");
+				dropdown.addOption(",", ",");
+				dropdown.addOption("-", "-");
+				dropdown.addOption("/", "/");
+				dropdown.setValue(this.plugin.settings.autoNumberingSeparator);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.autoNumberingSeparator = value;
+					await this.plugin.saveSettings();
+					this.display();
+				});
+			});
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.headerSeparator.name"))
 			.setDesc(i18n.t("settings.autoNumbering.headerSeparator.desc"))
