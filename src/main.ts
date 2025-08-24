@@ -367,13 +367,13 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							originalHeading: originalHeading
 						});
 						
-						// 应用更改
+						// Apply changes
 						editor.setLine(i, newLine);
 					}
 				}
 			}
 
-			// 处理反向链接更新
+			// Handle backlink updates
 			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
 				await this.updateBacklinksForChanges(currentFile, headerChanges);
 			}
