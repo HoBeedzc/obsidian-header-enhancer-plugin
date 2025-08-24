@@ -54,6 +54,10 @@ export default {
                 desc: "数字和标题文本之间的分隔符",
                 error: "无效的标题分隔符"
             },
+            updateBacklinks: {
+                name: "更新反向链接",
+                desc: "⚠️ 警告：当标题改变时自动更新反向链接。在大型知识库中可能会影响性能。"
+            },
             format: {
                 name: "当前格式",
                 fromLevel: "从级别",
