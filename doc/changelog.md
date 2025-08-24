@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.2.1] - 2025-08-25
+### Fixed
+- 修复 build 失败的问题 - Fixed build failure issue
+
 ## [0.2.0] - 2024-08-24
 ### Added
 - 🆕 智能反向链接管理系统 - Intelligent backlink management system

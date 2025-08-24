@@ -135,6 +135,7 @@ export class BacklinkManager {
         }
     }
 
+    /**
      * Update a single backlink
      */
     private async updateSingleBacklink(
