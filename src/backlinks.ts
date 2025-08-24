@@ -89,9 +89,9 @@ export class BacklinkManager {
     }
 
     /**
-     * 批量更新链接
-     * @param updates 需要更新的链接列表
-     * @returns 是否全部更新成功
+     * Batch update header links in multiple files
+     * @param updates List of header link updates to apply
+     * @returns Whether all updates were successful
      */
     async updateBacklinks(updates: HeaderLinkUpdate[]): Promise<boolean> {
         if (updates.length === 0) return true;
