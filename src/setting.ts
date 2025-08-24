@@ -311,9 +311,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	}
 
 	checkHeaderSeparator(separator: string): boolean {
-		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			return false;
-		}
-		return true;
+		const validSeparators = ["\t", " "];
+		return validSeparators.includes(separator);
 	}
 }
