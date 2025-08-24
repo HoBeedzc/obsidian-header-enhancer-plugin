@@ -100,17 +100,17 @@ export class BacklinkManager {
         const backupData: { file: TFile; content: string }[] = [];
 
         try {
-            // 创建备份和批量更新
+            // Create backups and batch updates
             for (const update of updates) {
-                // 备份原文件内容
+                // Backup original file content
                 const originalContent = await this.app.vault.read(update.sourceFile);
                 backupData.push({ file: update.sourceFile, content: originalContent });
 
-                // 创建更新Promise
+                // Create update Promise
                 updatePromises.push(this.updateSingleBacklink(update, originalContent));
             }
 
-            // 并行执行所有更新
+            // Execute all updates in parallel
             await Promise.all(updatePromises);
             
             console.log(`Successfully updated ${updates.length} backlinks`);
