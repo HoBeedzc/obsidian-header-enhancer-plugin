@@ -57,11 +57,11 @@ export class BacklinkManager {
                 const sourceFile = this.app.vault.getAbstractFileByPath(sourcePath);
                 if (!(sourceFile instanceof TFile)) continue;
 
-                // 读取源文件内容
+                // Read source file content
                 const content = await this.app.vault.read(sourceFile);
                 const lines = content.split('\n');
 
-                // 检查每个引用
+                // Check each reference
                 for (const ref of references) {
                     if (this.isReferenceCache(ref)) {
                         const linkUpdate = this.extractHeaderLink(
