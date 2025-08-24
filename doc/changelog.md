@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.1.8] - 2025-08-24
+### Fixed
+- 修复无法安装插件的问题 - Fixed the problem of "Unable to Install Plugin"
+
 ## [0.1.7] - 2025-08-14
 ### Fixed
 - 修复 TypeScript 编译错误：异步函数返回类型不匹配问题 - Fixed TypeScript compilation error: async function return type mismatch
