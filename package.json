@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-header-enhancer-plugin",
-	"version": "0.0.1",
+	"version": "0.2.0",
 	"description": "This plugin is used to enhance the title and header of Obsidian.",
 	"main": "main.js",
 	"scripts": {

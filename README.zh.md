@@ -5,77 +5,253 @@
 
 </div>
 
-这个插件旨在增强 [Obsidian](https://obsidian.md) 的标题。该插件将自动检测标题级别并为标题添加序号。
+一个功能强大的 Obsidian 插件，为您的 Markdown 标题提供自动编号、智能反向链接管理和可自定义的格式选项。
 
-**警告:**
-- 这个插件还处于早期开发阶段,所以可能存在一些bug。如果您发现任何bug,请随时在[问题跟踪](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)中报告。
-- 数据是无价的,所以请记得在使用测试版插件(版本号像0.x.x)时创建备份。
+**当前版本**: 0.2.0
 
-## 核心特性
+## ✨ 核心特性
 
-### 1. 标题自动编号
-标题自动编号提供了为标题添加序号的功能。当您按`Enter`键创建新行时,序号将被添加到标题中,并在您更改标题级别时更新。
+### 🔢 智能标题自动编号
+自动为您的标题添加层次化编号（1.1、1.2、2.1 等），具备智能检测和实时更新功能。
 
-**示例:**
+**主要功能：**
+- **实时更新**：在标题行按 `Enter` 键时自动更新编号
+- **层次化结构**：支持嵌套编号（1.1.1、1.1.2、1.2.1 等）
+- **可自定义分隔符**：支持 `.`、`-`、`/` 或 `,` 作为分隔符
+- **灵活的起始级别**：可配置从哪个标题级别（H1-H6）开始编号
+- **单文件控制**：使用 YAML 前置元数据覆盖全局设置
 
 ![header-auto-numbering-example](./doc/img/header-auto-numbering-example.gif)
 
-**警告:**
-- 标题自动编号使用`\t`分隔自动编号和标题。如果您的标题包含`\t`,则标题自动编号可能无法正常工作。  
-- 标题自动编号将直接修改您的 Markdown 源文件,以便在其他 Markdown 编辑器中呈现。
-- 如果您将分隔符设置为`Space`,请确保您的标题不包含空格。
+### 🔗 智能反向链接管理
+当标题编号发生变化时自动维护反向链接，确保您的维基式链接保持连接。
 
-### 2. 隔离标题字体 [开发中]
-隔离标题字体提供了将标题字体与内容分离的功能。
+**功能特点：**
+- **自动链接更新**：标题编号时自动更新 `[[文件名#标题]]` 链接
+- **批量处理**：高效处理整个知识库中的多个链接更新
+- **双向更新**：添加和移除标题编号时都能正确工作
+- **安全操作**：具备错误处理和通知的链接完整性保护
 
-## 安装
+### 📝 YAML 配置支持
+使用 YAML 前置元数据对单个文件进行精细的标题编号控制。
 
-### 从Obsidian【推荐】
-1. 打开设置 -> 第三方插件
-2. 禁用安全模式 
-3. 点击浏览社区插件
-4. 搜索“Header Enhancer”
-5. 点击安装
-6. 安装完成后,关闭社区插件窗口并启用新安装的插件
+**配置示例：**
+```yaml
+---
+header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+---
+```
 
-### 从GitHub
-1. 下载 [最新版本](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
-2. 将zip归档提取到`<vault>/.obsidian/plugins/`中,以便`main.js`文件在`<vault>/.obsidian/plugins/header-enhancer/`文件夹中。
-3. 重新加载Obsidian
-4. 如果提示安全模式,可以禁用安全模式并启用插件。
+### 🎯 高级编辑器集成
+使用 CodeMirror 6 扩展与 Obsidian 编辑器无缝集成。
 
-## 用法
-### 标题自动编号
-标题自动编号默认启用。您可以在插件设置中禁用它。
+**功能特色：**
+- **智能按键处理**：为标题提供自定义的 `Enter` 和 `Backspace` 行为
+- **高优先级处理**：确保与其他插件的兼容性
+- **实时处理**：输入时即时反馈和更新
 
-#### a. 更改自动编号起始标题级别  
-您可以在插件设置中更改自动编号的起始标题级别。默认值为`1`,这意味着自动编号从 H1 或 `#` 开始。
+## 🚀 安装方法
 
-#### b. 自定义编号样式
-您可以在插件设置中自定义编号样式并预览样式。目前仅支持自定义分隔符。
+### 从 Obsidian 社区插件【推荐】
+1. 打开 **设置** → **社区插件**
+2. 关闭 **安全模式**
+3. 点击 **浏览** 社区插件
+4. 搜索 "**Header Enhancer**"
+5. 点击 **安装**
+6. 在已安装插件列表中启用该插件
 
-#### c. 使用Yaml控制标题编号
-您可以在插件设置中使用Yaml控制标题编号。默认值为`false`,这意味着使用自动编号。如果您将其设置为`true`,则可以使用Yaml控制标题编号。
+### 手动安装
+1. 下载 [最新发布版本](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
+2. 将 ZIP 文件解压到 `<库目录>/.obsidian/plugins/header-enhancer/`
+3. 确保 `main.js`、`manifest.json` 和 `styles.css` 在插件文件夹中
+4. 重新加载 Obsidian 或在设置中启用插件
 
-**示例:**
-![yaml-example](./doc/img/yaml-example.gif)
+## ⚙️ 配置与使用
 
-## 已知 bug
-这里列出了一些已知的bug,我会尽快修复它们。
-- [ ] 当您更改标题级别时,自动编号不会立即更新。您需要将光标移动到标题行并按`Enter`键来更新它。  
+### 基本设置
+插件安装后 **默认启用**。您可以：
 
-## 待办事项
-- [x] 设置支持中文。 - 标题增强器
+- **通过功能区切换**：点击左侧功能区的标题图标
+- **通过命令切换**：使用 `Ctrl/Cmd+P` → "Header Enhancer: toggle auto numbering"
+- **状态栏显示**：在底部状态栏查看当前状态（如果已启用）
 
-## 更新日志
-完整的更新日志可以在[这里](./doc/changelog.md).找到。
+### 全局设置
 
-## 致谢
-- https://github.com/Yaozhuwa/easy-typing-obsidian
-- https://github.com/lijyze/obsidian-state-switcher
-- https://github.com/onlyafly/number-headings-obsidian
+#### 编号配置
+- **起始级别**：选择从哪个标题级别（H1-H6）开始编号
+- **分隔符**：从 `.`、`-`、`/` 或 `,` 中选择（默认：`.`）
+- **起始数字**：设置初始编号（默认：`1`）
+- **标题分隔符**：编号与标题文本之间的字符（默认：制表符 `\t`）
 
-## 支持
-如果您喜欢这个插件,您可以通过以下方式支持我:
+#### 反向链接管理
+- **更新反向链接**：标题变化时自动更新 `[[文件名#标题]]` 链接
+- **安全更新**：批量处理，具备错误处理和回滚功能
 
-<a href="https://bmc.link/hobee"><img src="https://img.buymeacoffee.com/button-api/?text=请我喝杯咖啡&emoji=&slug=hobee&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
+#### 界面选项
+- **显示状态栏**：在底部栏显示自动编号状态
+- **语言**：支持英文和中文
+
+### 单文件 YAML 控制
+
+使用前置元数据为单个文件覆盖全局设置：
+
+```yaml
+---
+header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+---
+```
+
+**YAML 参数：**
+- `state on/off`：启用/禁用该文件的编号
+- `first-level h1-h6`：起始标题级别
+- `max N`：最大嵌套深度
+- `start-at N`：起始编号
+- `separator X`：分隔符字符
+
+### 可用命令
+
+| 命令 | 描述 |
+|------|------|
+| **切换自动编号** | 开启/关闭标题编号功能 |
+| **添加自动编号 YAML** | 为当前文件添加 YAML 配置 |
+| **重置自动编号 YAML** | 重置 YAML 为默认值 |
+| **移除自动编号 YAML** | 移除 YAML 配置 |
+
+## 💡 使用技巧
+
+### 标题编号最佳实践
+1. **保持层次结构**：维持逻辑的标题层次（H1 → H2 → H3）
+2. **YAML 覆盖**：为特殊文档使用单文件 YAML（无编号、不同起始级别）
+3. **分隔符选择**：选择不会与内容冲突的分隔符
+4. **备份优先**：批量操作前务必备份知识库
+
+### 反向链接管理
+- 添加/移除标题编号时自动更新链接
+- 支持标准的 Obsidian `[[文件名#标题]]` 语法
+- 处理包含特殊字符的复杂标题文本
+- 保留链接上下文和格式
+
+### 键盘快捷键
+- **标题行按 Enter**：自动为新标题添加/更新编号
+- **标题行按 Backspace**：智能删除处理（保留结构）
+- **功能区点击**：快速在编号/无编号模式间切换
+
+## 🔧 技术细节
+
+### 架构
+- **CodeMirror 6 集成**：高优先级按键处理，无缝编辑体验
+- **实时处理**：即时更新，不影响性能
+- **安全文件操作**：原子更新，具备回滚功能
+- **国际化支持**：完整的 i18n 支持和回退系统
+
+### 兼容性
+- **Obsidian 版本**：需要 0.16.0+
+- **平台支持**：桌面端和移动端
+- **插件兼容性**：高优先级按键映射，防止冲突
+- **导出兼容性**：编号后的标题在外部 Markdown 编辑器中可用
+
+## 🐛 已知问题与故障排除
+
+### 当前限制
+- **需要手动刷新**：手动更改标题级别时，编号可能不会立即更新。将光标移至标题行并按 `Enter` 键刷新
+- **制表符分隔符**：默认分隔符使用制表符（`\t`）。如果标题包含制表符，编号可能无法正常工作
+- **标题中的空格**：使用空格作为分隔符时，确保标题不包含前导/尾随空格
+
+### 常见问题与解决方案
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 编号未更新 | 手动更改了标题级别 | 在标题行按 `Enter` 键刷新 |
+| 编号后反向链接失效 | 未自动更新链接 | 检查"更新反向链接"设置是否启用 |
+| 插件冲突 | 按键处理冲突 | Header Enhancer 使用最高优先级 - 请通过 GitHub 报告冲突 |
+| YAML 不生效 | YAML 格式不正确 | 使用"添加自动编号 yaml"命令获取正确格式 |
+
+### 问题报告
+发现了 Bug？请在 [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues) 报告，并包含：
+- Obsidian 版本
+- 插件版本
+- 重现步骤
+- 预期行为 vs 实际行为
+
+## 🗺️ 开发路线图
+
+### 已完成功能
+- ✅ **标题自动编号** - 智能层次化编号系统
+- ✅ **YAML 配置** - 单文件设置覆盖
+- ✅ **反向链接管理** - 自动链接更新（v0.2.0）
+- ✅ **国际化支持** - 英文和中文支持
+- ✅ **状态栏集成** - 实时状态显示
+- ✅ **CodeMirror 6 集成** - 现代编辑器兼容性
+
+### 即将推出的功能
+- 🔄 **自动级别检测** - 智能标题级别检测
+- 🎨 **隔离标题字体** - 自定义标题排版（开发中）
+- 📱 **移动端优化** - 增强移动端体验
+- 🔍 **搜索集成** - 标题搜索和导航
+- 🎯 **快速操作** - 标题操作快捷键
+
+## 📊 更新日志
+
+### 版本 0.2.0（当前）
+- ✨ **新增**：智能反向链接管理系统
+- ✨ **新增**：自动 `[[文件名#标题]]` 链接更新
+- ✨ **新增**：批量链接处理和错误恢复机制
+- ✨ **新增**：双向链接更新（添加和移除编号时）
+- 🔧 **改进**：增强的标题文本提取和解析
+- 🔧 **改进**：更好的错误处理和用户通知
+- 🐛 **修复**：标题编号逻辑中的多个边界情况
+
+### 历史版本
+完整更新日志请查看 [doc/changelog.md](./doc/changelog.md)
+
+## 🙏 致谢与贡献
+
+本插件基于 Obsidian 社区的优秀工作构建：
+
+- **[easy-typing-obsidian](https://github.com/Yaozhuwa/easy-typing-obsidian)** - 编辑器集成模式
+- **[obsidian-state-switcher](https://github.com/lijyze/obsidian-state-switcher)** - 状态管理灵感
+- **[number-headings-obsidian](https://github.com/onlyafly/number-headings-obsidian)** - 初始编号概念
+- **Obsidian 社区** - 反馈、测试和功能建议
+
+## 💖 支持与贡献
+
+### 表达支持
+如果这个插件改善了您的笔记工作流程：
+
+<a href="https://bmc.link/hobee">
+  <img src="https://img.buymeacoffee.com/button-api/?text=请我喝杯咖啡&emoji=&slug=hobee&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" />
+</a>
+
+### 贡献代码
+欢迎贡献！请：
+1. Fork 仓库
+2. 创建功能分支
+3. 提交详细说明的 Pull Request
+4. 遵循现有的代码风格和模式
+
+### 开发环境设置
+```bash
+# 克隆和设置
+git clone https://github.com/HoBeedzc/obsidian-header-enhancer-plugin.git
+cd obsidian-header-enhancer-plugin
+npm install
+
+# 开发模式（监听并重新构建）
+npm run dev
+
+# 生产构建
+npm run build
+
+# 版本升级
+npm run version
+```
+
+---
+
+<div align="center">
+
+**由 [Hobee Liu](https://github.com/HoBeedzc) 用 ❤️ 制作**
+
+⭐ **如果觉得有用请给个星标！** ⭐
+
+</div>

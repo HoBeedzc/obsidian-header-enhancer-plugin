@@ -18,6 +18,7 @@ export interface HeaderEnhancerSettings {
 	autoNumberingStartNumber: string;
 	autoNumberingSeparator: string;
 	autoNumberingHeaderSeparator: string;
+	updateBacklinks: boolean;
 	isSeparateTitleFont: boolean;
 	titleFontFamily: string;
 	titleFontSize: string;
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	autoNumberingStartNumber: "1",
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
+	updateBacklinks: false,
 	isSeparateTitleFont: true,
 	titleFontFamily: "inherit",
 	titleFontSize: "inherit",
@@ -204,6 +206,17 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 				});
 			});
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.updateBacklinks.name"))
+			.setDesc(i18n.t("settings.autoNumbering.updateBacklinks.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.updateBacklinks)
+					.onChange(async (value) => {
+						this.plugin.settings.updateBacklinks = value;
+						await this.plugin.saveSettings();
+					});
+			});
 		new Setting(containerEl).setName(
 			i18n.t("settings.autoNumbering.format.name") +
 			": \t" +
@@ -229,7 +242,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.isSeparateTitleFont)
-					.onChange(async (value) => {
+					.onChange(async () => {
 						new Notice(i18n.t("settings.font.separate.notice"));
 					});
 			});

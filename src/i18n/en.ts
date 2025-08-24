@@ -52,6 +52,10 @@ export default {
                 desc: "Separator between header number and text",
                 error: "You can't change header separator when auto numbering is enabled"
             },
+            updateBacklinks: {
+                name: "Update Backlinks",
+                desc: "⚠️ Warning: Automatically update backlinks when headers change. May impact performance in large vaults."
+            },
             format: {
                 name: "Your auto numbering format is",
                 fromLevel: "from H",

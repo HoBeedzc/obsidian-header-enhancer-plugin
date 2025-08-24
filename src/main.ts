@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
 import { EditorView, keymap } from "@codemirror/view";
 import { Prec } from "@codemirror/state";
 
@@ -19,19 +19,24 @@ import {
 } from "./setting";
 import { getAutoNumberingConfig } from "./config";
 import { I18n } from "./i18n";
+import { BacklinkManager } from "./backlinks";
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
 	statusBarItemEl: HTMLElement;
+	backlinkManager: BacklinkManager;
 
 	async onload() {
 		await this.loadSettings();
+		
+		// Initialize backlink manager
+		this.backlinkManager = new BacklinkManager(this.app);
 
 		// Creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"heading-glyph",
 			"Header Enhancer",
-			(evt: MouseEvent) => {
+			async (evt: MouseEvent) => {
 				const app = this.app; // this is the obsidian App instance
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
@@ -45,12 +50,12 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
-					this.handleRemoveHeaderNumber(activeView);
+					await this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
-					this.handleAddHeaderNumber(activeView);
+					await this.handleAddHeaderNumber(activeView);
 				}
 				this.handleShowStateBarChange();
 			}
@@ -111,7 +116,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.addCommand({
 			id: "toggle-auto-numbering",
 			name: "toggle auto numbering",
-			callback: () => {
+			callback: async () => {
 				const app = this.app; // this is the obsidian App instance
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
@@ -125,12 +130,12 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
-					this.handleRemoveHeaderNumber(activeView);
+					await this.handleRemoveHeaderNumber(activeView);
 				} else {
 					// turn on auto-numbering
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
-					this.handleAddHeaderNumber(activeView);
+					await this.handleAddHeaderNumber(activeView);
 				}
 				this.handleShowStateBarChange();
 			},
@@ -220,7 +225,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
+			window.setInterval(() => {
+				// Periodic maintenance tasks can be added here
+			}, 5 * 60 * 1000)
 		);
 	}
 
@@ -266,7 +273,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		}
 	}
 
-	handleAddHeaderNumber(view: MarkdownView): boolean {
+	async handleAddHeaderNumber(view: MarkdownView): Promise<boolean> {
 		const editor = view.editor;
 		const lineCount = editor.lineCount();
 		let docCharCount = 0;
@@ -276,6 +283,10 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
 			return false;
 		}
+
+		// Get current file for backlink processing
+		const currentFile = view.file;
+		const headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}> = [];
 
 		if (config.state) {
 			let insertNumber: number[] = [Number(config.startNumber) - 1];
@@ -305,20 +316,24 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
 					const insertNumberStr = insertNumber.join(config.separator);
+					
+					let newLine: string | null = null;
+					let originalHeading: string | null = null;
+					
 					if (
 						isNeedInsertNumber(
 							line,
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						editor.setLine(
-							i,
-							"#".repeat(realHeaderLevel) +
-								" " +
-								insertNumberStr +
-								this.settings.autoNumberingHeaderSeparator +
-								line.substring(realHeaderLevel + 1)
-						);
+						// 这是要添加编号的情况 - 提取原始标题
+						originalHeading = line.substring(realHeaderLevel + 1).trim();
+						
+						newLine = "#".repeat(realHeaderLevel) +
+							" " +
+							insertNumberStr +
+							this.settings.autoNumberingHeaderSeparator +
+							line.substring(realHeaderLevel + 1);
 					} else if (
 						isNeedUpdateNumber(
 							insertNumberStr,
@@ -326,32 +341,119 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
+						// 这是要更新编号的情况 - 提取去除编号后的标题
+						const textAfterSeparator = line.split(this.settings.autoNumberingHeaderSeparator)[1];
+						originalHeading = textAfterSeparator ? textAfterSeparator.trim() : null;
+						
 						const originNumberLength = line
 							.split(
 								this.settings.autoNumberingHeaderSeparator
 							)[0]
 							.split(" ")[1].length;
-						editor.setLine(
-							i,
-							"#".repeat(realHeaderLevel) +
-								" " +
-								insertNumberStr +
-								line.substring(
-									realHeaderLevel + originNumberLength + 1
-								)
-						);
+						newLine = "#".repeat(realHeaderLevel) +
+							" " +
+							insertNumberStr +
+							line.substring(
+								realHeaderLevel + originNumberLength + 1
+							);
+					}
+
+					// 记录标题变化用于反向链接更新
+					if (newLine && newLine !== line && originalHeading) {
+						headerChanges.push({
+							lineIndex: i,
+							oldText: line,
+							newText: newLine,
+							originalHeading: originalHeading
+						});
+						
+						// Apply changes
+						editor.setLine(i, newLine);
 					}
 				}
+			}
+
+			// Handle backlink updates
+			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
+				await this.updateBacklinksForChanges(currentFile, headerChanges);
 			}
 		}
 		return true;
 	}
 
-	handleRemoveHeaderNumber(view: MarkdownView): boolean {
+	/**
+	 * Handle backlink updates when headers change
+	 */
+	private async updateBacklinksForChanges(
+		currentFile: TFile, 
+		headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}>
+	): Promise<void> {
+		try {
+			for (const change of headerChanges) {
+				const oldHeading = change.originalHeading;
+				const newHeading = this.extractHeadingText(change.newText);
+				
+				// Update backlinks when header format changes (numbering added)
+				if (oldHeading && change.oldText !== change.newText) {
+					// Find backlinks pointing to the old heading
+					const backlinks = await this.backlinkManager.findHeadingBacklinks(
+						currentFile, 
+						oldHeading.trim()
+					);
+					
+					// Create updated links with new heading format
+					const updates = backlinks.map(link => {
+						const fullNewHeading = this.extractFullHeadingWithNumber(change.newText);
+						const newLink = link.oldLink.replace(
+							`#${oldHeading.trim()}`, 
+							`#${fullNewHeading}`
+						);
+						return {
+							...link,
+							newLink: newLink
+						};
+					});
+					
+					// Update backlinks in batch
+					if (updates.length > 0) {
+						await this.backlinkManager.updateBacklinks(updates);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error updating backlinks:', error);
+			new Notice('Failed to update backlinks: ' + error.message);
+		}
+	}
+
+	/**
+	 * Extract plain heading text (remove # symbols and numbering)
+	 */
+	private extractHeadingText(headerLine: string): string | null {
+		// Match header line: ## [optional numbering] header text
+		// Support various numbering formats: 1.1, 1.1\t, etc.
+		const match = headerLine.match(/^#+\s*(?:\d+[\.\-\/,]*\d*\s*[\t\s]*)?\s*(.+)$/);
+		return match ? match[1].trim() : null;
+	}
+
+	/**
+	 * Extract full heading text with numbering (remove # symbols but keep numbering)
+	 */
+	private extractFullHeadingWithNumber(headerLine: string): string {
+		// Match header line: ## numbering header text, extract numbering + header part
+		const match = headerLine.match(/^#+\s*(.+)$/);
+		return match ? match[1].trim() : headerLine;
+	}
+
+	async handleRemoveHeaderNumber(view: MarkdownView): Promise<boolean> {
 		const editor = view.editor;
 		const lineCount = editor.lineCount();
 
 		const config = getAutoNumberingConfig(this.settings, editor);
+		
+		// Get current file for backlink processing
+		const currentFile = view.file;
+		const headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}> = [];
 
 		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
 			for (let i = 0; i <= lineCount; i++) {
@@ -364,17 +466,80 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					if (headerLevel <= 0) {
 						continue;
 					}
-					editor.setLine(
-						i,
-						removeHeaderNumber(
-							line,
-							this.settings.autoNumberingHeaderSeparator
-						)
+					
+					const newLine = removeHeaderNumber(
+						line,
+						this.settings.autoNumberingHeaderSeparator
 					);
+					
+					// 只有当行实际改变时才记录和更新
+					if (newLine !== line) {
+						// 提取移除编号后的纯标题文本
+						const originalHeading = this.extractHeadingText(newLine);
+						
+						if (originalHeading) {
+							headerChanges.push({
+								lineIndex: i,
+								oldText: line,
+								newText: newLine,
+								originalHeading: originalHeading
+							});
+						}
+						
+						editor.setLine(i, newLine);
+					}
 				}
+			}
+			
+			// 处理反向链接更新 - 从编号格式更新回原始格式
+			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
+				await this.updateBacklinksForRemoval(currentFile, headerChanges);
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Handle backlink updates when removing header numbers
+	 */
+	private async updateBacklinksForRemoval(
+		currentFile: TFile, 
+		headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}>
+	): Promise<void> {
+		try {
+			for (const change of headerChanges) {
+				const oldFullHeading = this.extractFullHeadingWithNumber(change.oldText);
+				const newHeading = change.originalHeading;
+				
+				if (oldFullHeading && newHeading) {
+					// Find backlinks pointing to the numbered heading
+					const backlinks = await this.backlinkManager.findHeadingBacklinks(
+						currentFile, 
+						oldFullHeading
+					);
+					
+					// Create updated links - from numbered format back to original format
+					const updates = backlinks.map(link => {
+						const newLink = link.oldLink.replace(
+							`#${oldFullHeading}`, 
+							`#${newHeading}`
+						);
+						return {
+							...link,
+							newLink: newLink
+						};
+					});
+					
+					// Update backlinks in batch
+					if (updates.length > 0) {
+						await this.backlinkManager.updateBacklinks(updates);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error updating backlinks for removal:', error);
+			new Notice('Failed to update backlinks during removal: ' + error.message);
+		}
 	}
 
 	async handlePressEnter(view: EditorView): Promise<boolean> {
@@ -422,8 +587,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// 在操作完成后更新标题编号
 		if (config.state) {
 			// 使用setTimeout确保编辑操作已完成
-			setTimeout(() => {
-				this.handleAddHeaderNumber(activeView);
+			setTimeout(async () => {
+				await this.handleAddHeaderNumber(activeView);
 			}, 10);
 		}
 		

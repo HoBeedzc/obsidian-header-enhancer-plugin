@@ -1,5 +1,22 @@
 # 更新记录 - Changelog
 
+## [0.2.0] - 2024-08-24
+### Added
+- 🆕 智能反向链接管理系统 - Intelligent backlink management system
+- 🆕 自动更新 `[[文件名#标题]]` 链接功能 - Automatic `[[file#header]]` link updates
+- 🆕 批量链接处理和错误恢复机制 - Batch link processing with error recovery
+- 🆕 双向链接更新（添加和移除编号时） - Bidirectional link updates (when adding/removing numbering)
+- 🆕 BacklinkManager 类处理复杂链接场景 - BacklinkManager class for complex link scenarios
+### Improved
+- 🔧 增强标题文本提取和解析算法 - Enhanced header text extraction and parsing algorithms
+- 🔧 优化用户通知和错误处理机制 - Improved user notifications and error handling
+- 🔧 完善设置界面的反向链接配置选项 - Enhanced backlink settings in configuration UI
+- 🔧 更新中英文文档以反映新功能 - Updated documentation in both languages to reflect new features
+### Fixed
+- 🐛 修复标题编号逻辑中的多个边界情况 - Fixed multiple edge cases in header numbering logic
+- 🐛 改进代码块检测，避免误操作 - Improved code block detection to prevent false operations
+- 🐛 优化异步操作的错误处理 - Enhanced error handling for async operations
+
 ## [0.1.8] - 2025-08-24
 ### Fixed
 - 修复无法安装插件的问题 - Fixed the problem of "Unable to Install Plugin"
