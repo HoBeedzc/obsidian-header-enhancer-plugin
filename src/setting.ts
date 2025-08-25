@@ -20,6 +20,11 @@ export interface HeaderEnhancerSettings {
 	autoNumberingSeparator: string;
 	autoNumberingHeaderSeparator: string;
 	updateBacklinks: boolean;
+	// Header font settings (for markdown headers # ## ###)
+	isSeparateHeaderFont: boolean;
+	headerFontFamily: string;
+	headerFontSize: string;
+	// Title font settings (for document titles)
 	isSeparateTitleFont: boolean;
 	titleFontFamily: string;
 	titleFontSize: string;
@@ -37,6 +42,11 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
 	updateBacklinks: false,
+	// Header font settings
+	isSeparateHeaderFont: false,
+	headerFontFamily: "inherit",
+	headerFontSize: "inherit",
+	// Title font settings  
 	isSeparateTitleFont: false,
 	titleFontFamily: "inherit",
 	titleFontSize: "inherit",
@@ -248,10 +258,60 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
 		);
 
-		containerEl.createEl("h2", { text: i18n.t("settings.font.title") });
+		// Header Font Settings Section
+		containerEl.createEl("h2", { text: i18n.t("settings.headerFont.title") });
 		new Setting(containerEl)
-			.setName(i18n.t("settings.font.separate.name"))
-			.setDesc(i18n.t("settings.font.separate.desc"))
+			.setName(i18n.t("settings.headerFont.separate.name"))
+			.setDesc(i18n.t("settings.headerFont.separate.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.isSeparateHeaderFont)
+					.onChange(async (value) => {
+						this.plugin.settings.isSeparateHeaderFont = value;
+						await this.plugin.saveSettings();
+						this.plugin.applyCSSStyles();
+						this.display();
+					});
+			});
+
+		// Header Font preview section - only show when separate font is enabled
+		if (this.plugin.settings.isSeparateHeaderFont) {
+			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-font-preview" });
+			previewContainer.style.cssText = `
+				margin: 1em 0;
+				padding: 1em;
+				border: 1px solid var(--background-modifier-border);
+				border-radius: 6px;
+				background: var(--background-secondary);
+			`;
+			
+			previewContainer.createEl("div", { 
+				text: i18n.t("settings.headerFont.preview.title"),
+				cls: "setting-item-name"
+			});
+			
+			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
+			
+			// Create preview headers
+			for (let i = 1; i <= 3; i++) {
+				const tagName = i === 1 ? 'h1' : i === 2 ? 'h2' : 'h3';
+				const headerEl = previewContent.createEl(tagName, { 
+					text: `${i18n.t("settings.headerFont.preview.sample")} ${i}`,
+					cls: "header-enhancer-preview-header"
+				});
+				
+				// Apply current font settings to preview
+				this.updateHeaderPreviewStyles(headerEl);
+			}
+		}
+		this.createFontFamilySetting(containerEl, "header");
+		this.createFontSizeSetting(containerEl, "header");
+
+		// Title Font Settings Section
+		containerEl.createEl("h2", { text: i18n.t("settings.titleFont.title") });
+		new Setting(containerEl)
+			.setName(i18n.t("settings.titleFont.separate.name"))
+			.setDesc(i18n.t("settings.titleFont.separate.desc"))
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.isSeparateTitleFont)
@@ -263,9 +323,9 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					});
 			});
 
-		// Font preview section - only show when separate font is enabled
+		// Title Font preview section - only show when separate font is enabled
 		if (this.plugin.settings.isSeparateTitleFont) {
-			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-font-preview" });
+			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-title-font-preview" });
 			previewContainer.style.cssText = `
 				margin: 1em 0;
 				padding: 1em;
@@ -275,90 +335,25 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			`;
 			
 			previewContainer.createEl("div", { 
-				text: i18n.t("settings.font.preview.title"),
+				text: i18n.t("settings.titleFont.preview.title"),
 				cls: "setting-item-name"
 			});
 			
 			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
 			
-			// Create preview headers
-			for (let i = 1; i <= 3; i++) {
-				const headerEl = previewContent.createEl(`h${i}`, { 
-					text: `${i18n.t("settings.font.preview.sample")} ${i}`,
-					cls: "header-enhancer-preview-header"
-				});
-				
-				// Apply current font settings to preview
-				this.updatePreviewStyles(headerEl);
-			}
+			// Create title preview
+			const titleEl = previewContent.createEl('div', { 
+				text: i18n.t("settings.titleFont.preview.sample"),
+				cls: "header-enhancer-preview-title"
+			});
+			titleEl.style.cssText = "font-size: 1.5em; font-weight: bold; margin: 0.5em 0;";
+			
+			// Apply current font settings to preview
+			this.updateTitlePreviewStyles(titleEl);
 		}
-		new Setting(containerEl)
-			.setName(i18n.t("settings.font.family.name"))
-			.setDesc(i18n.t("settings.font.family.desc"))
-			.addDropdown((dropdown) => {
-				// Add font family options
-				dropdown.addOption("inherit", i18n.t("settings.font.family.options.inherit"));
-				dropdown.addOption("Arial, sans-serif", "Arial");
-				dropdown.addOption("Helvetica, Arial, sans-serif", "Helvetica");
-				dropdown.addOption("'Times New Roman', Times, serif", "Times New Roman");
-				dropdown.addOption("Georgia, serif", "Georgia");
-				dropdown.addOption("'Courier New', Courier, monospace", "Courier New");
-				dropdown.addOption("Consolas, 'Liberation Mono', monospace", "Consolas");
-				dropdown.addOption("Monaco, 'Lucida Console', monospace", "Monaco");
-				dropdown.addOption("Verdana, Geneva, sans-serif", "Verdana");
-				dropdown.addOption("Tahoma, Geneva, sans-serif", "Tahoma");
-				dropdown.addOption("'Trebuchet MS', Helvetica, sans-serif", "Trebuchet MS");
-				dropdown.addOption("'Lucida Sans Unicode', 'Lucida Grande', sans-serif", "Lucida Sans");
-				dropdown.addOption("Impact, Charcoal, sans-serif", "Impact");
-				dropdown.addOption("'Palatino Linotype', 'Book Antiqua', Palatino, serif", "Palatino");
-				dropdown.addOption("'Comic Sans MS', cursive", "Comic Sans MS");
-				
-				dropdown.setValue(this.plugin.settings.titleFontFamily);
-				dropdown.setDisabled(!this.plugin.settings.isSeparateTitleFont);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.titleFontFamily = value;
-					await this.plugin.saveSettings();
-					if (this.plugin.settings.isSeparateTitleFont) {
-						this.plugin.applyCSSStyles();
-						this.updateAllPreviewStyles();
-					}
-				});
-			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.font.size.name"))
-			.setDesc(i18n.t("settings.font.size.desc"))
-			.addDropdown((dropdown) => {
-				// Add font size options
-				dropdown.addOption("inherit", i18n.t("settings.font.size.options.inherit"));
-				dropdown.addOption("0.8em", i18n.t("settings.font.size.options.smaller") + " (0.8em)");
-				dropdown.addOption("0.9em", i18n.t("settings.font.size.options.small") + " (0.9em)");
-				dropdown.addOption("1em", i18n.t("settings.font.size.options.normal") + " (1em)");
-				dropdown.addOption("1.1em", i18n.t("settings.font.size.options.large") + " (1.1em)");
-				dropdown.addOption("1.2em", i18n.t("settings.font.size.options.larger") + " (1.2em)");
-				dropdown.addOption("1.3em", i18n.t("settings.font.size.options.xlarge") + " (1.3em)");
-				dropdown.addOption("1.5em", i18n.t("settings.font.size.options.xxlarge") + " (1.5em)");
-				dropdown.addOption("12px", "12px");
-				dropdown.addOption("14px", "14px");
-				dropdown.addOption("16px", "16px");
-				dropdown.addOption("18px", "18px");
-				dropdown.addOption("20px", "20px");
-				dropdown.addOption("24px", "24px");
-				dropdown.addOption("28px", "28px");
-				dropdown.addOption("32px", "32px");
-				dropdown.addOption("120%", "120%");
-				dropdown.addOption("140%", "140%");
-				
-				dropdown.setValue(this.plugin.settings.titleFontSize);
-				dropdown.setDisabled(!this.plugin.settings.isSeparateTitleFont);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.titleFontSize = value;
-					await this.plugin.saveSettings();
-					if (this.plugin.settings.isSeparateTitleFont) {
-						this.plugin.applyCSSStyles();
-						this.updateAllPreviewStyles();
-					}
-				});
-			});
+
+		this.createFontFamilySetting(containerEl, "title");
+		this.createFontSizeSetting(containerEl, "title");
 		new Setting(containerEl)
 			.addButton((button) => {
 				button.setButtonText(i18n.t("settings.resetSettings.name")).onClick(async () => {
@@ -471,27 +466,163 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	/**
 	 * Update preview styles for a single header element
 	 */
-	updatePreviewStyles(headerEl: HTMLElement): void {
-		if (this.plugin.settings.titleFontFamily && this.plugin.settings.titleFontFamily !== 'inherit') {
-			headerEl.style.fontFamily = this.plugin.settings.titleFontFamily;
+	updateHeaderPreviewStyles(headerEl: HTMLElement): void {
+		if (this.plugin.settings.headerFontFamily && this.plugin.settings.headerFontFamily !== 'inherit') {
+			headerEl.style.fontFamily = this.plugin.settings.headerFontFamily;
 		} else {
 			headerEl.style.fontFamily = '';
 		}
 
-		if (this.plugin.settings.titleFontSize && this.plugin.settings.titleFontSize !== 'inherit') {
-			headerEl.style.fontSize = this.plugin.settings.titleFontSize;
+		if (this.plugin.settings.headerFontSize && this.plugin.settings.headerFontSize !== 'inherit') {
+			headerEl.style.fontSize = this.plugin.settings.headerFontSize;
 		} else {
 			headerEl.style.fontSize = '';
 		}
 	}
 
 	/**
+	 * Update preview styles for title element
+	 */
+	updateTitlePreviewStyles(titleEl: HTMLElement): void {
+		if (this.plugin.settings.titleFontFamily && this.plugin.settings.titleFontFamily !== 'inherit') {
+			titleEl.style.fontFamily = this.plugin.settings.titleFontFamily;
+		} else {
+			titleEl.style.fontFamily = '';
+		}
+
+		if (this.plugin.settings.titleFontSize && this.plugin.settings.titleFontSize !== 'inherit') {
+			titleEl.style.fontSize = this.plugin.settings.titleFontSize;
+		} else {
+			titleEl.style.fontSize = '';
+		}
+	}
+
+	/**
 	 * Update preview styles for all preview headers
 	 */
-	updateAllPreviewStyles(): void {
+	updateAllHeaderPreviewStyles(): void {
 		const previewHeaders = this.containerEl.querySelectorAll('.header-enhancer-preview-header');
 		previewHeaders.forEach((headerEl) => {
-			this.updatePreviewStyles(headerEl as HTMLElement);
+			this.updateHeaderPreviewStyles(headerEl as HTMLElement);
 		});
+	}
+
+	/**
+	 * Update preview styles for all preview titles  
+	 */
+	updateAllTitlePreviewStyles(): void {
+		const previewTitles = this.containerEl.querySelectorAll('.header-enhancer-preview-title');
+		previewTitles.forEach((titleEl) => {
+			this.updateTitlePreviewStyles(titleEl as HTMLElement);
+		});
+	}
+
+	/**
+	 * Create font family setting for header or title
+	 */
+	createFontFamilySetting(containerEl: HTMLElement, type: "header" | "title"): void {
+		const i18n = I18n.getInstance();
+		const isHeader = type === "header";
+		const settingsKey = isHeader ? "settings.headerFont" : "settings.titleFont";
+		
+		new Setting(containerEl)
+			.setName(i18n.t(`${settingsKey}.family.name`))
+			.setDesc(i18n.t(`${settingsKey}.family.desc`))
+			.addDropdown((dropdown) => {
+				// Add font family options
+				dropdown.addOption("inherit", i18n.t(`${settingsKey}.family.options.inherit`));
+				dropdown.addOption("Arial, sans-serif", "Arial");
+				dropdown.addOption("Helvetica, Arial, sans-serif", "Helvetica");
+				dropdown.addOption("'Times New Roman', Times, serif", "Times New Roman");
+				dropdown.addOption("Georgia, serif", "Georgia");
+				dropdown.addOption("'Courier New', Courier, monospace", "Courier New");
+				dropdown.addOption("Consolas, 'Liberation Mono', monospace", "Consolas");
+				dropdown.addOption("Monaco, 'Lucida Console', monospace", "Monaco");
+				dropdown.addOption("Verdana, Geneva, sans-serif", "Verdana");
+				dropdown.addOption("Tahoma, Geneva, sans-serif", "Tahoma");
+				dropdown.addOption("'Trebuchet MS', Helvetica, sans-serif", "Trebuchet MS");
+				dropdown.addOption("'Lucida Sans Unicode', 'Lucida Grande', sans-serif", "Lucida Sans");
+				dropdown.addOption("Impact, Charcoal, sans-serif", "Impact");
+				dropdown.addOption("'Palatino Linotype', 'Book Antiqua', Palatino, serif", "Palatino");
+				dropdown.addOption("'Comic Sans MS', cursive", "Comic Sans MS");
+				
+				const currentValue = isHeader ? this.plugin.settings.headerFontFamily : this.plugin.settings.titleFontFamily;
+				const isEnabled = isHeader ? this.plugin.settings.isSeparateHeaderFont : this.plugin.settings.isSeparateTitleFont;
+				
+				dropdown.setValue(currentValue);
+				dropdown.setDisabled(!isEnabled);
+				dropdown.onChange(async (value) => {
+					if (isHeader) {
+						this.plugin.settings.headerFontFamily = value;
+					} else {
+						this.plugin.settings.titleFontFamily = value;
+					}
+					await this.plugin.saveSettings();
+					if (isEnabled) {
+						this.plugin.applyCSSStyles();
+						if (isHeader) {
+							this.updateAllHeaderPreviewStyles();
+						} else {
+							this.updateAllTitlePreviewStyles();
+						}
+					}
+				});
+			});
+	}
+
+	/**
+	 * Create font size setting for header or title
+	 */
+	createFontSizeSetting(containerEl: HTMLElement, type: "header" | "title"): void {
+		const i18n = I18n.getInstance();
+		const isHeader = type === "header";
+		const settingsKey = isHeader ? "settings.headerFont" : "settings.titleFont";
+		
+		new Setting(containerEl)
+			.setName(i18n.t(`${settingsKey}.size.name`))
+			.setDesc(i18n.t(`${settingsKey}.size.desc`))
+			.addDropdown((dropdown) => {
+				// Add font size options
+				dropdown.addOption("inherit", i18n.t(`${settingsKey}.size.options.inherit`));
+				dropdown.addOption("0.8em", i18n.t(`${settingsKey}.size.options.smaller`) + " (0.8em)");
+				dropdown.addOption("0.9em", i18n.t(`${settingsKey}.size.options.small`) + " (0.9em)");
+				dropdown.addOption("1em", i18n.t(`${settingsKey}.size.options.normal`) + " (1em)");
+				dropdown.addOption("1.1em", i18n.t(`${settingsKey}.size.options.large`) + " (1.1em)");
+				dropdown.addOption("1.2em", i18n.t(`${settingsKey}.size.options.larger`) + " (1.2em)");
+				dropdown.addOption("1.3em", i18n.t(`${settingsKey}.size.options.xlarge`) + " (1.3em)");
+				dropdown.addOption("1.5em", i18n.t(`${settingsKey}.size.options.xxlarge`) + " (1.5em)");
+				dropdown.addOption("12px", "12px");
+				dropdown.addOption("14px", "14px");
+				dropdown.addOption("16px", "16px");
+				dropdown.addOption("18px", "18px");
+				dropdown.addOption("20px", "20px");
+				dropdown.addOption("24px", "24px");
+				dropdown.addOption("28px", "28px");
+				dropdown.addOption("32px", "32px");
+				dropdown.addOption("120%", "120%");
+				dropdown.addOption("140%", "140%");
+				
+				const currentValue = isHeader ? this.plugin.settings.headerFontSize : this.plugin.settings.titleFontSize;
+				const isEnabled = isHeader ? this.plugin.settings.isSeparateHeaderFont : this.plugin.settings.isSeparateTitleFont;
+				
+				dropdown.setValue(currentValue);
+				dropdown.setDisabled(!isEnabled);
+				dropdown.onChange(async (value) => {
+					if (isHeader) {
+						this.plugin.settings.headerFontSize = value;
+					} else {
+						this.plugin.settings.titleFontSize = value;
+					}
+					await this.plugin.saveSettings();
+					if (isEnabled) {
+						this.plugin.applyCSSStyles();
+						if (isHeader) {
+							this.updateAllHeaderPreviewStyles();
+						} else {
+							this.updateAllTitlePreviewStyles();
+						}
+					}
+				});
+			});
 	}
 }

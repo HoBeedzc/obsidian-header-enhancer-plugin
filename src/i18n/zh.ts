@@ -74,6 +74,70 @@ export default {
                 disabled: "（已关闭）"
             }
         },
+        headerFont: {
+            title: "标题字体设置",
+            separate: {
+                name: "独立标题字体",
+                desc: "为markdown标题使用独立的字体设置 (# ## ###)"
+            },
+            preview: {
+                title: "标题字体预览",
+                sample: "示例标题"
+            },
+            family: {
+                name: "字体族",
+                desc: "标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
+            },
+            size: {
+                name: "字体大小",
+                desc: "标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
+            }
+        },
+        titleFont: {
+            title: "文档标题字体设置",
+            separate: {
+                name: "独立文档标题字体",
+                desc: "为文档标题使用独立的字体设置"
+            },
+            preview: {
+                title: "文档标题字体预览",
+                sample: "示例文档标题"
+            },
+            family: {
+                name: "字体族",
+                desc: "文档标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
+            },
+            size: {
+                name: "字体大小",
+                desc: "文档标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
+            }
+        },
         font: {
             title: "标题字体设置",
             separate: {

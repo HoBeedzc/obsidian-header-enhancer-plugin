@@ -72,15 +72,47 @@ export default {
                 disabled: "[Disabled]"
             }
         },
-        font: {
+        headerFont: {
+            title: "Header Font Settings",
+            separate: {
+                name: "Separate Header Font",
+                desc: "Use different font settings for markdown headers (# ## ###)"
+            },
+            preview: {
+                title: "Header Font Preview",
+                sample: "Sample Header"
+            },
+            family: {
+                name: "Font Family",
+                desc: "Header font family (inherit from global font by default)",
+                options: {
+                    inherit: "Inherit from global font"
+                }
+            },
+            size: {
+                name: "Font Size", 
+                desc: "Header font size (inherit from global font size by default)",
+                options: {
+                    inherit: "Inherit from global size",
+                    smaller: "Smaller",
+                    small: "Small", 
+                    normal: "Normal",
+                    large: "Large",
+                    larger: "Larger",
+                    xlarge: "Extra Large",
+                    xxlarge: "Extra Extra Large"
+                }
+            }
+        },
+        titleFont: {
             title: "Title Font Settings",
             separate: {
                 name: "Separate Title Font",
-                desc: "Use different font settings for titles"
+                desc: "Use different font settings for document titles"
             },
             preview: {
-                title: "Font Preview",
-                sample: "Sample Header"
+                title: "Title Font Preview",
+                sample: "Sample Document Title"
             },
             family: {
                 name: "Font Family",
@@ -92,6 +124,38 @@ export default {
             size: {
                 name: "Font Size",
                 desc: "Title font size (inherit from global font size by default)",
+                options: {
+                    inherit: "Inherit from global size",
+                    smaller: "Smaller",
+                    small: "Small", 
+                    normal: "Normal",
+                    large: "Large",
+                    larger: "Larger",
+                    xlarge: "Extra Large",
+                    xxlarge: "Extra Extra Large"
+                }
+            }
+        },
+        font: {
+            title: "Header Font Settings",
+            separate: {
+                name: "Separate Header Font",
+                desc: "Use different font settings for headers"
+            },
+            preview: {
+                title: "Font Preview",
+                sample: "Sample Header"
+            },
+            family: {
+                name: "Font Family",
+                desc: "Header font family (inherit from global font by default)",
+                options: {
+                    inherit: "Inherit from global font"
+                }
+            },
+            size: {
+                name: "Font Size", 
+                desc: "Header font size (inherit from global font size by default)",
                 options: {
                     inherit: "Inherit from global size",
                     smaller: "Smaller",

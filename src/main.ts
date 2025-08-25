@@ -26,6 +26,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
 	backlinkManager: BacklinkManager;
+	private headerFontStyleEl: HTMLStyleElement | null = null;
 	private titleFontStyleEl: HTMLStyleElement | null = null;
 
 	async onload() {
@@ -34,14 +35,14 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Initialize backlink manager
 		this.backlinkManager = new BacklinkManager(this.app);
 
-		// Apply CSS styles for title font
+		// Apply CSS styles for header and title fonts
 		this.applyCSSStyles();
 
 		// Creates an icon in the left ribbon.
 		this.ribbonIconEl = this.addRibbonIcon(
 			"heading-glyph",
 			"Header Enhancer",
-			async (evt: MouseEvent) => {
+			async (_evt: MouseEvent) => {
 				const app = this.app; // this is the obsidian App instance
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
@@ -238,7 +239,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	}
 
 	onunload() {
-		// Clean up title font styles
+		// Clean up header and title font styles
 		this.removeCSSStyles();
 	}
 
@@ -408,7 +409,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		try {
 			for (const change of headerChanges) {
 				const oldHeading = change.originalHeading;
-				const newHeading = this.extractHeadingText(change.newText);
+				// const newHeading = this.extractHeadingText(change.newText);
 				
 				// Update backlinks when header format changes (numbering added)
 				if (oldHeading && change.oldText !== change.newText) {
@@ -616,18 +617,13 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		let state = view.state;
 		let doc = state.doc;
 		const pos = state.selection.main.to;
-		// let posLine = doc.lineAt(pos)
-		const lineCount = doc.lines;
 		const changes = [];
-		let docCharCount = 0;
-		let insertCharCount = 0;
-		let insertCharCountBeforePos = 0; // count of inserted chars, used to calculate the position of cursor
 
 		if (!isHeader(doc.lineAt(pos).text)) {
 			return false;
 		}
 
-		// instert a new line in current pos first
+		// insert a new line in current pos first
 		changes.push({
 			from: pos - 1,
 			to: pos,
@@ -649,19 +645,29 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	}
 
 	/**
-	 * Apply CSS styles for title font customization
+	 * Apply CSS styles for header and title font customization
 	 */
 	applyCSSStyles(): void {
-		// Remove existing styles first
-		this.removeCSSStyles();
+		// Apply header font styles
+		this.applyHeaderFontStyles();
+		// Apply title font styles
+		this.applyTitleFontStyles();
+	}
+
+	/**
+	 * Apply CSS styles for header font customization
+	 */
+	applyHeaderFontStyles(): void {
+		// Remove existing header font styles first
+		this.removeHeaderFontStyles();
 		
-		if (!this.settings.isSeparateTitleFont) {
+		if (!this.settings.isSeparateHeaderFont) {
 			return;
 		}
 
-		// Create style element
-		this.titleFontStyleEl = document.createElement('style');
-		this.titleFontStyleEl.id = 'header-enhancer-title-font-styles';
+		// Create header font style element
+		this.headerFontStyleEl = document.createElement('style');
+		this.headerFontStyleEl.id = 'header-enhancer-header-font-styles';
 
 		let cssRules = '';
 		
@@ -682,26 +688,101 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		].join(', ');
 
 		// Apply font family if set and not inherit
+		if (this.settings.headerFontFamily && this.settings.headerFontFamily !== 'inherit') {
+			cssRules += `${headerSelectors} { font-family: ${this.settings.headerFontFamily} !important; }\n`;
+		}
+
+		// Apply font size if set and not inherit  
+		if (this.settings.headerFontSize && this.settings.headerFontSize !== 'inherit') {
+			cssRules += `${headerSelectors} { font-size: ${this.settings.headerFontSize} !important; }\n`;
+		}
+
+		// Set the CSS content
+		this.headerFontStyleEl.textContent = cssRules;
+		
+		// Append to document head
+		if (cssRules) {
+			document.head.appendChild(this.headerFontStyleEl);
+		}
+	}
+
+	/**
+	 * Apply CSS styles for title font customization
+	 */
+	applyTitleFontStyles(): void {
+		// Remove existing title font styles first
+		this.removeTitleFontStyles();
+		
+		if (!this.settings.isSeparateTitleFont) {
+			return;
+		}
+
+		// Create title font style element
+		this.titleFontStyleEl = document.createElement('style');
+		this.titleFontStyleEl.id = 'header-enhancer-title-font-styles';
+
+		let cssRules = '';
+		
+		// Generate CSS selectors for document titles - MUCH MORE SPECIFIC
+		const titleSelectors = [
+			// File title in tab - only target specific tab title elements
+			'.workspace-tab-header-inner-title',
+			'.workspace-tab-header .workspace-tab-header-inner-title', 
+			'.workspace-tabs .workspace-tab-header-inner-title',
+			// View header title
+			'.workspace-leaf-content .view-header-title',
+			// Document inline title (the main title displayed in document)
+			'.inline-title',
+			'.markdown-preview-view .inline-title',
+			'.markdown-source-view .inline-title',
+			// File title in file explorer
+			'.nav-file-title-content',
+			'.tree-item-inner.nav-file-title-content',
+			// Frontmatter title display
+			'.frontmatter-container .metadata-property[data-property-key="title"] .metadata-property-value'
+		].join(', ');
+
+		// Apply font family if set and not inherit
 		if (this.settings.titleFontFamily && this.settings.titleFontFamily !== 'inherit') {
-			cssRules += `${headerSelectors} { font-family: ${this.settings.titleFontFamily} !important; }\n`;
+			cssRules += `${titleSelectors} { font-family: ${this.settings.titleFontFamily} !important; }\n`;
 		}
 
 		// Apply font size if set and not inherit  
 		if (this.settings.titleFontSize && this.settings.titleFontSize !== 'inherit') {
-			cssRules += `${headerSelectors} { font-size: ${this.settings.titleFontSize} !important; }\n`;
+			cssRules += `${titleSelectors} { font-size: ${this.settings.titleFontSize} !important; }\n`;
 		}
 
 		// Set the CSS content
 		this.titleFontStyleEl.textContent = cssRules;
 		
 		// Append to document head
-		document.head.appendChild(this.titleFontStyleEl);
+		if (cssRules) {
+			document.head.appendChild(this.titleFontStyleEl);
+		}
+	}
+
+	/**
+	 * Remove CSS styles for header and title font customization
+	 */
+	removeCSSStyles(): void {
+		this.removeHeaderFontStyles();
+		this.removeTitleFontStyles();
+	}
+
+	/**
+	 * Remove CSS styles for header font customization
+	 */
+	removeHeaderFontStyles(): void {
+		if (this.headerFontStyleEl) {
+			this.headerFontStyleEl.remove();
+			this.headerFontStyleEl = null;
+		}
 	}
 
 	/**
 	 * Remove CSS styles for title font customization
 	 */
-	removeCSSStyles(): void {
+	removeTitleFontStyles(): void {
 		if (this.titleFontStyleEl) {
 			this.titleFontStyleEl.remove();
 			this.titleFontStyleEl = null;
