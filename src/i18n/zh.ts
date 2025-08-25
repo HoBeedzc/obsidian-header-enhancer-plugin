@@ -58,6 +58,8 @@ export default {
                 name: "更新反向链接",
                 desc: "⚠️ 警告：当标题改变时自动更新反向链接。在大型知识库中可能会影响性能。"
             },
+            endLevelError: "最大标题级别应该大于或等于起始标题级别",
+            startLevelError: "起始标题级别应该小于或等于最大标题级别",
             format: {
                 name: "当前格式",
                 fromLevel: "从级别",

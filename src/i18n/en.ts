@@ -56,6 +56,8 @@ export default {
                 name: "Update Backlinks",
                 desc: "⚠️ Warning: Automatically update backlinks when headers change. May impact performance in large vaults."
             },
+            endLevelError: "Max header level should be greater than or equal to start header level",
+            startLevelError: "Start header level should be less than or equal to max header level",
             format: {
                 name: "Your auto numbering format is",
                 fromLevel: "from H",

@@ -13,7 +13,7 @@ export interface HeaderEnhancerSettings {
 	showOnStatusBar: boolean;
 	isAutoDetectHeaderLevel: boolean;
 	startHeaderLevel: number;
-	maxHeaderLevel: number;
+	endHeaderLevel: number;
 	autoNumberingMode: AutoNumberingMode;
 	autoNumberingStartNumber: string;
 	autoNumberingSeparator: string;
@@ -29,7 +29,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	showOnStatusBar: true,
 	isAutoDetectHeaderLevel: false, // TODO: auto detect header level is not available now
 	startHeaderLevel: 1,
-	maxHeaderLevel: 6,
+	endHeaderLevel: 6,
 	autoNumberingMode: AutoNumberingMode.ON,
 	autoNumberingStartNumber: "1",
 	autoNumberingSeparator: ".",
@@ -125,9 +125,17 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				);
 				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
-					this.plugin.settings.startHeaderLevel = parseInt(value, 10);
-					await this.plugin.saveSettings();
-					this.display();
+					if (this.checkStartLevel(parseInt(value, 10))) {
+						this.plugin.settings.startHeaderLevel = parseInt(value, 10);
+						await this.plugin.saveSettings();
+						this.display();
+					} else {
+						new Notice(
+							i18n.t("settings.autoNumbering.startLevelError")
+						);
+						// 恢复到原来的设置值
+						dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
+					}
 				});
 			})
 			.addDropdown((dropdown) => {
@@ -138,12 +146,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.addOption("5", "H5");
 				dropdown.addOption("6", "H6");
 				dropdown.setValue(
-					this.plugin.settings.maxHeaderLevel.toString()
+					this.plugin.settings.endHeaderLevel.toString()
 				);
 				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
-					if (this.checkMaxLevel(parseInt(value, 10))) {
-						this.plugin.settings.maxHeaderLevel = parseInt(
+					if (this.checkEndLevel(parseInt(value, 10))) {
+						this.plugin.settings.endHeaderLevel = parseInt(
 							value,
 							10
 						);
@@ -151,8 +159,10 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						this.display();
 					} else {
 						new Notice(
-							"Max header level should be greater than or equal to start header level"
+							i18n.t("settings.autoNumbering.endLevelError")
 						);
+						// 恢复到原来的设置值
+						dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
 					}
 				});
 			});
@@ -228,7 +238,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			"\t" + i18n.t("settings.autoNumbering.format.fromLevel") + " " +
 			this.plugin.settings.startHeaderLevel +
 			" " + i18n.t("settings.autoNumbering.format.toLevel") + " " +
-			this.plugin.settings.maxHeaderLevel +
+			this.plugin.settings.endHeaderLevel +
 			" " +
 			(this.plugin.settings.isAutoDetectHeaderLevel 
 				? i18n.t("settings.autoNumbering.format.autoDetect")
@@ -306,8 +316,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			});
 	}
 
-	checkMaxLevel(maxLevel: number): boolean {
+	checkEndLevel(maxLevel: number): boolean {
 		return this.plugin.settings.startHeaderLevel <= maxLevel;
+	}
+
+	checkStartLevel(startLevel: number): boolean {
+		return startLevel <= this.plugin.settings.endHeaderLevel;
 	}
 
 	checkStartNumber(startNumber: string): boolean {
@@ -324,6 +338,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	}
 
 	checkHeaderSeparator(separator: string): boolean {
+		// only check when autoNumberingMode is ON
 		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
 			return false;
 		}
