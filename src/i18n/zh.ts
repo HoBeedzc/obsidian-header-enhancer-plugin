@@ -66,7 +66,8 @@ export default {
                 toLevel: "到级别",
                 autoDetect: "（自动检测）",
                 manual: "（手动）",
-                yamlControlled: "（YAML控制）"
+                yamlControlled: "（YAML控制）",
+                disabled: "（已关闭）"
             }
         },
         font: {

@@ -63,7 +63,9 @@ export default {
                 fromLevel: "from H",
                 toLevel: "to H",
                 autoDetect: "[Auto Detect]",
-                manual: "[Manual]"
+                manual: "[Manual]",
+                yamlControlled: "[Controlled by YAML]",
+                disabled: "[Disabled]"
             }
         },
         font: {

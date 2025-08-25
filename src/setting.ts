@@ -228,21 +228,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					});
 			});
 		new Setting(containerEl).setName(
-			i18n.t("settings.autoNumbering.format.name") +
-			": \t" +
-			this.plugin.settings.autoNumberingStartNumber +
-			this.plugin.settings.autoNumberingSeparator +
-			"1" +
-			this.plugin.settings.autoNumberingSeparator +
-			"1" +
-			"\t" + i18n.t("settings.autoNumbering.format.fromLevel") + " " +
-			this.plugin.settings.startHeaderLevel +
-			" " + i18n.t("settings.autoNumbering.format.toLevel") + " " +
-			this.plugin.settings.endHeaderLevel +
-			" " +
-			(this.plugin.settings.isAutoDetectHeaderLevel 
-				? i18n.t("settings.autoNumbering.format.autoDetect")
-				: i18n.t("settings.autoNumbering.format.manual"))
+			i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
 		);
 
 		containerEl.createEl("h2", { text: i18n.t("settings.font.title") });
@@ -314,6 +300,41 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				text: "Github Issues",
 				href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
 			});
+	}
+
+	getFormatPreview(): string {
+		const i18n = I18n.getInstance();
+		
+		switch (this.plugin.settings.autoNumberingMode) {
+			case AutoNumberingMode.OFF:
+				return i18n.t("settings.autoNumbering.format.disabled");
+			
+			case AutoNumberingMode.YAML_CONTROLLED:
+				return i18n.t("settings.autoNumbering.format.yamlControlled");
+			
+			case AutoNumberingMode.ON:
+			default:
+				// 构建实际的格式预览
+				const formatExample = "\t" +
+					this.plugin.settings.autoNumberingStartNumber +
+					this.plugin.settings.autoNumberingSeparator +
+					"1" +
+					this.plugin.settings.autoNumberingSeparator +
+					"1";
+				
+				const levelInfo = "\t" + 
+					i18n.t("settings.autoNumbering.format.fromLevel") + " " +
+					this.plugin.settings.startHeaderLevel +
+					" " + 
+					i18n.t("settings.autoNumbering.format.toLevel") + " " +
+					this.plugin.settings.endHeaderLevel +
+					" " +
+					(this.plugin.settings.isAutoDetectHeaderLevel 
+						? i18n.t("settings.autoNumbering.format.autoDetect")
+						: i18n.t("settings.autoNumbering.format.manual"));
+				
+				return formatExample + levelInfo;
+		}
 	}
 
 	checkEndLevel(maxLevel: number): boolean {
