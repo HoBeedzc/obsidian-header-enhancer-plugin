@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 
 export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	plugin: HeaderEnhancerPlugin;
+	private formatPreviewSetting: Setting | null = null;
 
 	constructor(app: App, plugin: HeaderEnhancerPlugin) {
 		super(app, plugin);
@@ -53,6 +54,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		const i18n = I18n.getInstance();
 
 		containerEl.empty();
+		// 重置格式预览引用，因为 empty() 会清空所有元素
+		this.formatPreviewSetting = null;
 
 		containerEl.createEl("h1", { text: i18n.t("settings.title") });
 
@@ -128,7 +131,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					if (this.checkStartLevel(parseInt(value, 10))) {
 						this.plugin.settings.startHeaderLevel = parseInt(value, 10);
 						await this.plugin.saveSettings();
-						this.display();
+						this.updateFormatPreview();
 					} else {
 						new Notice(
 							i18n.t("settings.autoNumbering.startLevelError")
@@ -156,7 +159,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 							10
 						);
 						await this.plugin.saveSettings();
-						this.display();
+						this.updateFormatPreview();
 					} else {
 						new Notice(
 							i18n.t("settings.autoNumbering.endLevelError")
@@ -177,7 +180,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.autoNumberingStartNumber = value;
 					await this.plugin.saveSettings();
-					this.display();
+					this.updateFormatPreview();
 				});
 			});
 		new Setting(containerEl)
@@ -193,7 +196,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.autoNumberingSeparator = value;
 					await this.plugin.saveSettings();
-					this.display();
+					this.updateFormatPreview();
 				});
 			});
 		new Setting(containerEl)
@@ -227,7 +230,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 			});
-		new Setting(containerEl).setName(
+		this.formatPreviewSetting = new Setting(containerEl).setName(
 			i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
 		);
 
@@ -334,6 +337,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						: i18n.t("settings.autoNumbering.format.manual"));
 				
 				return formatExample + levelInfo;
+		}
+	}
+
+	updateFormatPreview(): void {
+		if (this.formatPreviewSetting) {
+			const i18n = I18n.getInstance();
+			this.formatPreviewSetting.setName(
+				i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
+			);
 		}
 	}
 
