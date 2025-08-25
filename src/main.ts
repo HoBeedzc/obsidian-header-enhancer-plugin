@@ -152,7 +152,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			id: "add-auto-numbering-yaml",
 			name: "add auto numbering yaml",
 			callback: () => {
-				app = this.app;
+				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
@@ -176,7 +176,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			id: "reset-auto-numbering-yaml",
 			name: "reset auto numbering yaml",
 			callback: () => {
-				app = this.app;
+				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
@@ -207,7 +207,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			id: "remove-auto-numbering-yaml",
 			name: "remove auto numbering yaml",
 			callback: () => {
-				app = this.app;
+				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
