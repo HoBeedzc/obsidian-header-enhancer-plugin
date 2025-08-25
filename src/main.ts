@@ -26,12 +26,16 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
 	backlinkManager: BacklinkManager;
+	private titleFontStyleEl: HTMLStyleElement | null = null;
 
 	async onload() {
 		await this.loadSettings();
 		
 		// Initialize backlink manager
 		this.backlinkManager = new BacklinkManager(this.app);
+
+		// Apply CSS styles for title font
+		this.applyCSSStyles();
 
 		// Creates an icon in the left ribbon.
 		this.ribbonIconEl = this.addRibbonIcon(
@@ -233,7 +237,10 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		);
 	}
 
-	onunload() {}
+	onunload() {
+		// Clean up title font styles
+		this.removeCSSStyles();
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -639,5 +646,65 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		});
 
 		return true;
+	}
+
+	/**
+	 * Apply CSS styles for title font customization
+	 */
+	applyCSSStyles(): void {
+		// Remove existing styles first
+		this.removeCSSStyles();
+		
+		if (!this.settings.isSeparateTitleFont) {
+			return;
+		}
+
+		// Create style element
+		this.titleFontStyleEl = document.createElement('style');
+		this.titleFontStyleEl.id = 'header-enhancer-title-font-styles';
+
+		let cssRules = '';
+		
+		// Generate CSS selectors for all header levels (H1-H6)
+		const headerSelectors = [
+			'.markdown-preview-view h1',
+			'.markdown-preview-view h2', 
+			'.markdown-preview-view h3',
+			'.markdown-preview-view h4',
+			'.markdown-preview-view h5',
+			'.markdown-preview-view h6',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-1',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-2',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-3',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-4',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-5',
+			'.markdown-source-view.mod-cm6 .HyperMD-header-6'
+		].join(', ');
+
+		// Apply font family if set and not inherit
+		if (this.settings.titleFontFamily && this.settings.titleFontFamily !== 'inherit') {
+			cssRules += `${headerSelectors} { font-family: ${this.settings.titleFontFamily} !important; }\n`;
+		}
+
+		// Apply font size if set and not inherit  
+		if (this.settings.titleFontSize && this.settings.titleFontSize !== 'inherit') {
+			cssRules += `${headerSelectors} { font-size: ${this.settings.titleFontSize} !important; }\n`;
+		}
+
+		// Set the CSS content
+		this.titleFontStyleEl.textContent = cssRules;
+		
+		// Append to document head
+		document.head.appendChild(this.titleFontStyleEl);
+	}
+
+	/**
+	 * Remove CSS styles for title font customization
+	 */
+	removeCSSStyles(): void {
+		if (this.titleFontStyleEl) {
+			this.titleFontStyleEl.remove();
+			this.titleFontStyleEl = null;
+		}
 	}
 }

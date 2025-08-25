@@ -76,18 +76,32 @@ export default {
             title: "Title Font Settings",
             separate: {
                 name: "Separate Title Font",
-                desc: "Use different font settings for titles",
-                notice: "This feature is not available now, please wait for the next version"
+                desc: "Use different font settings for titles"
+            },
+            preview: {
+                title: "Font Preview",
+                sample: "Sample Header"
             },
             family: {
                 name: "Font Family",
                 desc: "Title font family (inherit from global font by default)",
-                placeholder: "global font"
+                options: {
+                    inherit: "Inherit from global font"
+                }
             },
             size: {
                 name: "Font Size",
                 desc: "Title font size (inherit from global font size by default)",
-                placeholder: "global font size"
+                options: {
+                    inherit: "Inherit from global size",
+                    smaller: "Smaller",
+                    small: "Small", 
+                    normal: "Normal",
+                    large: "Large",
+                    larger: "Larger",
+                    xlarge: "Extra Large",
+                    xxlarge: "Extra Extra Large"
+                }
             }
         },
         resetSettings: {

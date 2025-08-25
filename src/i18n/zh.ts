@@ -75,21 +75,35 @@ export default {
             }
         },
         font: {
-            title: "字体设置",
+            title: "标题字体设置",
             separate: {
                 name: "独立标题字体",
-                desc: "为标题使用独立的字体设置",
-                notice: "您只能在侧边栏中更改此选项"
+                desc: "为标题使用独立的字体设置"
+            },
+            preview: {
+                title: "字体预览",
+                sample: "示例标题"
             },
             family: {
-                name: "标题字体系列",
-                desc: "标题的字体系列",
-                placeholder: "inherit"
+                name: "字体族",
+                desc: "标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
             },
             size: {
-                name: "标题字体大小",
-                desc: "标题的字体大小",
-                placeholder: "inherit"
+                name: "字体大小",
+                desc: "标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
             }
         },
         resetSettings: {
