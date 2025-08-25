@@ -1,5 +1,21 @@
 # 更新记录 - Changelog
 
+## [0.3.0] - 2025-08-25
+### Added
+- 🆕 自定义字体系统，支持独立的标题和文档标题字体控制 - Custom typography system with separate header and title font controls
+- 🆕 设置中编号格式和字体更改的实时预览 - Live preview for both numbering format and font changes in settings
+- 🆕 侧边栏切换选项，可显示/隐藏功能区图标 - Sidebar toggle option to show/hide the ribbon icon
+- 🆕 增强的设置界面，改进的验证和国际化支持 - Enhanced settings UI with improved validation and internationalization
+### Improved
+- 🔧 将"最大标题级别"重命名为"结束标题级别"以提高清晰度 - Renamed "max header level" to "end header level" for clarity
+- 🔧 设置中的YAML控制和禁用状态预览 - YAML-controlled and disabled state previews in settings
+- 🔧 更好的设置组织和用户体验 - Better settings organization and user experience
+- 🔧 增强字体样式的实时应用和CSS集成 - Enhanced real-time font style application and CSS integration
+### Fixed
+- 🐛 各种UI一致性问题和边界情况 - Various UI consistency issues and edge cases
+- 🐛 修复字体设置中的样式继承问题 - Fixed style inheritance issues in font settings
+- 🐛 改进设置页面的响应性和稳定性 - Improved settings page responsiveness and stability
+
 ## [0.2.1] - 2025-08-25
 ### Fixed
 - 修复 build 失败的问题 - Fixed build failure issue

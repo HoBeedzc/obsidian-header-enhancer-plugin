@@ -10,6 +10,10 @@ export default {
             name: "在状态栏显示",
             desc: "在状态栏显示当前标题级别"
         },
+        sidebar: {
+            name: "在侧边栏显示",
+            desc: "在侧边栏功能区显示标题增强器图标"
+        },
         autoDetect: {
             name: "自动检测标题级别",
             desc: "根据上下文自动检测标题级别"
@@ -58,31 +62,112 @@ export default {
                 name: "更新反向链接",
                 desc: "⚠️ 警告：当标题改变时自动更新反向链接。在大型知识库中可能会影响性能。"
             },
+            endLevelError: "最大标题级别应该大于或等于起始标题级别",
+            startLevelError: "起始标题级别应该小于或等于最大标题级别",
             format: {
                 name: "当前格式",
                 fromLevel: "从级别",
                 toLevel: "到级别",
                 autoDetect: "（自动检测）",
                 manual: "（手动）",
-                yamlControlled: "（YAML控制）"
+                yamlControlled: "（YAML控制）",
+                disabled: "（已关闭）"
+            }
+        },
+        headerFont: {
+            title: "标题字体设置",
+            separate: {
+                name: "独立标题字体",
+                desc: "为markdown标题使用独立的字体设置 (# ## ###)"
+            },
+            preview: {
+                title: "标题字体预览",
+                sample: "示例标题"
+            },
+            family: {
+                name: "字体族",
+                desc: "标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
+            },
+            size: {
+                name: "字体大小",
+                desc: "标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
+            }
+        },
+        titleFont: {
+            title: "文档标题字体设置",
+            separate: {
+                name: "独立文档标题字体",
+                desc: "为文档标题使用独立的字体设置"
+            },
+            preview: {
+                title: "文档标题字体预览",
+                sample: "示例文档标题"
+            },
+            family: {
+                name: "字体族",
+                desc: "文档标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
+            },
+            size: {
+                name: "字体大小",
+                desc: "文档标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
             }
         },
         font: {
-            title: "字体设置",
+            title: "标题字体设置",
             separate: {
                 name: "独立标题字体",
-                desc: "为标题使用独立的字体设置",
-                notice: "您只能在侧边栏中更改此选项"
+                desc: "为标题使用独立的字体设置"
+            },
+            preview: {
+                title: "字体预览",
+                sample: "示例标题"
             },
             family: {
-                name: "标题字体系列",
-                desc: "标题的字体系列",
-                placeholder: "inherit"
+                name: "字体族",
+                desc: "标题字体族（默认继承全局字体）",
+                options: {
+                    inherit: "继承全局字体"
+                }
             },
             size: {
-                name: "标题字体大小",
-                desc: "标题的字体大小",
-                placeholder: "inherit"
+                name: "字体大小",
+                desc: "标题字体大小（默认继承全局字体大小）",
+                options: {
+                    inherit: "继承全局大小",
+                    smaller: "较小",
+                    small: "小",
+                    normal: "正常",
+                    large: "大",
+                    larger: "较大", 
+                    xlarge: "特大",
+                    xxlarge: "超大"
+                }
             }
         },
         resetSettings: {

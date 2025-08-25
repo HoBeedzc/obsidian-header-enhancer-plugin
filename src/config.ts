@@ -5,7 +5,7 @@ import { getAutoNumberingYaml } from "./utils";
 export interface AutoNumberingConfig {
 	state: boolean;
 	startLevel: number;
-	maxLevel: number;
+	endLevel: number;
 	startNumber: number;
 	separator: string;
 }
@@ -17,7 +17,7 @@ export function getAutoNumberingConfig(
 	const config: AutoNumberingConfig = {
 		state: setting.autoNumberingMode !== AutoNumberingMode.OFF,
 		startLevel: setting.startHeaderLevel,
-		maxLevel: setting.maxHeaderLevel,
+		endLevel: setting.endHeaderLevel,
 		startNumber: parseInt(setting.autoNumberingStartNumber),
 		separator: setting.autoNumberingSeparator,
 	};
@@ -35,8 +35,8 @@ export function getAutoNumberingConfig(
 				case "start-level":
 					config.startLevel = parseInt(value[1]);
 					break;
-				case "max-level":
-					config.maxLevel = parseInt(value[1]);
+				case "end-level":
+					config.endLevel = parseInt(value[1]);
 					break;
 				case "start-number":
 					config.startNumber = parseInt(value);

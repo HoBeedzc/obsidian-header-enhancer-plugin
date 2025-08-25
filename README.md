@@ -7,7 +7,7 @@
 
 A powerful Obsidian plugin that enhances your markdown headers with automatic numbering, intelligent backlink management, and customizable formatting options.
 
-**Current Version**: 0.2.0
+**Current Version**: 0.3.0
 
 ## ✨ Core Features
 
@@ -31,6 +31,16 @@ Automatically maintains backlinks when header numbering changes, ensuring your w
 - **Batch Processing**: Efficiently handles multiple link updates across your vault
 - **Bidirectional Updates**: Works both when adding and removing header numbers
 - **Safe Operations**: Preserves link integrity with error handling and notifications
+
+### 🎨 Custom Typography & Styling  
+Fine-tune the visual appearance of your headers and document titles with advanced font customization.
+
+**Features:**
+- **Separate Header Fonts**: Customize font family and size for markdown headers (#, ##, ###, etc.)
+- **Separate Title Fonts**: Customize font family and size specifically for document titles
+- **Live Preview**: Real-time preview of font changes in the settings panel
+- **Inheritance Support**: Use "inherit" to maintain Obsidian's default styling
+- **Independent Control**: Header and title fonts can be customized separately
 
 ### 📝 YAML Configuration Support
 Fine-tune header numbering behavior on a per-file basis using YAML frontmatter.
@@ -79,9 +89,17 @@ The plugin is **enabled by default** after installation. You can:
 
 #### Numbering Configuration
 - **Start Level**: Choose which header level (H1-H6) to begin numbering
+- **End Level**: Choose which header level (H1-H6) to stop numbering  
 - **Separator**: Select from `.`, `-`, `/`, or `,` (default: `.`)
 - **Start Number**: Set the initial number (default: `1`)
 - **Header Separator**: Character between number and header text (default: tab `\t`)
+- **Format Preview**: Live preview of numbering format as you customize settings
+
+#### Font Customization
+- **Header Fonts**: Separate font family and size for markdown headers
+- **Title Fonts**: Separate font family and size for document titles
+- **Live Preview**: Real-time font preview in the settings panel
+- **Inheritance**: Option to inherit from Obsidian's default styling
 
 #### Backlink Management
 - **Update Backlinks**: Automatically update `[[file#header]]` links when headers change
@@ -89,6 +107,7 @@ The plugin is **enabled by default** after installation. You can:
 
 #### Interface Options
 - **Show Status Bar**: Display auto-numbering status in the bottom bar
+- **Show on Sidebar**: Toggle the ribbon icon in the left sidebar
 - **Language**: English and Chinese (中文) support
 
 ### Per-file YAML Control
@@ -179,20 +198,33 @@ Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obs
 - ✅ **Header Auto Numbering** - Smart hierarchical numbering system
 - ✅ **YAML Configuration** - Per-file settings override
 - ✅ **Backlink Management** - Automatic link updates (v0.2.0)
+- ✅ **Custom Typography** - Separate header and title font customization (v0.3.0)
+- ✅ **Live Settings Preview** - Real-time format and font preview (v0.3.0)
+- ✅ **Enhanced UI Controls** - Improved settings with sidebar toggle (v0.3.0)
 - ✅ **Internationalization** - English and Chinese support
 - ✅ **Status Bar Integration** - Real-time status display
 - ✅ **CodeMirror 6 Integration** - Modern editor compatibility
 
 ### Upcoming Features
 - 🔄 **Auto-level Detection** - Intelligent header level detection
-- 🎨 **Isolate Title Font** - Custom header typography (W.I.P)
 - 📱 **Mobile Optimization** - Enhanced mobile experience  
 - 🔍 **Search Integration** - Header search and navigation
 - 🎯 **Quick Actions** - Header manipulation shortcuts
+- 🎨 **Advanced Styling** - More typography options and themes
 
 ## 📊 Changelog
 
-### Version 0.2.0 (Current)
+### Version 0.3.0 (Current)
+- ✨ **NEW**: Custom typography system with separate header and title font controls
+- ✨ **NEW**: Live preview for both numbering format and font changes in settings
+- ✨ **NEW**: Sidebar toggle option to show/hide the ribbon icon
+- ✨ **NEW**: Enhanced settings UI with improved validation and internationalization
+- 🔧 **IMPROVED**: Renamed "max header level" to "end header level" for clarity
+- 🔧 **IMPROVED**: YAML-controlled and disabled state previews in settings
+- 🔧 **IMPROVED**: Better settings organization and user experience
+- 🐛 **FIXED**: Various UI consistency issues and edge cases
+
+### Version 0.2.0
 - ✨ **NEW**: Intelligent backlink management system
 - ✨ **NEW**: Automatic `[[file#header]]` link updates
 - ✨ **NEW**: Batch link processing with error recovery
