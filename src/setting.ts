@@ -11,6 +11,7 @@ export enum AutoNumberingMode {
 export interface HeaderEnhancerSettings {
 	language: string;
 	showOnStatusBar: boolean;
+	showOnSidebar: boolean;
 	isAutoDetectHeaderLevel: boolean;
 	startHeaderLevel: number;
 	endHeaderLevel: number;
@@ -27,6 +28,7 @@ export interface HeaderEnhancerSettings {
 export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	language: "en",
 	showOnStatusBar: true,
+	showOnSidebar: true,
 	isAutoDetectHeaderLevel: false, // TODO: auto detect header level is not available now
 	startHeaderLevel: 1,
 	endHeaderLevel: 6,
@@ -85,6 +87,18 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						this.plugin.settings.showOnStatusBar = value;
 						await this.plugin.saveSettings();
 						this.plugin.handleShowStateBarChange();
+					});
+			});
+		new Setting(containerEl)
+			.setName(i18n.t("settings.sidebar.name"))
+			.setDesc(i18n.t("settings.sidebar.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.showOnSidebar)
+					.onChange(async (value) => {
+						this.plugin.settings.showOnSidebar = value;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowSidebarChange();
 					});
 			});
 

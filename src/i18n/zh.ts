@@ -10,6 +10,10 @@ export default {
             name: "在状态栏显示",
             desc: "在状态栏显示当前标题级别"
         },
+        sidebar: {
+            name: "在侧边栏显示",
+            desc: "在侧边栏功能区显示标题增强器图标"
+        },
         autoDetect: {
             name: "自动检测标题级别",
             desc: "根据上下文自动检测标题级别"

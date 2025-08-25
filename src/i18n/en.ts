@@ -10,6 +10,10 @@ export default {
             name: "Show on Status Bar",
             desc: "Show current header level on status bar"
         },
+        sidebar: {
+            name: "Show on Sidebar",
+            desc: "Show Header Enhancer icon in the sidebar ribbon"
+        },
         autoDetect: {
             name: "Auto Detect Header Level",
             desc: "Automatically detect header level based on context"

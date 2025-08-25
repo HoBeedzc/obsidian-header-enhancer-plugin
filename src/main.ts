@@ -24,6 +24,7 @@ import { BacklinkManager } from "./backlinks";
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
 	statusBarItemEl: HTMLElement;
+	ribbonIconEl: HTMLElement;
 	backlinkManager: BacklinkManager;
 
 	async onload() {
@@ -33,7 +34,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.backlinkManager = new BacklinkManager(this.app);
 
 		// Creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
+		this.ribbonIconEl = this.addRibbonIcon(
 			"heading-glyph",
 			"Header Enhancer",
 			async (evt: MouseEvent) => {
@@ -64,6 +65,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		this.statusBarItemEl = this.addStatusBarItem();
 		this.handleShowStateBarChange();
+		this.handleShowSidebarChange();
 
 		// register keymap
 		this.registerEditorExtension(
@@ -270,6 +272,14 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			this.statusBarItemEl.show();
 		} else {
 			this.statusBarItemEl.hide();
+		}
+	}
+
+	handleShowSidebarChange() {
+		if (this.settings.showOnSidebar) {
+			this.ribbonIconEl.show();
+		} else {
+			this.ribbonIconEl.hide();
 		}
 	}
 
