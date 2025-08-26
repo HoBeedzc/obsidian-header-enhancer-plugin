@@ -73,7 +73,6 @@ export class BacklinkManager {
                         );
                         
                         if (linkUpdate) {
-                            console.log('Found matching header link:', linkUpdate);
                             updates.push(linkUpdate);
                         }
                     }
@@ -84,7 +83,6 @@ export class BacklinkManager {
             new Notice('Error finding backlinks: ' + error.message);
         }
 
-        console.log('Total header link updates found:', updates.length);
         return updates;
     }
 
@@ -113,13 +111,12 @@ export class BacklinkManager {
             // Execute all updates in parallel
             await Promise.all(updatePromises);
             
-            console.log(`Successfully updated ${updates.length} backlinks`);
             return true;
 
         } catch (error) {
             console.error('Error updating backlinks:', error);
             
-            // 回滚操作
+            // Rollback operation
             try {
                 const rollbackPromises = backupData.map(backup => 
                     this.app.vault.modify(backup.file, backup.content)
@@ -147,7 +144,7 @@ export class BacklinkManager {
         
         if (line >= lines.length) return;
 
-        // 替换链接文本
+        // Replace link text
         const oldLine = lines[line];
         const newLine = oldLine.replace(update.oldLink, update.newLink);
         

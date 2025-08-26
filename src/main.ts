@@ -54,17 +54,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					);
 					return;
 				}
-				// toggle header numbering on/off
+				// Toggle header numbering on/off - direct toggle without dialog
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					await this.handleRemoveHeaderNumber(activeView);
 				} else {
-					// turn on auto-numbering
+					// Turn on auto-numbering directly
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					await this.handleAddHeaderNumber(activeView);
 				}
+				await this.saveSettings();
 				this.handleShowStateBarChange();
 			}
 		);
@@ -92,17 +93,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					);
 					return;
 				}
-				// toggle header numbering on/off
+				// Toggle header numbering on/off - direct toggle without dialog
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					await this.handleRemoveHeaderNumber(activeView);
 				} else {
-					// turn on auto-numbering
+					// Turn on auto-numbering directly
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					await this.handleAddHeaderNumber(activeView);
 				}
+				await this.saveSettings();
 				this.handleShowStateBarChange();
 			},
 		});
@@ -192,7 +194,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
 			window.setInterval(() => {
-				// Periodic maintenance tasks can be added here
+				// Reserved for future periodic maintenance tasks
 			}, 5 * 60 * 1000)
 		);
 	}
@@ -305,7 +307,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						// 这是要添加编号的情况 - 提取原始标题
+						// Add numbering to header - extract original title
 						originalHeading = line.substring(realHeaderLevel + 1).trim();
 						
 						newLine = "#".repeat(realHeaderLevel) +
@@ -320,7 +322,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						// 这是要更新编号的情况 - 提取去除编号后的标题
+						// Update existing numbering - extract title after separator
 						const textAfterSeparator = line.split(this.settings.autoNumberingHeaderSeparator)[1];
 						originalHeading = textAfterSeparator ? textAfterSeparator.trim() : null;
 						
@@ -337,7 +339,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							);
 					}
 
-					// 记录标题变化用于反向链接更新
+					// Record header changes for backlink updates
 					if (newLine && newLine !== line && originalHeading) {
 						headerChanges.push({
 							lineIndex: i,
@@ -451,9 +453,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						this.settings.autoNumberingHeaderSeparator
 					);
 					
-					// 只有当行实际改变时才记录和更新
+					// Only record and update when line actually changes
 					if (newLine !== line) {
-						// 提取移除编号后的纯标题文本
+						// Extract pure title text after removing numbering
 						const originalHeading = this.extractHeadingText(newLine);
 						
 						if (originalHeading) {
@@ -470,7 +472,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				}
 			}
 			
-			// 处理反向链接更新 - 从编号格式更新回原始格式
+			// Handle backlink updates - from numbered format back to original format
 			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
 				await this.updateBacklinksForRemoval(currentFile, headerChanges);
 			}

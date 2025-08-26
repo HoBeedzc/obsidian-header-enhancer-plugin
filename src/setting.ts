@@ -66,7 +66,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		const i18n = I18n.getInstance();
 
 		containerEl.empty();
-		// 重置格式预览引用，因为 empty() 会清空所有元素
+		// Reset format preview reference since empty() clears all elements
 		this.formatPreviewSetting = null;
 
 		containerEl.createEl("h1", { text: i18n.t("settings.title") });
@@ -148,8 +148,31 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						// Reset dropdown to previous value temporarily
 						dropdown.setValue(this.plugin.settings.autoNumberingMode);
 						
+					} else if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.OFF &&
+							   newMode === AutoNumberingMode.ON) {
+						
+						// Only show dialog for OFF -> ON, not for OFF -> YAML
+						// Import the dialog dynamically
+						const { AutoNumberingActivationDialog } = await import('./dialogs');
+						
+						// Show activation confirmation dialog
+						const dialog = new AutoNumberingActivationDialog(
+							this.app,
+							this.plugin,
+							async (addToAll: boolean) => {
+								this.plugin.settings.autoNumberingMode = newMode;
+								await this.plugin.saveSettings();
+								this.plugin.handleShowStateBarChange();
+								this.display();
+							}
+						);
+						dialog.open();
+						
+						// Reset dropdown to previous value temporarily
+						dropdown.setValue(this.plugin.settings.autoNumberingMode);
+						
 					} else {
-						// Direct setting change for other transitions
+						// Direct setting change for other transitions (including OFF -> YAML)
 						this.plugin.settings.autoNumberingMode = newMode;
 						await this.plugin.saveSettings();
 						this.plugin.handleShowStateBarChange();
@@ -189,7 +212,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						new Notice(
 							i18n.t("settings.autoNumbering.startLevelError")
 						);
-						// 恢复到原来的设置值
+						// Restore to original setting value
 						dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
 					}
 				});
@@ -217,7 +240,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						new Notice(
 							i18n.t("settings.autoNumbering.endLevelError")
 						);
-						// 恢复到原来的设置值
+						// Restore to original setting value
 						dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
 					}
 				});

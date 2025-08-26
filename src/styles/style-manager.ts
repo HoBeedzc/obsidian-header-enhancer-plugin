@@ -1,7 +1,7 @@
 import type { HeaderEnhancerSettings } from "../setting";
 
 /**
- * 管理插件的所有 CSS 样式，包括标题字体、文档标题字体和对话框样式
+ * Manages all CSS styles for the plugin, including header fonts, document title fonts, and dialog styles
  */
 export class StyleManager {
 	private headerFontStyleEl: HTMLStyleElement | null = null;
@@ -11,7 +11,7 @@ export class StyleManager {
 	constructor(private settings: HeaderEnhancerSettings) {}
 
 	/**
-	 * 应用所有 CSS 样式
+	 * Apply all CSS styles
 	 */
 	applyCSSStyles(): void {
 		this.applyHeaderFontStyles();
@@ -20,7 +20,7 @@ export class StyleManager {
 	}
 
 	/**
-	 * 移除所有 CSS 样式
+	 * Remove all CSS styles
 	 */
 	removeCSSStyles(): void {
 		this.removeHeaderFontStyles();
@@ -29,7 +29,7 @@ export class StyleManager {
 	}
 
 	/**
-	 * 应用标题字体样式 (# ## ### 等)
+	 * Apply header font styles (# ## ### etc.)
 	 */
 	applyHeaderFontStyles(): void {
 		// 先移除现有的标题字体样式
@@ -148,31 +148,36 @@ export class StyleManager {
 		
 		// 对话框 CSS 内容
 		const dialogCSS = `
-/* Auto numbering removal dialog styles */
-.header-enhancer-removal-dialog {
+/* Auto numbering dialog styles - shared between removal and activation */
+.header-enhancer-removal-dialog,
+.header-enhancer-activation-dialog {
     max-width: 500px;
 }
 
-.header-enhancer-removal-dialog .modal-title {
+.header-enhancer-removal-dialog .modal-title,
+.header-enhancer-activation-dialog .modal-title {
     margin-bottom: 1em;
     padding-bottom: 0.5em;
     color: var(--text-accent);
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.header-enhancer-removal-dialog .modal-message {
+.header-enhancer-removal-dialog .modal-message,
+.header-enhancer-activation-dialog .modal-message {
     margin-bottom: 1.5em;
     line-height: 1.5;
     color: var(--text-normal);
 }
 
-.header-enhancer-removal-dialog .modal-actions {
+.header-enhancer-removal-dialog .modal-actions,
+.header-enhancer-activation-dialog .modal-actions {
     margin-top: 1em;
     padding-top: 1em;
     border-top: 1px solid var(--background-modifier-border);
 }
 
-.header-enhancer-removal-dialog .modal-actions .setting-item {
+.header-enhancer-removal-dialog .modal-actions .setting-item,
+.header-enhancer-activation-dialog .modal-actions .setting-item {
     margin-bottom: 0.75em;
     padding: 0.75em;
     background-color: var(--background-secondary);
@@ -181,43 +186,52 @@ export class StyleManager {
     transition: all 0.2s ease;
 }
 
-.header-enhancer-removal-dialog .modal-actions .setting-item:hover {
+.header-enhancer-removal-dialog .modal-actions .setting-item:hover,
+.header-enhancer-activation-dialog .modal-actions .setting-item:hover {
     background-color: var(--background-secondary-alt);
     border-color: var(--background-modifier-border-hover);
 }
 
 /* Warning and tip text styles */
 .header-enhancer-removal-dialog .setting-item-warning,
-.header-enhancer-removal-dialog .setting-item-tip {
+.header-enhancer-removal-dialog .setting-item-tip,
+.header-enhancer-activation-dialog .setting-item-warning,
+.header-enhancer-activation-dialog .setting-item-tip {
     margin-top: 0.5em;
     font-size: 0.85em;
     line-height: 1.3;
 }
 
-.header-enhancer-removal-dialog .warning-label {
+.header-enhancer-removal-dialog .warning-label,
+.header-enhancer-activation-dialog .warning-label {
     color: var(--text-error);
     font-weight: 600;
 }
 
 .header-enhancer-removal-dialog .warning-text,
-.header-enhancer-removal-dialog .progress-text {
+.header-enhancer-removal-dialog .progress-text,
+.header-enhancer-activation-dialog .warning-text,
+.header-enhancer-activation-dialog .progress-text {
     color: var(--text-muted);
     margin: 0;
 }
 
-.header-enhancer-removal-dialog .manual-tip-text {
+.header-enhancer-removal-dialog .manual-tip-text,
+.header-enhancer-activation-dialog .manual-tip-text {
     color: var(--text-muted);
     font-style: italic;
 }
 
-.header-enhancer-removal-dialog .modal-cancel {
+.header-enhancer-removal-dialog .modal-cancel,
+.header-enhancer-activation-dialog .modal-cancel {
     margin-top: 1em;
     padding-top: 1em;
     text-align: center;
     border-top: 1px solid var(--background-modifier-border-focus);
 }
 
-.header-enhancer-removal-dialog .progress-container {
+.header-enhancer-removal-dialog .progress-container,
+.header-enhancer-activation-dialog .progress-container {
     margin-top: 1em;
     padding: 1em;
     background-color: var(--background-secondary);
@@ -226,11 +240,13 @@ export class StyleManager {
     text-align: center;
 }
 
-.header-enhancer-removal-dialog .progress-text {
+.header-enhancer-removal-dialog .progress-text,
+.header-enhancer-activation-dialog .progress-text {
     font-size: 0.9em;
 }
 
-.header-enhancer-removal-dialog button:disabled {
+.header-enhancer-removal-dialog button:disabled,
+.header-enhancer-activation-dialog button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }

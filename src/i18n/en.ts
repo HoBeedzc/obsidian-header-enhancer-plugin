@@ -87,6 +87,23 @@ export default {
                 error: "Error occurred while processing files: {error}",
                 noNumberingFound: "No files with header numbering were found",
                 manualTip: "You can also manually disable auto numbering for individual files using the sidebar button."
+            },
+            activationConfirmation: {
+                title: "Enable Auto Numbering",
+                message: "You are about to enable auto numbering. What would you like to do with existing documents in your vault?",
+                warningTitle: "⚠️ Performance Warning",
+                warningMessage: "This operation will scan all markdown files in your vault. In large vaults, this may take several minutes and temporarily impact Obsidian's performance.",
+                addToAll: "Add numbering to all documents",
+                addToAllDesc: "Scan all files and add header numbering to existing documents",
+                turnOnOnly: "Turn on without adding",
+                turnOnOnlyDesc: "Enable auto numbering but keep existing documents unchanged",
+                cancel: "Cancel",
+                processing: "Adding numbering to files...",
+                progressStatus: "Processed {current} of {total} files",
+                completed: "Successfully added numbering to {count} files",
+                error: "Error occurred while processing files: {error}",
+                noHeadersFound: "No files with headers were found",
+                manualTip: "You can also manually enable auto numbering for individual files using the sidebar button."
             }
         },
         headerFont: {
