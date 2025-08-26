@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.3.3] - 2025-08-26
+### Fixed
+- 修复 build 失败的问题 - Fixed build failure issue
+
 ## [0.3.2] - 2025-08-26
 ### Fixed
 - 修复 build 失败的问题 - Fixed build failure issue
