@@ -1,7 +1,7 @@
 {
 	"id": "header-enhancer",
 	"name": "Header Enhancer",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"minAppVersion": "0.14.0",
 	"description": "Level up your headers, customize your notes. Header Enhancer makes your notes header better and more useful.",
 	"author": "Hobee Liu",

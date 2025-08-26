@@ -226,7 +226,7 @@ Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obs
 
 ## 📊 Changelog
 
-### Version 0.3.2 (Current)
+### Version 0.3.3 (Current)
 - ✨ **NEW**: Bulk operation dialogs with confirmation and progress tracking
 - ✨ **NEW**: Auto-numbering activation dialog with vault-wide application option
 - ✨ **NEW**: Auto-numbering removal confirmation with bulk removal option
