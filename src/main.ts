@@ -1,6 +1,4 @@
 import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
-import { EditorView, keymap } from "@codemirror/view";
-import { Prec } from "@codemirror/state";
 
 import {
 	getHeaderLevel,
@@ -20,23 +18,27 @@ import {
 import { getAutoNumberingConfig } from "./config";
 import { I18n } from "./i18n";
 import { BacklinkManager } from "./backlinks";
+import { EditorHandlers } from "./editor/editor-handlers";
+import { StyleManager } from "./styles/style-manager";
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
 	backlinkManager: BacklinkManager;
-	private headerFontStyleEl: HTMLStyleElement | null = null;
-	private titleFontStyleEl: HTMLStyleElement | null = null;
+	editorHandlers: EditorHandlers;
+	styleManager: StyleManager;
 
 	async onload() {
 		await this.loadSettings();
 		
-		// Initialize backlink manager
+		// Initialize managers
 		this.backlinkManager = new BacklinkManager(this.app);
+		this.editorHandlers = new EditorHandlers(this);
+		this.styleManager = new StyleManager(this.settings);
 
-		// Apply CSS styles for header and title fonts
-		this.applyCSSStyles();
+		// Apply CSS styles
+		this.styleManager.applyCSSStyles();
 
 		// Creates an icon in the left ribbon.
 		this.ribbonIconEl = this.addRibbonIcon(
@@ -52,17 +54,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					);
 					return;
 				}
-				// toggle header numbering on/off
+				// Toggle header numbering on/off - direct toggle without dialog
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					await this.handleRemoveHeaderNumber(activeView);
 				} else {
-					// turn on auto-numbering
+					// Turn on auto-numbering directly
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					await this.handleAddHeaderNumber(activeView);
 				}
+				await this.saveSettings();
 				this.handleShowStateBarChange();
 			}
 		);
@@ -72,52 +75,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.handleShowStateBarChange();
 		this.handleShowSidebarChange();
 
-		// register keymap
-		this.registerEditorExtension(
-			Prec.highest(
-				keymap.of([
-					{
-						key: "Enter",
-						run: (view: EditorView): boolean => {
-							const state = view.state;
-							const pos = state.selection.main.to;
-							const currentLine = state.doc.lineAt(pos);
-
-							// 只有在标题行并且自动编号开启时才进行处理
-							if (!isHeader(currentLine.text) || this.settings.autoNumberingMode === AutoNumberingMode.OFF) {
-								return false; // 不处理，让默认处理程序处理
-							}
-
-							// 执行自定义Enter处理 - 异步调用但不等待结果
-							this.handlePressEnter(view);
-							return true; // 表示我们已经处理了这个事件
-						},
-					},
-				])
-			)
-		);
-
-		this.registerEditorExtension(
-			Prec.highest(
-				keymap.of([
-					{
-						key: "Backspace",
-						run: (view: EditorView): boolean => {
-							const state = view.state;
-                    		const pos = state.selection.main.to;
-                    		const currentLine = state.doc.lineAt(pos);
-                    
-                    		// 只有在标题行时才进行处理
-                    		if (!isHeader(currentLine.text)) {
-                        		return false; // 不处理，让默认处理程序处理
-                    		}
-                    
-                    		return this.handlePressBackspace(view);
-						},
-					},
-				])
-			)
-		);
+		// Register editor extensions
+		const keyHandlers = this.editorHandlers.registerKeyHandlers();
+		keyHandlers.forEach(handler => this.registerEditorExtension(handler));
 
 		// This adds a command that can be triggered anywhere
 		this.addCommand({
@@ -133,17 +93,18 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					);
 					return;
 				}
-				// toggle header numbering on/off
+				// Toggle header numbering on/off - direct toggle without dialog
 				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
 					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
 					new Notice("Auto numbering is off");
 					await this.handleRemoveHeaderNumber(activeView);
 				} else {
-					// turn on auto-numbering
+					// Turn on auto-numbering directly
 					this.settings.autoNumberingMode = AutoNumberingMode.ON;
 					new Notice("Auto numbering is on");
 					await this.handleAddHeaderNumber(activeView);
 				}
+				await this.saveSettings();
 				this.handleShowStateBarChange();
 			},
 		});
@@ -233,14 +194,14 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
 			window.setInterval(() => {
-				// Periodic maintenance tasks can be added here
+				// Reserved for future periodic maintenance tasks
 			}, 5 * 60 * 1000)
 		);
 	}
 
 	onunload() {
-		// Clean up header and title font styles
-		this.removeCSSStyles();
+		// Clean up styles
+		this.styleManager.removeCSSStyles();
 	}
 
 	async loadSettings() {
@@ -253,6 +214,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		// Update style manager with new settings
+		this.styleManager.updateSettings(this.settings);
 	}
 
 	handleShowStateBarChange() {
@@ -344,7 +307,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						// 这是要添加编号的情况 - 提取原始标题
+						// Add numbering to header - extract original title
 						originalHeading = line.substring(realHeaderLevel + 1).trim();
 						
 						newLine = "#".repeat(realHeaderLevel) +
@@ -359,7 +322,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						// 这是要更新编号的情况 - 提取去除编号后的标题
+						// Update existing numbering - extract title after separator
 						const textAfterSeparator = line.split(this.settings.autoNumberingHeaderSeparator)[1];
 						originalHeading = textAfterSeparator ? textAfterSeparator.trim() : null;
 						
@@ -376,7 +339,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							);
 					}
 
-					// 记录标题变化用于反向链接更新
+					// Record header changes for backlink updates
 					if (newLine && newLine !== line && originalHeading) {
 						headerChanges.push({
 							lineIndex: i,
@@ -490,9 +453,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						this.settings.autoNumberingHeaderSeparator
 					);
 					
-					// 只有当行实际改变时才记录和更新
+					// Only record and update when line actually changes
 					if (newLine !== line) {
-						// 提取移除编号后的纯标题文本
+						// Extract pure title text after removing numbering
 						const originalHeading = this.extractHeadingText(newLine);
 						
 						if (originalHeading) {
@@ -509,7 +472,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				}
 			}
 			
-			// 处理反向链接更新 - 从编号格式更新回原始格式
+			// Handle backlink updates - from numbered format back to original format
 			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
 				await this.updateBacklinksForRemoval(currentFile, headerChanges);
 			}
@@ -560,232 +523,4 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		}
 	}
 
-	async handlePressEnter(view: EditorView): Promise<boolean> {
-		let state = view.state;
-		let doc = state.doc;
-		const pos = state.selection.main.to;
-		
-		const app = this.app;
-		const activeView = app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView) {
-			return false; // 让默认处理程序处理
-		}
-	
-		// 获取当前行信息
-		const currentLine = doc.lineAt(pos);
-		
-		// 注意：这个检查已经在外层run函数做过了，这里可以简化
-		// 但保留这个检查作为额外的安全措施
-		if (!isHeader(currentLine.text) || this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
-			return false;
-		}
-	
-		const editor = activeView.editor;
-		const config = getAutoNumberingConfig(this.settings, editor);
-		
-		// 处理在标题中间按Enter的情况
-		// 获取光标前后的文本
-		const textBeforeCursor = currentLine.text.substring(0, pos - currentLine.from);
-		const textAfterCursor = currentLine.text.substring(pos - currentLine.from);
-		
-		// 创建更改操作 - 直接替换整行，而不是分多次操作
-		const changes = [{
-			from: currentLine.from,
-			to: currentLine.to,
-			insert: textBeforeCursor + "\n" + textAfterCursor
-		}];
-		
-		// 应用更改并设置光标位置
-		view.dispatch({
-			changes,
-			selection: { anchor: currentLine.from + textBeforeCursor.length + 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
-		});
-		
-		// 在操作完成后更新标题编号
-		if (config.state) {
-			// 使用setTimeout确保编辑操作已完成
-			setTimeout(async () => {
-				await this.handleAddHeaderNumber(activeView);
-			}, 10);
-		}
-		
-		return true;
-	}
-
-	handlePressBackspace(view: EditorView): boolean {
-		let state = view.state;
-		let doc = state.doc;
-		const pos = state.selection.main.to;
-		const changes = [];
-
-		if (!isHeader(doc.lineAt(pos).text)) {
-			return false;
-		}
-
-		// insert a new line in current pos first
-		changes.push({
-			from: pos - 1,
-			to: pos,
-			insert: "",
-		});
-
-		if (this.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			// some header may be deleted, so we need to recalculate the number
-			// TODO: feature
-		}
-
-		view.dispatch({
-			changes,
-			selection: { anchor: pos - 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
-		});
-
-		return true;
-	}
-
-	/**
-	 * Apply CSS styles for header and title font customization
-	 */
-	applyCSSStyles(): void {
-		// Apply header font styles
-		this.applyHeaderFontStyles();
-		// Apply title font styles
-		this.applyTitleFontStyles();
-	}
-
-	/**
-	 * Apply CSS styles for header font customization
-	 */
-	applyHeaderFontStyles(): void {
-		// Remove existing header font styles first
-		this.removeHeaderFontStyles();
-		
-		if (!this.settings.isSeparateHeaderFont) {
-			return;
-		}
-
-		// Create header font style element
-		this.headerFontStyleEl = document.createElement('style');
-		this.headerFontStyleEl.id = 'header-enhancer-header-font-styles';
-
-		let cssRules = '';
-		
-		// Generate CSS selectors for all header levels (H1-H6)
-		const headerSelectors = [
-			'.markdown-preview-view h1',
-			'.markdown-preview-view h2', 
-			'.markdown-preview-view h3',
-			'.markdown-preview-view h4',
-			'.markdown-preview-view h5',
-			'.markdown-preview-view h6',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-1',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-2',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-3',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-4',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-5',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-6'
-		].join(', ');
-
-		// Apply font family if set and not inherit
-		if (this.settings.headerFontFamily && this.settings.headerFontFamily !== 'inherit') {
-			cssRules += `${headerSelectors} { font-family: ${this.settings.headerFontFamily} !important; }\n`;
-		}
-
-		// Apply font size if set and not inherit  
-		if (this.settings.headerFontSize && this.settings.headerFontSize !== 'inherit') {
-			cssRules += `${headerSelectors} { font-size: ${this.settings.headerFontSize} !important; }\n`;
-		}
-
-		// Set the CSS content
-		this.headerFontStyleEl.textContent = cssRules;
-		
-		// Append to document head
-		if (cssRules) {
-			document.head.appendChild(this.headerFontStyleEl);
-		}
-	}
-
-	/**
-	 * Apply CSS styles for title font customization
-	 */
-	applyTitleFontStyles(): void {
-		// Remove existing title font styles first
-		this.removeTitleFontStyles();
-		
-		if (!this.settings.isSeparateTitleFont) {
-			return;
-		}
-
-		// Create title font style element
-		this.titleFontStyleEl = document.createElement('style');
-		this.titleFontStyleEl.id = 'header-enhancer-title-font-styles';
-
-		let cssRules = '';
-		
-		// Generate CSS selectors for document titles - MUCH MORE SPECIFIC
-		const titleSelectors = [
-			// File title in tab - only target specific tab title elements
-			'.workspace-tab-header-inner-title',
-			'.workspace-tab-header .workspace-tab-header-inner-title', 
-			'.workspace-tabs .workspace-tab-header-inner-title',
-			// View header title
-			'.workspace-leaf-content .view-header-title',
-			// Document inline title (the main title displayed in document)
-			'.inline-title',
-			'.markdown-preview-view .inline-title',
-			'.markdown-source-view .inline-title',
-			// File title in file explorer
-			'.nav-file-title-content',
-			'.tree-item-inner.nav-file-title-content',
-			// Frontmatter title display
-			'.frontmatter-container .metadata-property[data-property-key="title"] .metadata-property-value'
-		].join(', ');
-
-		// Apply font family if set and not inherit
-		if (this.settings.titleFontFamily && this.settings.titleFontFamily !== 'inherit') {
-			cssRules += `${titleSelectors} { font-family: ${this.settings.titleFontFamily} !important; }\n`;
-		}
-
-		// Apply font size if set and not inherit  
-		if (this.settings.titleFontSize && this.settings.titleFontSize !== 'inherit') {
-			cssRules += `${titleSelectors} { font-size: ${this.settings.titleFontSize} !important; }\n`;
-		}
-
-		// Set the CSS content
-		this.titleFontStyleEl.textContent = cssRules;
-		
-		// Append to document head
-		if (cssRules) {
-			document.head.appendChild(this.titleFontStyleEl);
-		}
-	}
-
-	/**
-	 * Remove CSS styles for header and title font customization
-	 */
-	removeCSSStyles(): void {
-		this.removeHeaderFontStyles();
-		this.removeTitleFontStyles();
-	}
-
-	/**
-	 * Remove CSS styles for header font customization
-	 */
-	removeHeaderFontStyles(): void {
-		if (this.headerFontStyleEl) {
-			this.headerFontStyleEl.remove();
-			this.headerFontStyleEl = null;
-		}
-	}
-
-	/**
-	 * Remove CSS styles for title font customization
-	 */
-	removeTitleFontStyles(): void {
-		if (this.titleFontStyleEl) {
-			this.titleFontStyleEl.remove();
-			this.titleFontStyleEl = null;
-		}
-	}
 }

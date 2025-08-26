@@ -1,12 +1,12 @@
-// reference https://github.com/lijyze/obsidian-state-switcher/blob/main/src/util.ts
+// Reference: https://github.com/lijyze/obsidian-state-switcher/blob/main/src/util.ts
 import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
 const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
 const DEFAULT_YAML_SETTING = [
 	"state on",
-	"start-level h2",
-	"max-level h1",
-	"start-number 1",
+	"first-level h2",
+	"max 1",
+	"start-at 1",
 	"separator .",
 ];
 

@@ -66,7 +66,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		const i18n = I18n.getInstance();
 
 		containerEl.empty();
-		// 重置格式预览引用，因为 empty() 会清空所有元素
+		// Reset format preview reference since empty() clears all elements
 		this.formatPreviewSetting = null;
 
 		containerEl.createEl("h1", { text: i18n.t("settings.title") });
@@ -122,10 +122,62 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.addOption(AutoNumberingMode.YAML_CONTROLLED, i18n.t("settings.autoNumbering.mode.yaml"));
 				dropdown.setValue(this.plugin.settings.autoNumberingMode);
 				dropdown.onChange(async (value) => {
-					this.plugin.settings.autoNumberingMode = value as AutoNumberingMode;
-					await this.plugin.saveSettings();
-					this.plugin.handleShowStateBarChange();
-					this.display();
+					const newMode = value as AutoNumberingMode;
+					
+					// Check if switching from ON/YAML to OFF
+					if ((this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON || 
+						 this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) &&
+						newMode === AutoNumberingMode.OFF) {
+						
+						// Import the dialog dynamically
+						const { AutoNumberingRemovalDialog } = await import('./dialogs');
+						
+						// Show confirmation dialog
+						const dialog = new AutoNumberingRemovalDialog(
+							this.app, 
+							this.plugin,
+							async (removeExisting: boolean) => {
+								this.plugin.settings.autoNumberingMode = AutoNumberingMode.OFF;
+								await this.plugin.saveSettings();
+								this.plugin.handleShowStateBarChange();
+								this.display();
+							}
+						);
+						dialog.open();
+						
+						// Reset dropdown to previous value temporarily
+						dropdown.setValue(this.plugin.settings.autoNumberingMode);
+						
+					} else if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.OFF &&
+							   newMode === AutoNumberingMode.ON) {
+						
+						// Only show dialog for OFF -> ON, not for OFF -> YAML
+						// Import the dialog dynamically
+						const { AutoNumberingActivationDialog } = await import('./dialogs');
+						
+						// Show activation confirmation dialog
+						const dialog = new AutoNumberingActivationDialog(
+							this.app,
+							this.plugin,
+							async (addToAll: boolean) => {
+								this.plugin.settings.autoNumberingMode = newMode;
+								await this.plugin.saveSettings();
+								this.plugin.handleShowStateBarChange();
+								this.display();
+							}
+						);
+						dialog.open();
+						
+						// Reset dropdown to previous value temporarily
+						dropdown.setValue(this.plugin.settings.autoNumberingMode);
+						
+					} else {
+						// Direct setting change for other transitions (including OFF -> YAML)
+						this.plugin.settings.autoNumberingMode = newMode;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowStateBarChange();
+						this.display();
+					}
 				});
 			});
 		new Setting(containerEl)
@@ -160,7 +212,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						new Notice(
 							i18n.t("settings.autoNumbering.startLevelError")
 						);
-						// 恢复到原来的设置值
+						// Restore to original setting value
 						dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
 					}
 				});
@@ -188,7 +240,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						new Notice(
 							i18n.t("settings.autoNumbering.endLevelError")
 						);
-						// 恢复到原来的设置值
+						// Restore to original setting value
 						dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
 					}
 				});
@@ -269,7 +321,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.isSeparateHeaderFont = value;
 						await this.plugin.saveSettings();
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						this.display();
 					});
 			});
@@ -318,7 +370,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.isSeparateTitleFont = value;
 						await this.plugin.saveSettings();
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						this.display();
 					});
 			});
@@ -531,20 +583,56 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			.addDropdown((dropdown) => {
 				// Add font family options
 				dropdown.addOption("inherit", i18n.t(`${settingsKey}.family.options.inherit`));
+				
+				// Western Sans-Serif Fonts
 				dropdown.addOption("Arial, sans-serif", "Arial");
 				dropdown.addOption("Helvetica, Arial, sans-serif", "Helvetica");
-				dropdown.addOption("'Times New Roman', Times, serif", "Times New Roman");
-				dropdown.addOption("Georgia, serif", "Georgia");
-				dropdown.addOption("'Courier New', Courier, monospace", "Courier New");
-				dropdown.addOption("Consolas, 'Liberation Mono', monospace", "Consolas");
-				dropdown.addOption("Monaco, 'Lucida Console', monospace", "Monaco");
 				dropdown.addOption("Verdana, Geneva, sans-serif", "Verdana");
 				dropdown.addOption("Tahoma, Geneva, sans-serif", "Tahoma");
 				dropdown.addOption("'Trebuchet MS', Helvetica, sans-serif", "Trebuchet MS");
 				dropdown.addOption("'Lucida Sans Unicode', 'Lucida Grande', sans-serif", "Lucida Sans");
 				dropdown.addOption("Impact, Charcoal, sans-serif", "Impact");
-				dropdown.addOption("'Palatino Linotype', 'Book Antiqua', Palatino, serif", "Palatino");
 				dropdown.addOption("'Comic Sans MS', cursive", "Comic Sans MS");
+				
+				// Western Serif Fonts
+				dropdown.addOption("'Times New Roman', Times, serif", "Times New Roman");
+				dropdown.addOption("Georgia, serif", "Georgia");
+				dropdown.addOption("'Palatino Linotype', 'Book Antiqua', Palatino, serif", "Palatino");
+				dropdown.addOption("Garamond, serif", "Garamond");
+				dropdown.addOption("'Book Antiqua', Palatino, serif", "Book Antiqua");
+				
+				// Monospace Fonts
+				dropdown.addOption("'Courier New', Courier, monospace", "Courier New");
+				dropdown.addOption("Consolas, 'Liberation Mono', monospace", "Consolas");
+				dropdown.addOption("Monaco, 'Lucida Console', monospace", "Monaco");
+				dropdown.addOption("'JetBrains Mono', Consolas, monospace", "JetBrains Mono");
+				dropdown.addOption("'Fira Code', Consolas, monospace", "Fira Code");
+				dropdown.addOption("Menlo, Monaco, monospace", "Menlo");
+				
+				// Chinese Sans-Serif Fonts
+				dropdown.addOption("'Microsoft YaHei', '微软雅黑', Arial, sans-serif", "Microsoft YaHei (微软雅黑)");
+				dropdown.addOption("'PingFang SC', '苹方-简', 'Helvetica Neue', Arial, sans-serif", "PingFang SC (苹方-简)");
+				dropdown.addOption("'Hiragino Sans GB', '冬青黑体简体中文', 'Microsoft YaHei', sans-serif", "Hiragino Sans GB (冬青黑体)");
+				dropdown.addOption("'Source Han Sans SC', '思源黑体 CN', 'Noto Sans CJK SC', sans-serif", "Source Han Sans SC (思源黑体)");
+				dropdown.addOption("'Noto Sans SC', '思源黑体', sans-serif", "Noto Sans SC");
+				dropdown.addOption("SimHei, '黑体', sans-serif", "SimHei (黑体)");
+				dropdown.addOption("'WenQuanYi Micro Hei', '文泉驿微米黑', sans-serif", "WenQuanYi Micro Hei (文泉驿微米黑)");
+				
+				// Chinese Serif Fonts
+				dropdown.addOption("'Songti SC', '宋体-简', SimSun, serif", "Songti SC (宋体-简)");
+				dropdown.addOption("SimSun, '宋体', serif", "SimSun (宋体)");
+				dropdown.addOption("'Source Han Serif SC', '思源宋体 CN', 'Noto Serif CJK SC', serif", "Source Han Serif SC (思源宋体)");
+				dropdown.addOption("'Noto Serif SC', '思源宋体', serif", "Noto Serif SC");
+				dropdown.addOption("'STSong', '华文宋体', SimSun, serif", "STSong (华文宋体)");
+				dropdown.addOption("'FangSong', '仿宋', serif", "FangSong (仿宋)");
+				
+				// System UI Fonts
+				dropdown.addOption("system-ui, -apple-system, sans-serif", "System UI");
+				dropdown.addOption("-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", "System Default");
+				
+				// Mixed Chinese + English Fallbacks
+				dropdown.addOption("'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', Arial, sans-serif", "中英文无衬线混合");
+				dropdown.addOption("'Songti SC', 'Source Han Serif SC', 'Times New Roman', serif", "中英文衬线混合");
 				
 				const currentValue = isHeader ? this.plugin.settings.headerFontFamily : this.plugin.settings.titleFontFamily;
 				const isEnabled = isHeader ? this.plugin.settings.isSeparateHeaderFont : this.plugin.settings.isSeparateTitleFont;
@@ -559,7 +647,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					if (isEnabled) {
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						if (isHeader) {
 							this.updateAllHeaderPreviewStyles();
 						} else {
@@ -615,7 +703,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					if (isEnabled) {
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						if (isHeader) {
 							this.updateAllHeaderPreviewStyles();
 						} else {

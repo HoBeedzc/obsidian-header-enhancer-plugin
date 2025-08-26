@@ -7,7 +7,7 @@
 
 A powerful Obsidian plugin that enhances your markdown headers with automatic numbering, intelligent backlink management, and customizable formatting options.
 
-**Current Version**: 0.3.0
+**Current Version**: 0.3.1
 
 ## ✨ Core Features
 
@@ -20,6 +20,7 @@ Automatically adds hierarchical numbering to your headers (1.1, 1.2, 2.1, etc.) 
 - **Customizable Separators**: Choose from `.`, `-`, `/`, or `,` as separators
 - **Flexible Start Levels**: Configure which header level (H1-H6) to start numbering from
 - **Per-file Control**: Override global settings using YAML frontmatter
+- **Bulk Operations**: Apply or remove numbering across entire vault with confirmation dialogs
 
 ![header-auto-numbering-example](./doc/img/header-auto-numbering-example.gif)
 
@@ -32,18 +33,19 @@ Automatically maintains backlinks when header numbering changes, ensuring your w
 - **Bidirectional Updates**: Works both when adding and removing header numbers
 - **Safe Operations**: Preserves link integrity with error handling and notifications
 
-### 🎨 Custom Typography & Styling  
-Fine-tune the visual appearance of your headers and document titles with advanced font customization.
+### 🎨 Advanced Font Customization  
+Fine-tune the visual appearance of your headers and document titles with comprehensive font options.
 
 **Features:**
 - **Separate Header Fonts**: Customize font family and size for markdown headers (#, ##, ###, etc.)
 - **Separate Title Fonts**: Customize font family and size specifically for document titles
+- **Organized Font Categories**: Choose from categorized font families including Serif, Sans-Serif, Monospace, and more
 - **Live Preview**: Real-time preview of font changes in the settings panel
 - **Inheritance Support**: Use "inherit" to maintain Obsidian's default styling
 - **Independent Control**: Header and title fonts can be customized separately
 
-### 📝 YAML Configuration Support
-Fine-tune header numbering behavior on a per-file basis using YAML frontmatter.
+### 📝 Enhanced YAML Configuration Support
+Fine-tune header numbering behavior on a per-file basis using YAML frontmatter with improved schema.
 
 **Example Configuration:**
 ```yaml
@@ -52,13 +54,19 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 ---
 ```
 
+**New Features:**
+- **Updated Schema**: More intuitive parameter naming and structure
+- **Better Validation**: Improved error handling and user feedback
+- **Smart Defaults**: Intelligent default values based on global settings
+
 ### 🎯 Advanced Editor Integration
 Seamless integration with Obsidian's editor using CodeMirror 6 extensions.
 
 **Features:**
 - **Smart Key Handling**: Custom `Enter` and `Backspace` behavior for headers
 - **High Priority Handling**: Ensures compatibility with other plugins
-- **Real-time Processing**: Immediate feedback and updates as you type 
+- **Real-time Processing**: Immediate feedback and updates as you type
+- **Bulk Operation Dialogs**: Confirmation dialogs for vault-wide operations with progress tracking 
 
 ## 🚀 Installation
 
@@ -98,6 +106,7 @@ The plugin is **enabled by default** after installation. You can:
 #### Font Customization
 - **Header Fonts**: Separate font family and size for markdown headers
 - **Title Fonts**: Separate font family and size for document titles
+- **Font Categories**: Organized options including Serif, Sans-Serif, Monospace, System, and Popular fonts
 - **Live Preview**: Real-time font preview in the settings panel
 - **Inheritance**: Option to inherit from Obsidian's default styling
 
@@ -131,7 +140,9 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 
 | Command | Description |
 |---------|-------------|
-| **Toggle auto numbering** | Turn header numbering on/off |
+| **Toggle auto numbering** | Turn header numbering on/off globally |
+| **Bulk apply numbering** | Add numbering to all files in vault (with confirmation) |
+| **Bulk remove numbering** | Remove numbering from all files in vault (with confirmation) |
 | **Add auto numbering yaml** | Add YAML configuration to current file |
 | **Reset auto numbering yaml** | Reset YAML to default values |
 | **Remove auto numbering yaml** | Remove YAML configuration |
@@ -143,6 +154,7 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 2. **YAML Override**: Use per-file YAML for special documents (no numbering, different start levels)
 3. **Separator Choice**: Choose separators that don't conflict with your content
 4. **Backup First**: Always backup your vault before bulk operations
+5. **Use Bulk Operations Wisely**: Take advantage of bulk apply/remove with confirmation dialogs for large vaults
 
 ### Backlink Management
 - Links are updated automatically when you add/remove header numbers
@@ -214,7 +226,19 @@ Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obs
 
 ## 📊 Changelog
 
-### Version 0.3.0 (Current)
+### Version 0.3.1 (Current)
+- ✨ **NEW**: Bulk operation dialogs with confirmation and progress tracking
+- ✨ **NEW**: Auto-numbering activation dialog with vault-wide application option
+- ✨ **NEW**: Auto-numbering removal confirmation with bulk removal option
+- ✨ **NEW**: Enhanced YAML schema with better validation and user guidance
+- ✨ **NEW**: Expanded font family categories with organized font selection
+- ✨ **NEW**: Progress indicators for long-running operations
+- 🔧 **IMPROVED**: Extracted and modularized editor handlers and CSS style management
+- 🔧 **IMPROVED**: Better error handling and user feedback for bulk operations
+- 🔧 **IMPROVED**: Enhanced dialog UI with warnings and manual operation tips
+- 🐛 **FIXED**: Various edge cases in bulk processing and editor conflict prevention
+
+### Version 0.3.0
 - ✨ **NEW**: Custom typography system with separate header and title font controls
 - ✨ **NEW**: Live preview for both numbering format and font changes in settings
 - ✨ **NEW**: Sidebar toggle option to show/hide the ribbon icon

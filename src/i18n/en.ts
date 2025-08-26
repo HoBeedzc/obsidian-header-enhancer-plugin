@@ -70,6 +70,40 @@ export default {
                 manual: "[Manual]",
                 yamlControlled: "[Controlled by YAML]",
                 disabled: "[Disabled]"
+            },
+            removeConfirmation: {
+                title: "Turn Off Auto Numbering",
+                message: "You are about to turn off auto numbering. What would you like to do with existing numbering in your documents?",
+                warningTitle: "⚠️ Performance Warning",
+                warningMessage: "This operation will scan all markdown files in your vault. In large vaults, this may take several minutes and temporarily impact Obsidian's performance.",
+                removeAndTurnOff: "Remove all numbering and turn off",
+                removeAndTurnOffDesc: "Scan all files and remove header numbering, then disable auto numbering",
+                turnOffOnly: "Turn off without removing",
+                turnOffOnlyDesc: "Disable auto numbering but keep existing numbers in documents",
+                cancel: "Cancel",
+                processing: "Processing files...",
+                progressStatus: "Processed {current} of {total} files",
+                completed: "Successfully removed numbering from {count} files",
+                error: "Error occurred while processing files: {error}",
+                noNumberingFound: "No files with header numbering were found",
+                manualTip: "You can also manually disable auto numbering for individual files using the sidebar button."
+            },
+            activationConfirmation: {
+                title: "Enable Auto Numbering",
+                message: "You are about to enable auto numbering. What would you like to do with existing documents in your vault?",
+                warningTitle: "⚠️ Performance Warning",
+                warningMessage: "This operation will scan all markdown files in your vault. In large vaults, this may take several minutes and temporarily impact Obsidian's performance.",
+                addToAll: "Add numbering to all documents",
+                addToAllDesc: "Scan all files and add header numbering to existing documents",
+                turnOnOnly: "Turn on without adding",
+                turnOnOnlyDesc: "Enable auto numbering but keep existing documents unchanged",
+                cancel: "Cancel",
+                processing: "Adding numbering to files...",
+                progressStatus: "Processed {current} of {total} files",
+                completed: "Successfully added numbering to {count} files",
+                error: "Error occurred while processing files: {error}",
+                noHeadersFound: "No files with headers were found",
+                manualTip: "You can also manually enable auto numbering for individual files using the sidebar button."
             }
         },
         headerFont: {
@@ -124,38 +158,6 @@ export default {
             size: {
                 name: "Font Size",
                 desc: "Title font size (inherit from global font size by default)",
-                options: {
-                    inherit: "Inherit from global size",
-                    smaller: "Smaller",
-                    small: "Small", 
-                    normal: "Normal",
-                    large: "Large",
-                    larger: "Larger",
-                    xlarge: "Extra Large",
-                    xxlarge: "Extra Extra Large"
-                }
-            }
-        },
-        font: {
-            title: "Header Font Settings",
-            separate: {
-                name: "Separate Header Font",
-                desc: "Use different font settings for headers"
-            },
-            preview: {
-                title: "Font Preview",
-                sample: "Sample Header"
-            },
-            family: {
-                name: "Font Family",
-                desc: "Header font family (inherit from global font by default)",
-                options: {
-                    inherit: "Inherit from global font"
-                }
-            },
-            size: {
-                name: "Font Size", 
-                desc: "Header font size (inherit from global font size by default)",
                 options: {
                     inherit: "Inherit from global size",
                     smaller: "Smaller",

@@ -27,18 +27,21 @@ export function getAutoNumberingConfig(
 		if (yaml === "") return config;
 
 		for (const item of yaml) {
-			const [key, value] = item.split(" ");
+			const [key, ...valueParts] = item.split(" ");
+			const value = valueParts.join(" "); // Handle values with spaces
 			switch (key) {
 				case "state":
-					config.state = value == "on" ? true : false;
+					config.state = value === "on";
 					break;
-				case "start-level":
-					config.startLevel = parseInt(value[1]);
+				case "first-level":
+					// Parse "h2" -> 2
+					config.startLevel = parseInt(value.substring(1));
 					break;
-				case "end-level":
-					config.endLevel = parseInt(value[1]);
+				case "max":
+					// This is max levels, not end level
+					config.endLevel = config.startLevel + parseInt(value) - 1;
 					break;
-				case "start-number":
+				case "start-at":
 					config.startNumber = parseInt(value);
 					break;
 				case "separator":

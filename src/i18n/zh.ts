@@ -72,6 +72,40 @@ export default {
                 manual: "（手动）",
                 yamlControlled: "（YAML控制）",
                 disabled: "（已关闭）"
+            },
+            removeConfirmation: {
+                title: "关闭自动编号",
+                message: "您即将关闭自动编号功能。对于文档中现有的编号，您希望如何处理？",
+                warningTitle: "⚠️ 性能警告",
+                warningMessage: "此操作将扫描知识库中的所有markdown文件。在大型知识库中，这可能需要几分钟时间并暂时影响Obsidian的性能。",
+                removeAndTurnOff: "移除所有编号并关闭",
+                removeAndTurnOffDesc: "扫描所有文件并移除标题编号，然后禁用自动编号",
+                turnOffOnly: "仅关闭不移除",
+                turnOffOnlyDesc: "禁用自动编号但保留文档中的现有编号",
+                cancel: "取消",
+                processing: "正在处理文件...",
+                progressStatus: "已处理 {current}/{total} 个文件",
+                completed: "成功从 {count} 个文件中移除编号",
+                error: "处理文件时发生错误：{error}",
+                noNumberingFound: "未找到包含标题编号的文件",
+                manualTip: "你也可以通过侧边栏按钮手动关闭单个文件的自动编号。"
+            },
+            activationConfirmation: {
+                title: "启用自动编号",
+                message: "您即将启用自动编号功能。对于知识库中现有的文档，您希望如何处理？",
+                warningTitle: "⚠️ 性能警告",
+                warningMessage: "此操作将扫描知识库中的所有markdown文件。在大型知识库中，这可能需要几分钟时间并暂时影响Obsidian的性能。",
+                addToAll: "为所有文档添加编号",
+                addToAllDesc: "扫描所有文件并为现有文档添加标题编号",
+                turnOnOnly: "仅启用不添加",
+                turnOnOnlyDesc: "启用自动编号功能但保持现有文档不变",
+                cancel: "取消",
+                processing: "正在为文件添加编号...",
+                progressStatus: "已处理 {current}/{total} 个文件",
+                completed: "成功为 {count} 个文件添加编号",
+                error: "处理文件时发生错误：{error}",
+                noHeadersFound: "未找到包含标题的文件",
+                manualTip: "你也可以通过侧边栏按钮手动启用单个文件的自动编号。"
             }
         },
         headerFont: {
@@ -126,38 +160,6 @@ export default {
             size: {
                 name: "字体大小",
                 desc: "文档标题字体大小（默认继承全局字体大小）",
-                options: {
-                    inherit: "继承全局大小",
-                    smaller: "较小",
-                    small: "小",
-                    normal: "正常",
-                    large: "大",
-                    larger: "较大", 
-                    xlarge: "特大",
-                    xxlarge: "超大"
-                }
-            }
-        },
-        font: {
-            title: "标题字体设置",
-            separate: {
-                name: "独立标题字体",
-                desc: "为标题使用独立的字体设置"
-            },
-            preview: {
-                title: "字体预览",
-                sample: "示例标题"
-            },
-            family: {
-                name: "字体族",
-                desc: "标题字体族（默认继承全局字体）",
-                options: {
-                    inherit: "继承全局字体"
-                }
-            },
-            size: {
-                name: "字体大小",
-                desc: "标题字体大小（默认继承全局字体大小）",
                 options: {
                     inherit: "继承全局大小",
                     smaller: "较小",

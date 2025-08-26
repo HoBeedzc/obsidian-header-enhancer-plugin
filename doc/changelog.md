@@ -1,5 +1,23 @@
 # 更新记录 - Changelog
 
+## [0.3.1] - 2024-08-26
+### Added
+- 🆕 批量操作对话框，带确认和进度跟踪 - Bulk operation dialogs with confirmation and progress tracking
+- 🆕 自动编号激活对话框，提供知识库范围应用选项 - Auto-numbering activation dialog with vault-wide application option
+- 🆕 自动编号移除确认对话框，提供批量移除选项 - Auto-numbering removal confirmation with bulk removal option
+- 🆕 增强的 YAML 架构，提供更好的验证和用户指导 - Enhanced YAML schema with better validation and user guidance
+- 🆕 扩展的字体系列分类，提供有组织的字体选择 - Expanded font family categories with organized font selection
+- 🆕 长时间操作的进度指示器 - Progress indicators for long-running operations
+### Improved
+- 🔧 提取和模块化编辑器处理程序和CSS样式管理 - Extracted and modularized editor handlers and CSS style management
+- 🔧 更好的批量操作错误处理和用户反馈 - Better error handling and user feedback for bulk operations
+- 🔧 增强的对话框UI，提供警告和手动操作提示 - Enhanced dialog UI with warnings and manual operation tips
+- 🔧 改进的批量处理性能，带适当的延迟避免编辑器冲突 - Improved bulk processing performance with proper timing to avoid editor conflicts
+### Fixed
+- 🐛 批量处理和编辑器冲突防护的各种边界情况 - Various edge cases in bulk processing and editor conflict prevention
+- 🐛 对话框状态管理和按钮禁用的问题 - Issues with dialog state management and button disabling
+- 🐛 大型知识库处理的内存和性能优化 - Memory and performance optimizations for large vault processing
+
 ## [0.3.0] - 2025-08-25
 ### Added
 - 🆕 自定义字体系统，支持独立的标题和文档标题字体控制 - Custom typography system with separate header and title font controls
