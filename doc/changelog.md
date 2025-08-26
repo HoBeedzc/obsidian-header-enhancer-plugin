@@ -1,5 +1,9 @@
 # 更新记录 - Changelog
 
+## [0.3.2] - 2025-08-26
+### Fixed
+- 修复 build 失败的问题 - Fixed build failure issue
+
 ## [0.3.1] - 2024-08-26
 ### Added
 - 🆕 批量操作对话框，带确认和进度跟踪 - Bulk operation dialogs with confirmation and progress tracking
