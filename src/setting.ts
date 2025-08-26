@@ -298,7 +298,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.isSeparateHeaderFont = value;
 						await this.plugin.saveSettings();
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						this.display();
 					});
 			});
@@ -347,7 +347,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.isSeparateTitleFont = value;
 						await this.plugin.saveSettings();
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						this.display();
 					});
 			});
@@ -588,7 +588,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					if (isEnabled) {
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						if (isHeader) {
 							this.updateAllHeaderPreviewStyles();
 						} else {
@@ -644,7 +644,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					if (isEnabled) {
-						this.plugin.applyCSSStyles();
+						this.plugin.styleManager.applyCSSStyles();
 						if (isHeader) {
 							this.updateAllHeaderPreviewStyles();
 						} else {

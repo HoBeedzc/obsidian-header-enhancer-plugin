@@ -1,6 +1,4 @@
 import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
-import { EditorView, keymap } from "@codemirror/view";
-import { Prec } from "@codemirror/state";
 
 import {
 	getHeaderLevel,
@@ -20,26 +18,27 @@ import {
 import { getAutoNumberingConfig } from "./config";
 import { I18n } from "./i18n";
 import { BacklinkManager } from "./backlinks";
+import { EditorHandlers } from "./editor/editor-handlers";
+import { StyleManager } from "./styles/style-manager";
 
 export default class HeaderEnhancerPlugin extends Plugin {
 	settings: HeaderEnhancerSettings;
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
 	backlinkManager: BacklinkManager;
-	private headerFontStyleEl: HTMLStyleElement | null = null;
-	private titleFontStyleEl: HTMLStyleElement | null = null;
-	private dialogStyleEl: HTMLStyleElement | null = null;
+	editorHandlers: EditorHandlers;
+	styleManager: StyleManager;
 
 	async onload() {
 		await this.loadSettings();
 		
-		// Initialize backlink manager
+		// Initialize managers
 		this.backlinkManager = new BacklinkManager(this.app);
+		this.editorHandlers = new EditorHandlers(this);
+		this.styleManager = new StyleManager(this.settings);
 
-		// Apply CSS styles for header and title fonts
-		this.applyCSSStyles();
-		// Apply dialog styles
-		this.applyDialogStyles();
+		// Apply CSS styles
+		this.styleManager.applyCSSStyles();
 
 		// Creates an icon in the left ribbon.
 		this.ribbonIconEl = this.addRibbonIcon(
@@ -75,52 +74,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.handleShowStateBarChange();
 		this.handleShowSidebarChange();
 
-		// register keymap
-		this.registerEditorExtension(
-			Prec.highest(
-				keymap.of([
-					{
-						key: "Enter",
-						run: (view: EditorView): boolean => {
-							const state = view.state;
-							const pos = state.selection.main.to;
-							const currentLine = state.doc.lineAt(pos);
-
-							// 只有在标题行并且自动编号开启时才进行处理
-							if (!isHeader(currentLine.text) || this.settings.autoNumberingMode === AutoNumberingMode.OFF) {
-								return false; // 不处理，让默认处理程序处理
-							}
-
-							// 执行自定义Enter处理 - 异步调用但不等待结果
-							this.handlePressEnter(view);
-							return true; // 表示我们已经处理了这个事件
-						},
-					},
-				])
-			)
-		);
-
-		this.registerEditorExtension(
-			Prec.highest(
-				keymap.of([
-					{
-						key: "Backspace",
-						run: (view: EditorView): boolean => {
-							const state = view.state;
-                    		const pos = state.selection.main.to;
-                    		const currentLine = state.doc.lineAt(pos);
-                    
-                    		// 只有在标题行时才进行处理
-                    		if (!isHeader(currentLine.text)) {
-                        		return false; // 不处理，让默认处理程序处理
-                    		}
-                    
-                    		return this.handlePressBackspace(view);
-						},
-					},
-				])
-			)
-		);
+		// Register editor extensions
+		const keyHandlers = this.editorHandlers.registerKeyHandlers();
+		keyHandlers.forEach(handler => this.registerEditorExtension(handler));
 
 		// This adds a command that can be triggered anywhere
 		this.addCommand({
@@ -242,10 +198,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	}
 
 	onunload() {
-		// Clean up header and title font styles
-		this.removeCSSStyles();
-		// Clean up dialog styles
-		this.removeDialogStyles();
+		// Clean up styles
+		this.styleManager.removeCSSStyles();
 	}
 
 	async loadSettings() {
@@ -258,6 +212,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		// Update style manager with new settings
+		this.styleManager.updateSettings(this.settings);
 	}
 
 	handleShowStateBarChange() {
@@ -565,347 +521,4 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		}
 	}
 
-	async handlePressEnter(view: EditorView): Promise<boolean> {
-		let state = view.state;
-		let doc = state.doc;
-		const pos = state.selection.main.to;
-		
-		const app = this.app;
-		const activeView = app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView) {
-			return false; // 让默认处理程序处理
-		}
-	
-		// 获取当前行信息
-		const currentLine = doc.lineAt(pos);
-		
-		// 注意：这个检查已经在外层run函数做过了，这里可以简化
-		// 但保留这个检查作为额外的安全措施
-		if (!isHeader(currentLine.text) || this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
-			return false;
-		}
-	
-		const editor = activeView.editor;
-		const config = getAutoNumberingConfig(this.settings, editor);
-		
-		// 处理在标题中间按Enter的情况
-		// 获取光标前后的文本
-		const textBeforeCursor = currentLine.text.substring(0, pos - currentLine.from);
-		const textAfterCursor = currentLine.text.substring(pos - currentLine.from);
-		
-		// 创建更改操作 - 直接替换整行，而不是分多次操作
-		const changes = [{
-			from: currentLine.from,
-			to: currentLine.to,
-			insert: textBeforeCursor + "\n" + textAfterCursor
-		}];
-		
-		// 应用更改并设置光标位置
-		view.dispatch({
-			changes,
-			selection: { anchor: currentLine.from + textBeforeCursor.length + 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
-		});
-		
-		// 在操作完成后更新标题编号
-		if (config.state) {
-			// 使用setTimeout确保编辑操作已完成
-			setTimeout(async () => {
-				await this.handleAddHeaderNumber(activeView);
-			}, 10);
-		}
-		
-		return true;
-	}
-
-	handlePressBackspace(view: EditorView): boolean {
-		let state = view.state;
-		let doc = state.doc;
-		const pos = state.selection.main.to;
-		const changes = [];
-
-		if (!isHeader(doc.lineAt(pos).text)) {
-			return false;
-		}
-
-		// insert a new line in current pos first
-		changes.push({
-			from: pos - 1,
-			to: pos,
-			insert: "",
-		});
-
-		if (this.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			// some header may be deleted, so we need to recalculate the number
-			// TODO: feature
-		}
-
-		view.dispatch({
-			changes,
-			selection: { anchor: pos - 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
-		});
-
-		return true;
-	}
-
-	/**
-	 * Apply CSS styles for header and title font customization
-	 */
-	applyCSSStyles(): void {
-		// Apply header font styles
-		this.applyHeaderFontStyles();
-		// Apply title font styles
-		this.applyTitleFontStyles();
-	}
-
-	/**
-	 * Apply CSS styles for header font customization
-	 */
-	applyHeaderFontStyles(): void {
-		// Remove existing header font styles first
-		this.removeHeaderFontStyles();
-		
-		if (!this.settings.isSeparateHeaderFont) {
-			return;
-		}
-
-		// Create header font style element
-		this.headerFontStyleEl = document.createElement('style');
-		this.headerFontStyleEl.id = 'header-enhancer-header-font-styles';
-
-		let cssRules = '';
-		
-		// Generate CSS selectors for all header levels (H1-H6)
-		const headerSelectors = [
-			'.markdown-preview-view h1',
-			'.markdown-preview-view h2', 
-			'.markdown-preview-view h3',
-			'.markdown-preview-view h4',
-			'.markdown-preview-view h5',
-			'.markdown-preview-view h6',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-1',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-2',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-3',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-4',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-5',
-			'.markdown-source-view.mod-cm6 .HyperMD-header-6'
-		].join(', ');
-
-		// Apply font family if set and not inherit
-		if (this.settings.headerFontFamily && this.settings.headerFontFamily !== 'inherit') {
-			cssRules += `${headerSelectors} { font-family: ${this.settings.headerFontFamily} !important; }\n`;
-		}
-
-		// Apply font size if set and not inherit  
-		if (this.settings.headerFontSize && this.settings.headerFontSize !== 'inherit') {
-			cssRules += `${headerSelectors} { font-size: ${this.settings.headerFontSize} !important; }\n`;
-		}
-
-		// Set the CSS content
-		this.headerFontStyleEl.textContent = cssRules;
-		
-		// Append to document head
-		if (cssRules) {
-			document.head.appendChild(this.headerFontStyleEl);
-		}
-	}
-
-	/**
-	 * Apply CSS styles for title font customization
-	 */
-	applyTitleFontStyles(): void {
-		// Remove existing title font styles first
-		this.removeTitleFontStyles();
-		
-		if (!this.settings.isSeparateTitleFont) {
-			return;
-		}
-
-		// Create title font style element
-		this.titleFontStyleEl = document.createElement('style');
-		this.titleFontStyleEl.id = 'header-enhancer-title-font-styles';
-
-		let cssRules = '';
-		
-		// Generate CSS selectors for document titles - MUCH MORE SPECIFIC
-		const titleSelectors = [
-			// File title in tab - only target specific tab title elements
-			'.workspace-tab-header-inner-title',
-			'.workspace-tab-header .workspace-tab-header-inner-title', 
-			'.workspace-tabs .workspace-tab-header-inner-title',
-			// View header title
-			'.workspace-leaf-content .view-header-title',
-			// Document inline title (the main title displayed in document)
-			'.inline-title',
-			'.markdown-preview-view .inline-title',
-			'.markdown-source-view .inline-title',
-			// File title in file explorer
-			'.nav-file-title-content',
-			'.tree-item-inner.nav-file-title-content',
-			// Frontmatter title display
-			'.frontmatter-container .metadata-property[data-property-key="title"] .metadata-property-value'
-		].join(', ');
-
-		// Apply font family if set and not inherit
-		if (this.settings.titleFontFamily && this.settings.titleFontFamily !== 'inherit') {
-			cssRules += `${titleSelectors} { font-family: ${this.settings.titleFontFamily} !important; }\n`;
-		}
-
-		// Apply font size if set and not inherit  
-		if (this.settings.titleFontSize && this.settings.titleFontSize !== 'inherit') {
-			cssRules += `${titleSelectors} { font-size: ${this.settings.titleFontSize} !important; }\n`;
-		}
-
-		// Set the CSS content
-		this.titleFontStyleEl.textContent = cssRules;
-		
-		// Append to document head
-		if (cssRules) {
-			document.head.appendChild(this.titleFontStyleEl);
-		}
-	}
-
-	/**
-	 * Remove CSS styles for header and title font customization
-	 */
-	removeCSSStyles(): void {
-		this.removeHeaderFontStyles();
-		this.removeTitleFontStyles();
-	}
-
-	/**
-	 * Remove CSS styles for header font customization
-	 */
-	removeHeaderFontStyles(): void {
-		if (this.headerFontStyleEl) {
-			this.headerFontStyleEl.remove();
-			this.headerFontStyleEl = null;
-		}
-	}
-
-	/**
-	 * Apply CSS styles for dialog components
-	 */
-	applyDialogStyles(): void {
-		// Remove existing dialog styles first
-		this.removeDialogStyles();
-		
-		// Create dialog style element
-		this.dialogStyleEl = document.createElement('style');
-		this.dialogStyleEl.id = 'header-enhancer-dialog-styles';
-		
-		// Dialog CSS content
-		const dialogCSS = `
-/* Auto numbering removal dialog styles */
-.header-enhancer-removal-dialog {
-    max-width: 500px;
-}
-
-.header-enhancer-removal-dialog .modal-title {
-    margin-bottom: 1em;
-    padding-bottom: 0.5em;
-    color: var(--text-accent);
-    border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.header-enhancer-removal-dialog .modal-message {
-    margin-bottom: 1.5em;
-    line-height: 1.5;
-    color: var(--text-normal);
-}
-
-.header-enhancer-removal-dialog .modal-actions {
-    margin-top: 1em;
-    padding-top: 1em;
-    border-top: 1px solid var(--background-modifier-border);
-}
-
-.header-enhancer-removal-dialog .modal-actions .setting-item {
-    margin-bottom: 0.75em;
-    padding: 0.75em;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.header-enhancer-removal-dialog .modal-actions .setting-item:hover {
-    background-color: var(--background-secondary-alt);
-    border-color: var(--background-modifier-border-hover);
-}
-
-/* Warning and tip text styles */
-.header-enhancer-removal-dialog .setting-item-warning,
-.header-enhancer-removal-dialog .setting-item-tip {
-    margin-top: 0.5em;
-    font-size: 0.85em;
-    line-height: 1.3;
-}
-
-.header-enhancer-removal-dialog .warning-label {
-    color: var(--text-error);
-    font-weight: 600;
-}
-
-.header-enhancer-removal-dialog .warning-text,
-.header-enhancer-removal-dialog .progress-text {
-    color: var(--text-muted);
-    margin: 0;
-}
-
-.header-enhancer-removal-dialog .manual-tip-text {
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-.header-enhancer-removal-dialog .modal-cancel {
-    margin-top: 1em;
-    padding-top: 1em;
-    text-align: center;
-    border-top: 1px solid var(--background-modifier-border-focus);
-}
-
-.header-enhancer-removal-dialog .progress-container {
-    margin-top: 1em;
-    padding: 1em;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    text-align: center;
-}
-
-.header-enhancer-removal-dialog .progress-text {
-    font-size: 0.9em;
-}
-
-.header-enhancer-removal-dialog button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-		`;
-		
-		this.dialogStyleEl.textContent = dialogCSS;
-		document.head.appendChild(this.dialogStyleEl);
-	}
-
-	/**
-	 * Remove CSS styles for dialog components
-	 */
-	removeDialogStyles(): void {
-		if (this.dialogStyleEl) {
-			this.dialogStyleEl.remove();
-			this.dialogStyleEl = null;
-		}
-	}
-
-	/**
-	 * Remove CSS styles for title font customization
-	 */
-	removeTitleFontStyles(): void {
-		if (this.titleFontStyleEl) {
-			this.titleFontStyleEl.remove();
-			this.titleFontStyleEl = null;
-		}
-	}
 }
