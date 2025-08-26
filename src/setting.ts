@@ -122,10 +122,39 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				dropdown.addOption(AutoNumberingMode.YAML_CONTROLLED, i18n.t("settings.autoNumbering.mode.yaml"));
 				dropdown.setValue(this.plugin.settings.autoNumberingMode);
 				dropdown.onChange(async (value) => {
-					this.plugin.settings.autoNumberingMode = value as AutoNumberingMode;
-					await this.plugin.saveSettings();
-					this.plugin.handleShowStateBarChange();
-					this.display();
+					const newMode = value as AutoNumberingMode;
+					
+					// Check if switching from ON/YAML to OFF
+					if ((this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON || 
+						 this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) &&
+						newMode === AutoNumberingMode.OFF) {
+						
+						// Import the dialog dynamically
+						const { AutoNumberingRemovalDialog } = await import('./dialogs');
+						
+						// Show confirmation dialog
+						const dialog = new AutoNumberingRemovalDialog(
+							this.app, 
+							this.plugin,
+							async (removeExisting: boolean) => {
+								this.plugin.settings.autoNumberingMode = AutoNumberingMode.OFF;
+								await this.plugin.saveSettings();
+								this.plugin.handleShowStateBarChange();
+								this.display();
+							}
+						);
+						dialog.open();
+						
+						// Reset dropdown to previous value temporarily
+						dropdown.setValue(this.plugin.settings.autoNumberingMode);
+						
+					} else {
+						// Direct setting change for other transitions
+						this.plugin.settings.autoNumberingMode = newMode;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowStateBarChange();
+						this.display();
+					}
 				});
 			});
 		new Setting(containerEl)

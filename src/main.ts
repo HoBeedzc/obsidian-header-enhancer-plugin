@@ -28,6 +28,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	backlinkManager: BacklinkManager;
 	private headerFontStyleEl: HTMLStyleElement | null = null;
 	private titleFontStyleEl: HTMLStyleElement | null = null;
+	private dialogStyleEl: HTMLStyleElement | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -37,6 +38,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		// Apply CSS styles for header and title fonts
 		this.applyCSSStyles();
+		// Apply dialog styles
+		this.applyDialogStyles();
 
 		// Creates an icon in the left ribbon.
 		this.ribbonIconEl = this.addRibbonIcon(
@@ -241,6 +244,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	onunload() {
 		// Clean up header and title font styles
 		this.removeCSSStyles();
+		// Clean up dialog styles
+		this.removeDialogStyles();
 	}
 
 	async loadSettings() {
@@ -776,6 +781,121 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		if (this.headerFontStyleEl) {
 			this.headerFontStyleEl.remove();
 			this.headerFontStyleEl = null;
+		}
+	}
+
+	/**
+	 * Apply CSS styles for dialog components
+	 */
+	applyDialogStyles(): void {
+		// Remove existing dialog styles first
+		this.removeDialogStyles();
+		
+		// Create dialog style element
+		this.dialogStyleEl = document.createElement('style');
+		this.dialogStyleEl.id = 'header-enhancer-dialog-styles';
+		
+		// Dialog CSS content
+		const dialogCSS = `
+/* Auto numbering removal dialog styles */
+.header-enhancer-removal-dialog {
+    max-width: 500px;
+}
+
+.header-enhancer-removal-dialog .modal-title {
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    color: var(--text-accent);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.header-enhancer-removal-dialog .modal-message {
+    margin-bottom: 1.5em;
+    line-height: 1.5;
+    color: var(--text-normal);
+}
+
+.header-enhancer-removal-dialog .modal-actions {
+    margin-top: 1em;
+    padding-top: 1em;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.header-enhancer-removal-dialog .modal-actions .setting-item {
+    margin-bottom: 0.75em;
+    padding: 0.75em;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.header-enhancer-removal-dialog .modal-actions .setting-item:hover {
+    background-color: var(--background-secondary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Warning and tip text styles */
+.header-enhancer-removal-dialog .setting-item-warning,
+.header-enhancer-removal-dialog .setting-item-tip {
+    margin-top: 0.5em;
+    font-size: 0.85em;
+    line-height: 1.3;
+}
+
+.header-enhancer-removal-dialog .warning-label {
+    color: var(--text-error);
+    font-weight: 600;
+}
+
+.header-enhancer-removal-dialog .warning-text,
+.header-enhancer-removal-dialog .progress-text {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.header-enhancer-removal-dialog .manual-tip-text {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.header-enhancer-removal-dialog .modal-cancel {
+    margin-top: 1em;
+    padding-top: 1em;
+    text-align: center;
+    border-top: 1px solid var(--background-modifier-border-focus);
+}
+
+.header-enhancer-removal-dialog .progress-container {
+    margin-top: 1em;
+    padding: 1em;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    text-align: center;
+}
+
+.header-enhancer-removal-dialog .progress-text {
+    font-size: 0.9em;
+}
+
+.header-enhancer-removal-dialog button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+		`;
+		
+		this.dialogStyleEl.textContent = dialogCSS;
+		document.head.appendChild(this.dialogStyleEl);
+	}
+
+	/**
+	 * Remove CSS styles for dialog components
+	 */
+	removeDialogStyles(): void {
+		if (this.dialogStyleEl) {
+			this.dialogStyleEl.remove();
+			this.dialogStyleEl = null;
 		}
 	}
 

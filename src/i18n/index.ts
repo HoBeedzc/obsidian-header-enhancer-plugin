@@ -27,7 +27,7 @@ export class I18n {
         }
     }
 
-    public t(key: string): string {
+    public t(key: string, placeholders?: { [key: string]: string }): string {
         const keys = key.split('.');
         let value: any = translations[this.currentLanguage];
         
@@ -47,6 +47,15 @@ export class I18n {
             }
         }
 
-        return typeof value === 'string' ? value : key;
+        let result = typeof value === 'string' ? value : key;
+        
+        // Replace placeholders if provided
+        if (placeholders) {
+            for (const [placeholder, replacement] of Object.entries(placeholders)) {
+                result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), replacement);
+            }
+        }
+
+        return result;
     }
 }
