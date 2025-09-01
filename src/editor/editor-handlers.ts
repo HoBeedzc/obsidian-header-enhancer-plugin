@@ -112,6 +112,10 @@ export class EditorHandlers {
 			// 使用setTimeout确保编辑操作已完成
 			setTimeout(async () => {
 				await this.plugin.handleAddHeaderNumber(activeView);
+				// 如果是自动检测模式，更新状态栏
+				if (this.plugin.settings.isAutoDetectHeaderLevel) {
+					this.plugin.handleShowStateBarChange();
+				}
 			}, 10);
 		}
 		

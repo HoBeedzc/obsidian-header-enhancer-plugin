@@ -7,6 +7,7 @@ import {
 	isNeedInsertNumber,
 	removeHeaderNumber,
 	isHeader,
+	analyzeHeaderLevels,
 } from "./core";
 import { getAutoNumberingYaml, setAutoNumberingYaml } from "./utils";
 import {
@@ -78,6 +79,15 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Register editor extensions
 		const keyHandlers = this.editorHandlers.registerKeyHandlers();
 		keyHandlers.forEach(handler => this.registerEditorExtension(handler));
+
+		// Register event listeners for auto detection
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', () => {
+				if (this.settings.isAutoDetectHeaderLevel) {
+					this.handleShowStateBarChange(); // 更新状态栏显示
+				}
+			})
+		);
 
 		// This adds a command that can be triggered anywhere
 		this.addCommand({
@@ -223,12 +233,28 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 			const i18n = I18n.getInstance();
 			let autoNumberingStatus: string;
+			
 			switch (this.settings.autoNumberingMode) {
 				case AutoNumberingMode.OFF:
 					autoNumberingStatus = i18n.t("statusBar.off");
 					break;
 				case AutoNumberingMode.ON:
-					autoNumberingStatus = i18n.t("statusBar.on");
+					if (this.settings.isAutoDetectHeaderLevel) {
+						// 显示自动检测的层级范围
+						const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+						if (activeView) {
+							const analysis = analyzeHeaderLevels(activeView.editor.getValue());
+							if (!analysis.isEmpty) {
+								autoNumberingStatus = `${i18n.t("statusBar.auto")}(H${analysis.minLevel}-H${analysis.maxLevel})`;
+							} else {
+								autoNumberingStatus = i18n.t("statusBar.autoNoHeaders");
+							}
+						} else {
+							autoNumberingStatus = i18n.t("statusBar.auto");
+						}
+					} else {
+						autoNumberingStatus = `${i18n.t("statusBar.on")}(H${this.settings.startHeaderLevel}-H${this.settings.endHeaderLevel})`;
+					}
 					break;
 				case AutoNumberingMode.YAML_CONTROLLED:
 					autoNumberingStatus = i18n.t("statusBar.yaml");
@@ -237,6 +263,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					autoNumberingStatus = "Unknown";
 					break;
 			}
+			
 			this.statusBarItemEl.setText(
 				`${i18n.t("statusBar.title")}: ${autoNumberingStatus}`
 			);

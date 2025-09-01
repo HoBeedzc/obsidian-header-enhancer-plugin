@@ -16,7 +16,7 @@ export default {
         },
         autoDetect: {
             name: "Auto Detect Header Level",
-            desc: "Automatically detect header level based on context"
+            desc: "Automatically detect and use the highest and lowest header levels in the document for numbering"
         },
         headerLevel: {
             start: {
@@ -38,8 +38,13 @@ export default {
                 yaml: "Controlled by YAML"
             },
             headerLevel: {
-                name: "Header Level Settings",
-                desc: "Configure the header level settings"
+                name: "Header Level Numbering Method",
+                toggleLabel: "🔧 Enable Auto Detection",
+                desc: {
+                    autoDetect: "✅ Auto Detection Mode: Intelligently determine numbering range based on document content",
+                    manual: "⚙️ Manual Setting Mode: Use fixed level range settings",
+                    yamlControl: "📋 YAML Control Mode: Configure through file frontmatter"
+                }
             },
             startNumber: {
                 name: "Start Number",
@@ -180,10 +185,26 @@ export default {
         githubRepo: "GitHub Repository: ",
         anyQuestion: "Any questions? "
     },
+    autoDetection: {
+        currentDocument: "Current Document Analysis",
+        noActiveDocument: "No active document",
+        noHeaders: "No headers detected",
+        detected: "Detected levels",
+        range: "Level range",
+        mapping: "Number mapping", 
+        totalHeaders: "Total headers",
+        modes: {
+            autoDetect: "🔧 Current Mode: Auto Detect - Intelligently determine numbering range based on document content",
+            yamlControl: "⚙️ Current Mode: YAML Control - Configure through file frontmatter",
+            manual: "🎯 Current Mode: Manual - Use fixed level range"
+        }
+    },
     statusBar: {
         title: "Header Enhancer",
         off: "Off",
         on: "On",
-        yaml: "YAML"
+        yaml: "YAML",
+        auto: "Auto",
+        autoNoHeaders: "Auto(No Headers)"
     }
 };

@@ -1,6 +1,7 @@
-import { App, PluginSettingTab, Setting, Notice } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, MarkdownView } from "obsidian";
 import HeaderEnhancerPlugin from "./main";
 import { I18n } from './i18n';
+import { analyzeHeaderLevels } from './core';
 
 export enum AutoNumberingMode {
 	OFF = "off",
@@ -34,7 +35,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	language: "en",
 	showOnStatusBar: true,
 	showOnSidebar: true,
-	isAutoDetectHeaderLevel: false, // TODO: auto detect header level is not available now
+	isAutoDetectHeaderLevel: false, // 自动检测文档中的标题层级功能
 	startHeaderLevel: 1,
 	endHeaderLevel: 6,
 	autoNumberingMode: AutoNumberingMode.ON,
@@ -55,6 +56,7 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	plugin: HeaderEnhancerPlugin;
 	private formatPreviewSetting: Setting | null = null;
+	private autoDetectionPreviewContainer: HTMLElement | null = null;
 
 	constructor(app: App, plugin: HeaderEnhancerPlugin) {
 		super(app, plugin);
@@ -68,6 +70,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		// Reset format preview reference since empty() clears all elements
 		this.formatPreviewSetting = null;
+		this.autoDetectionPreviewContainer = null;
 
 		containerEl.createEl("h1", { text: i18n.t("settings.title") });
 
@@ -180,71 +183,380 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 				});
 			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.headerLevel.name"))
-			.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc"))
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
-					.onChange(async (value) => {
-						this.plugin.settings.isAutoDetectHeaderLevel = value;
-						await this.plugin.saveSettings();
-						this.display();
-					})
-					.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-			})
-			.addDropdown((dropdown) => {
-				dropdown.addOption("1", "H1");
-				dropdown.addOption("2", "H2");
-				dropdown.addOption("3", "H3");
-				dropdown.addOption("4", "H4");
-				dropdown.addOption("5", "H5");
-				dropdown.addOption("6", "H6");
-				dropdown.setValue(
-					this.plugin.settings.startHeaderLevel.toString()
-				);
-				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-				dropdown.onChange(async (value) => {
-					if (this.checkStartLevel(parseInt(value, 10))) {
-						this.plugin.settings.startHeaderLevel = parseInt(value, 10);
-						await this.plugin.saveSettings();
-						this.updateFormatPreview();
-					} else {
-						new Notice(
-							i18n.t("settings.autoNumbering.startLevelError")
-						);
-						// Restore to original setting value
-						dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
-					}
+
+		// 只有在启用自动编号（ON模式）时才显示下面的设置
+		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+			this.renderAutoNumberingSettings(containerEl);
+		} else if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
+			// YAML控制模式下显示说明信息
+			const yamlInfo = containerEl.createDiv({
+				cls: "header-enhancer-yaml-info"
+			});
+			yamlInfo.style.cssText = `
+				margin: 1.5em 0;
+				padding: 1.2em;
+				border: 2px solid var(--color-blue);
+				border-radius: 8px;
+				background: var(--background-secondary);
+			`;
+			
+			yamlInfo.innerHTML = `
+				<div style="font-weight: 600; color: var(--color-blue); margin-bottom: 0.8em; display: flex; align-items: center;">
+					⚙️ YAML控制模式
+				</div>
+				<div style="line-height: 1.6; color: var(--text-normal);">
+					在此模式下，标题编号由文件的YAML前置元数据控制。请在文档开头添加如下配置：<br><br>
+					<code style="background: var(--code-background); padding: 0.5em; border-radius: 4px; display: block; font-family: monospace;">
+---<br>
+header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "separator ."]<br>
+---
+					</code><br>
+					您可以使用插件命令来快速添加或修改这些配置。
+				</div>
+			`;
+		} else {
+			// OFF模式下显示提示信息
+			const offInfo = containerEl.createDiv({
+				cls: "header-enhancer-off-info"
+			});
+			offInfo.style.cssText = `
+				margin: 1.5em 0;
+				padding: 1.2em;
+				border: 2px solid var(--text-muted);
+				border-radius: 8px;
+				background: var(--background-secondary);
+				opacity: 0.8;
+			`;
+			
+			offInfo.innerHTML = `
+				<div style="font-weight: 600; color: var(--text-muted); margin-bottom: 0.8em; display: flex; align-items: center;">
+					⏸️ 自动编号已关闭
+				</div>
+				<div style="line-height: 1.6; color: var(--text-muted);">
+					当前标题自动编号功能已禁用。要启用自动编号，请在上方选择"启用"或"通过YAML控制"模式。
+				</div>
+			`;
+		}
+	}
+
+	/**
+	 * 渲染自动编号相关的设置项
+	 */
+	private renderAutoNumberingSettings(containerEl: HTMLElement): void {
+		const i18n = I18n.getInstance();
+		
+		// 标题编号方式选择
+		const headerLevelSetting = new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.headerLevel.name"));
+
+		// 动态设置描述文本
+		const updateSettingDesc = () => {
+			if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.yamlControl"));
+			} else if (this.plugin.settings.isAutoDetectHeaderLevel && 
+				this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.autoDetect"));
+			} else {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.manual"));
+			}
+		};
+
+		updateSettingDesc(); // 初始设置描述
+
+		headerLevelSetting.addToggle((toggle) => {
+			toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
+				.onChange(async (value) => {
+					this.plugin.settings.isAutoDetectHeaderLevel = value;
+					await this.plugin.saveSettings();
+					updateSettingDesc(); // 更新描述
+					this.display(); // 重新渲染界面
+				})
+				.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+		});
+
+		// 根据自动检测开关状态显示不同的配置选项
+		if (this.plugin.settings.isAutoDetectHeaderLevel && 
+			this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+			
+			// 自动检测模式：显示预览区域
+			this.autoDetectionPreviewContainer = containerEl.createDiv({ 
+				cls: "header-enhancer-auto-detection-preview" 
+			});
+			this.autoDetectionPreviewContainer.style.cssText = `
+				margin: 1em 0;
+				padding: 1.2em;
+				border: 2px solid var(--color-green);
+				border-radius: 8px;
+				background: var(--background-secondary);
+				position: relative;
+			`;
+			
+			// 添加标题
+			const previewTitle = this.autoDetectionPreviewContainer.createDiv();
+			previewTitle.style.cssText = `
+				font-weight: 600;
+				font-size: 1em;
+				color: var(--color-green);
+				margin-bottom: 0.8em;
+				display: flex;
+				align-items: center;
+			`;
+			previewTitle.innerHTML = "🔧 智能检测结果";
+			
+			this.updateAutoDetectionPreview();
+		} else {
+			// 手动模式：显示层级选择器
+			new Setting(containerEl)
+				.setName(i18n.t("settings.headerLevel.start.name"))
+				.setDesc(i18n.t("settings.headerLevel.start.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(
+						this.plugin.settings.startHeaderLevel.toString()
+					);
+					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+					dropdown.onChange(async (value) => {
+						if (this.checkStartLevel(parseInt(value, 10))) {
+							this.plugin.settings.startHeaderLevel = parseInt(value, 10);
+							await this.plugin.saveSettings();
+							this.updateFormatPreview();
+						} else {
+							new Notice(
+								i18n.t("settings.autoNumbering.startLevelError")
+							);
+							// Restore to original setting value
+							dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
+						}
+					});
 				});
-			})
+				
+			new Setting(containerEl)
+				.setName(i18n.t("settings.headerLevel.max.name"))
+				.setDesc(i18n.t("settings.headerLevel.max.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(
+						this.plugin.settings.endHeaderLevel.toString()
+					);
+					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+					dropdown.onChange(async (value) => {
+						if (this.checkEndLevel(parseInt(value, 10))) {
+							this.plugin.settings.endHeaderLevel = parseInt(
+								value,
+								10
+							);
+							await this.plugin.saveSettings();
+							this.updateFormatPreview();
+						} else {
+							new Notice(
+								i18n.t("settings.autoNumbering.endLevelError")
+							);
+							// Restore to original setting value
+							dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
+						}
+					});
+				});
+		}
+
+		// 其他设置项（起始数字、分隔符等）
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.startNumber.name"))
+			.setDesc(i18n.t("settings.autoNumbering.startNumber.desc"))
 			.addDropdown((dropdown) => {
-				dropdown.addOption("1", "H1");
-				dropdown.addOption("2", "H2");
-				dropdown.addOption("3", "H3");
-				dropdown.addOption("4", "H4");
-				dropdown.addOption("5", "H5");
-				dropdown.addOption("6", "H6");
-				dropdown.setValue(
-					this.plugin.settings.endHeaderLevel.toString()
-				);
-				dropdown.setDisabled(this.plugin.settings.isAutoDetectHeaderLevel || this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+				dropdown.addOption("0", "0");
+				dropdown.addOption("1", "1");
+				dropdown.setValue(this.plugin.settings.autoNumberingStartNumber);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 				dropdown.onChange(async (value) => {
-					if (this.checkEndLevel(parseInt(value, 10))) {
-						this.plugin.settings.endHeaderLevel = parseInt(
-							value,
-							10
-						);
-						await this.plugin.saveSettings();
-						this.updateFormatPreview();
-					} else {
-						new Notice(
-							i18n.t("settings.autoNumbering.endLevelError")
-						);
-						// Restore to original setting value
-						dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
-					}
+					this.plugin.settings.autoNumberingStartNumber = value;
+					await this.plugin.saveSettings();
+					this.updateFormatPreview();
 				});
 			});
+
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.separator.name"))
+			.setDesc(i18n.t("settings.autoNumbering.separator.desc"))
+			.addDropdown((dropdown) => {
+				dropdown.addOption(".", ".");
+				dropdown.addOption(",", ",");
+				dropdown.addOption("-", "-");
+				dropdown.addOption("/", "/");
+				dropdown.setValue(this.plugin.settings.autoNumberingSeparator);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.autoNumberingSeparator = value;
+					await this.plugin.saveSettings();
+					this.updateFormatPreview();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.headerSeparator.name"))
+			.setDesc(i18n.t("settings.autoNumbering.headerSeparator.desc"))
+			.addDropdown((dropdown) => {
+				dropdown.addOption("\t", "Tab");
+				dropdown.addOption(" ", "Space");
+				dropdown.setValue(
+					this.plugin.settings.autoNumberingHeaderSeparator
+				);
+				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.autoNumberingHeaderSeparator = value;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.updateBacklinks.name"))
+			.setDesc(i18n.t("settings.autoNumbering.updateBacklinks.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.updateBacklinks)
+					.onChange(async (value) => {
+						this.plugin.settings.updateBacklinks = value;
+						await this.plugin.saveSettings();
+					})
+					.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+			});
+
+		// 格式预览
+		this.formatPreviewSetting = new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.format.name"))
+			.setDesc(this.getFormatPreview());
+	}
+		// 标题编号方式选择
+		const headerLevelSetting = new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.headerLevel.name"));
+
+		// 动态设置描述文本
+		const updateSettingDesc = () => {
+			if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.yamlControl"));
+			} else if (this.plugin.settings.isAutoDetectHeaderLevel && 
+				this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.autoDetect"));
+			} else {
+				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.manual"));
+			}
+		};
+
+		updateSettingDesc(); // 初始设置描述
+
+		headerLevelSetting.addToggle((toggle) => {
+			toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
+				.onChange(async (value) => {
+					this.plugin.settings.isAutoDetectHeaderLevel = value;
+					await this.plugin.saveSettings();
+					updateSettingDesc(); // 更新描述
+					this.display(); // 重新渲染界面
+				})
+				.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+		});
+
+		// 根据自动检测开关状态显示不同的配置选项
+		if (this.plugin.settings.isAutoDetectHeaderLevel && 
+			this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+			
+			// 自动检测模式：显示预览区域
+			this.autoDetectionPreviewContainer = containerEl.createDiv({ 
+				cls: "header-enhancer-auto-detection-preview" 
+			});
+			this.autoDetectionPreviewContainer.style.cssText = `
+				margin: 1em 0;
+				padding: 1.2em;
+				border: 2px solid var(--color-green);
+				border-radius: 8px;
+				background: var(--background-secondary);
+				position: relative;
+			`;
+			
+			// 添加标题
+			const previewTitle = this.autoDetectionPreviewContainer.createDiv();
+			previewTitle.style.cssText = `
+				font-weight: 600;
+				font-size: 1em;
+				color: var(--color-green);
+				margin-bottom: 0.8em;
+				display: flex;
+				align-items: center;
+			`;
+			previewTitle.innerHTML = "🔧 智能检测结果";
+			
+			this.updateAutoDetectionPreview();
+		} else {
+			// 手动模式：显示层级选择器
+			new Setting(containerEl)
+				.setName(i18n.t("settings.headerLevel.start.name"))
+				.setDesc(i18n.t("settings.headerLevel.start.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(
+						this.plugin.settings.startHeaderLevel.toString()
+					);
+					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+					dropdown.onChange(async (value) => {
+						if (this.checkStartLevel(parseInt(value, 10))) {
+							this.plugin.settings.startHeaderLevel = parseInt(value, 10);
+							await this.plugin.saveSettings();
+							this.updateFormatPreview();
+						} else {
+							new Notice(
+								i18n.t("settings.autoNumbering.startLevelError")
+							);
+							// Restore to original setting value
+							dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
+						}
+					});
+				});
+				
+			new Setting(containerEl)
+				.setName(i18n.t("settings.headerLevel.max.name"))
+				.setDesc(i18n.t("settings.headerLevel.max.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(
+						this.plugin.settings.endHeaderLevel.toString()
+					);
+					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
+					dropdown.onChange(async (value) => {
+						if (this.checkEndLevel(parseInt(value, 10))) {
+							this.plugin.settings.endHeaderLevel = parseInt(
+								value,
+								10
+							);
+							await this.plugin.saveSettings();
+							this.updateFormatPreview();
+						} else {
+							new Notice(
+								i18n.t("settings.autoNumbering.endLevelError")
+							);
+							// Restore to original setting value
+							dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
+						}
+					});
+				});
+		}
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.startNumber.name"))
 			.setDesc(i18n.t("settings.autoNumbering.startNumber.desc"))
@@ -712,5 +1024,76 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					}
 				});
 			});
+	}
+
+	/**
+	 * Update auto detection preview
+	 */
+	updateAutoDetectionPreview(): void {
+		if (!this.autoDetectionPreviewContainer) return;
+		
+		const i18n = I18n.getInstance();
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		
+		// 查找或创建内容容器
+		let contentContainer = this.autoDetectionPreviewContainer.querySelector('.preview-content') as HTMLElement;
+		if (!contentContainer) {
+			contentContainer = this.autoDetectionPreviewContainer.createDiv({
+				cls: "preview-content"
+			});
+		}
+		
+		if (!activeView) {
+			contentContainer.innerHTML = `<div style="color: var(--text-muted); font-style: italic;">${i18n.t("autoDetection.noActiveDocument")}</div>`;
+			return;
+		}
+		
+		const content = activeView.editor.getValue();
+		const analysis = analyzeHeaderLevels(content);
+		
+		contentContainer.innerHTML = `
+			<div style="line-height: 1.6;">
+				${this.formatAnalysisResult(analysis)}
+			</div>
+		`;
+	}
+
+	/**
+	 * Format analysis result for display
+	 */
+	formatAnalysisResult(analysis: any): string {
+		const i18n = I18n.getInstance();
+		
+		if (analysis.isEmpty) {
+			return `<div style="color: var(--text-muted); text-align: center; padding: 1em;">
+				📝 ${i18n.t("autoDetection.noHeaders")}
+			</div>`;
+		}
+		
+		const levelNames = analysis.usedLevels.map((level: number) => `<span style="background: var(--tag-background); color: var(--tag-color); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;">H${level}</span>`).join(' ');
+		const mappingInfo = analysis.usedLevels.map((level: number, index: number) => 
+			`<span style="background: var(--background-modifier-hover); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;">H${level}→${index + 1}级</span>`
+		).join(' ');
+		
+		return `
+			<div style="display: grid; gap: 0.8em;">
+				<div style="display: flex; align-items: center; gap: 0.8em;">
+					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.detected")}:</strong>
+					<div style="display: flex; gap: 0.4em; flex-wrap: wrap;">${levelNames}</div>
+				</div>
+				<div style="display: flex; align-items: center; gap: 0.8em;">
+					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.range")}:</strong>
+					<span style="background: var(--color-green-rgb); color: var(--text-on-accent); padding: 0.3em 0.6em; border-radius: 4px; font-weight: 500;">H${analysis.minLevel} - H${analysis.maxLevel}</span>
+				</div>
+				<div style="display: flex; align-items: flex-start; gap: 0.8em;">
+					<strong style="color: var(--text-normal); min-width: 70px; margin-top: 0.2em;">${i18n.t("autoDetection.mapping")}:</strong>
+					<div style="display: flex; gap: 0.4em; flex-wrap: wrap;">${mappingInfo}</div>
+				</div>
+				<div style="display: flex; align-items: center; gap: 0.8em;">
+					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.totalHeaders")}:</strong>
+					<span style="background: var(--color-blue-rgb); color: var(--text-on-accent); padding: 0.3em 0.6em; border-radius: 4px; font-weight: 500;">${analysis.headerCount}</span>
+				</div>
+			</div>
+		`;
 	}
 }
