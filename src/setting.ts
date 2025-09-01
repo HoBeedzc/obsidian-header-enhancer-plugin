@@ -202,16 +202,16 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			
 			yamlInfo.innerHTML = `
 				<div style="font-weight: 600; color: var(--color-blue); margin-bottom: 0.8em; display: flex; align-items: center;">
-					⚙️ YAML控制模式
+					${i18n.t("autoDetection.info.yamlMode.title")}
 				</div>
 				<div style="line-height: 1.6; color: var(--text-normal);">
-					在此模式下，标题编号由文件的YAML前置元数据控制。请在文档开头添加如下配置：<br><br>
+					${i18n.t("autoDetection.info.yamlMode.description")}<br><br>
 					<code style="background: var(--code-background); padding: 0.5em; border-radius: 4px; display: block; font-family: monospace;">
 ---<br>
 header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "separator ."]<br>
 ---
 					</code><br>
-					您可以使用插件命令来快速添加或修改这些配置。
+					${i18n.t("autoDetection.info.yamlMode.usage")}
 				</div>
 			`;
 		} else {
@@ -230,13 +230,147 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 			
 			offInfo.innerHTML = `
 				<div style="font-weight: 600; color: var(--text-muted); margin-bottom: 0.8em; display: flex; align-items: center;">
-					⏸️ 自动编号已关闭
+					${i18n.t("autoDetection.info.offMode.title")}
 				</div>
 				<div style="line-height: 1.6; color: var(--text-muted);">
-					当前标题自动编号功能已禁用。要启用自动编号，请在上方选择"启用"或"通过YAML控制"模式。
+					${i18n.t("autoDetection.info.offMode.description")}
 				</div>
 			`;
 		}
+
+		// Header Font Settings Section
+		containerEl.createEl("h2", { text: i18n.t("settings.headerFont.title") });
+		new Setting(containerEl)
+			.setName(i18n.t("settings.headerFont.separate.name"))
+			.setDesc(i18n.t("settings.headerFont.separate.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.isSeparateHeaderFont)
+					.onChange(async (value) => {
+						this.plugin.settings.isSeparateHeaderFont = value;
+						await this.plugin.saveSettings();
+						this.plugin.styleManager.applyCSSStyles();
+						this.display();
+					});
+			});
+
+		// Header Font preview section - only show when separate font is enabled
+		if (this.plugin.settings.isSeparateHeaderFont) {
+			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-font-preview" });
+			previewContainer.style.cssText = `
+				margin: 1em 0;
+				padding: 1em;
+				border: 1px solid var(--background-modifier-border);
+				border-radius: 6px;
+				background: var(--background-secondary);
+			`;
+			
+			previewContainer.createEl("div", { 
+				text: i18n.t("settings.headerFont.preview.title"),
+				cls: "setting-item-name"
+			});
+			
+			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
+			
+			// Create preview headers
+			for (let i = 1; i <= 3; i++) {
+				const tagName = i === 1 ? 'h1' : i === 2 ? 'h2' : 'h3';
+				const headerEl = previewContent.createEl(tagName, { 
+					text: `${i18n.t("settings.headerFont.preview.sample")} ${i}`,
+					cls: "header-enhancer-preview-header"
+				});
+				
+				// Apply current font settings to preview
+				this.updateHeaderPreviewStyles(headerEl);
+			}
+		}
+		this.createFontFamilySetting(containerEl, "header");
+		this.createFontSizeSetting(containerEl, "header");
+
+		// Title Font Settings Section
+		containerEl.createEl("h2", { text: i18n.t("settings.titleFont.title") });
+		new Setting(containerEl)
+			.setName(i18n.t("settings.titleFont.separate.name"))
+			.setDesc(i18n.t("settings.titleFont.separate.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.isSeparateTitleFont)
+					.onChange(async (value) => {
+						this.plugin.settings.isSeparateTitleFont = value;
+						await this.plugin.saveSettings();
+						this.plugin.styleManager.applyCSSStyles();
+						this.display();
+					});
+			});
+
+		// Title Font preview section - only show when separate font is enabled
+		if (this.plugin.settings.isSeparateTitleFont) {
+			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-title-font-preview" });
+			previewContainer.style.cssText = `
+				margin: 1em 0;
+				padding: 1em;
+				border: 1px solid var(--background-modifier-border);
+				border-radius: 6px;
+				background: var(--background-secondary);
+			`;
+			
+			previewContainer.createEl("div", { 
+				text: i18n.t("settings.titleFont.preview.title"),
+				cls: "setting-item-name"
+			});
+			
+			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
+			
+			// Create title preview
+			const titleEl = previewContent.createEl('div', { 
+				text: i18n.t("settings.titleFont.preview.sample"),
+				cls: "header-enhancer-preview-title"
+			});
+			titleEl.style.cssText = "font-size: 1.5em; font-weight: bold; margin: 0.5em 0;";
+			
+			// Apply current font settings to preview
+			this.updateTitlePreviewStyles(titleEl);
+		}
+
+		this.createFontFamilySetting(containerEl, "title");
+		this.createFontSizeSetting(containerEl, "title");
+
+		// Reset Settings
+		new Setting(containerEl)
+			.addButton((button) => {
+				button.setButtonText(i18n.t("settings.resetSettings.name")).onClick(async () => {
+					if (
+						confirm(
+							i18n.t("settings.resetSettings.confirm")
+						)
+					) {
+						this.plugin.settings = DEFAULT_SETTINGS;
+						await this.plugin.saveSettings();
+						this.display();
+					}
+				});
+			});
+
+		// More Information Section
+		containerEl.createEl("h2", { text: i18n.t("settings.moreInfo") });
+		containerEl.createEl("p", { text: i18n.t("settings.author") }).createEl("a", {
+			text: "Hobee Liu",
+			href: "https://github.com/HoBeedzc",
+		});
+		containerEl.createEl("p", { text: i18n.t("settings.license") }).createEl("a", {
+			text: "MIT",
+			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/blob/master/LICENSE",
+		});
+		containerEl.createEl("p", { text: i18n.t("settings.githubRepo") }).createEl("a", {
+			text: "obsidian-header-enhancer",
+			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
+		});
+		containerEl
+			.createEl("p", { text: i18n.t("settings.anyQuestion") })
+			.createEl("a", {
+				text: "Github Issues",
+				href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
+			});
 	}
 
 	/**
@@ -434,451 +568,6 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 		this.formatPreviewSetting = new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.format.name"))
 			.setDesc(this.getFormatPreview());
-	}
-		// 标题编号方式选择
-		const headerLevelSetting = new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.headerLevel.name"));
-
-		// 动态设置描述文本
-		const updateSettingDesc = () => {
-			if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
-				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.yamlControl"));
-			} else if (this.plugin.settings.isAutoDetectHeaderLevel && 
-				this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
-				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.autoDetect"));
-			} else {
-				headerLevelSetting.setDesc(i18n.t("settings.autoNumbering.headerLevel.desc.manual"));
-			}
-		};
-
-		updateSettingDesc(); // 初始设置描述
-
-		headerLevelSetting.addToggle((toggle) => {
-			toggle.setValue(this.plugin.settings.isAutoDetectHeaderLevel)
-				.onChange(async (value) => {
-					this.plugin.settings.isAutoDetectHeaderLevel = value;
-					await this.plugin.saveSettings();
-					updateSettingDesc(); // 更新描述
-					this.display(); // 重新渲染界面
-				})
-				.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-		});
-
-		// 根据自动检测开关状态显示不同的配置选项
-		if (this.plugin.settings.isAutoDetectHeaderLevel && 
-			this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			
-			// 自动检测模式：显示预览区域
-			this.autoDetectionPreviewContainer = containerEl.createDiv({ 
-				cls: "header-enhancer-auto-detection-preview" 
-			});
-			this.autoDetectionPreviewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1.2em;
-				border: 2px solid var(--color-green);
-				border-radius: 8px;
-				background: var(--background-secondary);
-				position: relative;
-			`;
-			
-			// 添加标题
-			const previewTitle = this.autoDetectionPreviewContainer.createDiv();
-			previewTitle.style.cssText = `
-				font-weight: 600;
-				font-size: 1em;
-				color: var(--color-green);
-				margin-bottom: 0.8em;
-				display: flex;
-				align-items: center;
-			`;
-			previewTitle.innerHTML = "🔧 智能检测结果";
-			
-			this.updateAutoDetectionPreview();
-		} else {
-			// 手动模式：显示层级选择器
-			new Setting(containerEl)
-				.setName(i18n.t("settings.headerLevel.start.name"))
-				.setDesc(i18n.t("settings.headerLevel.start.desc"))
-				.addDropdown((dropdown) => {
-					dropdown.addOption("1", "H1");
-					dropdown.addOption("2", "H2");
-					dropdown.addOption("3", "H3");
-					dropdown.addOption("4", "H4");
-					dropdown.addOption("5", "H5");
-					dropdown.addOption("6", "H6");
-					dropdown.setValue(
-						this.plugin.settings.startHeaderLevel.toString()
-					);
-					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-					dropdown.onChange(async (value) => {
-						if (this.checkStartLevel(parseInt(value, 10))) {
-							this.plugin.settings.startHeaderLevel = parseInt(value, 10);
-							await this.plugin.saveSettings();
-							this.updateFormatPreview();
-						} else {
-							new Notice(
-								i18n.t("settings.autoNumbering.startLevelError")
-							);
-							// Restore to original setting value
-							dropdown.setValue(this.plugin.settings.startHeaderLevel.toString());
-						}
-					});
-				});
-				
-			new Setting(containerEl)
-				.setName(i18n.t("settings.headerLevel.max.name"))
-				.setDesc(i18n.t("settings.headerLevel.max.desc"))
-				.addDropdown((dropdown) => {
-					dropdown.addOption("1", "H1");
-					dropdown.addOption("2", "H2");
-					dropdown.addOption("3", "H3");
-					dropdown.addOption("4", "H4");
-					dropdown.addOption("5", "H5");
-					dropdown.addOption("6", "H6");
-					dropdown.setValue(
-						this.plugin.settings.endHeaderLevel.toString()
-					);
-					dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-					dropdown.onChange(async (value) => {
-						if (this.checkEndLevel(parseInt(value, 10))) {
-							this.plugin.settings.endHeaderLevel = parseInt(
-								value,
-								10
-							);
-							await this.plugin.saveSettings();
-							this.updateFormatPreview();
-						} else {
-							new Notice(
-								i18n.t("settings.autoNumbering.endLevelError")
-							);
-							// Restore to original setting value
-							dropdown.setValue(this.plugin.settings.endHeaderLevel.toString());
-						}
-					});
-				});
-		}
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.startNumber.name"))
-			.setDesc(i18n.t("settings.autoNumbering.startNumber.desc"))
-			.addDropdown((dropdown) => {
-				dropdown.addOption("0", "0");
-				dropdown.addOption("1", "1");
-				dropdown.setValue(this.plugin.settings.autoNumberingStartNumber);
-				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.autoNumberingStartNumber = value;
-					await this.plugin.saveSettings();
-					this.updateFormatPreview();
-				});
-			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.separator.name"))
-			.setDesc(i18n.t("settings.autoNumbering.separator.desc"))
-			.addDropdown((dropdown) => {
-				dropdown.addOption(".", ".");
-				dropdown.addOption(",", ",");
-				dropdown.addOption("-", "-");
-				dropdown.addOption("/", "/");
-				dropdown.setValue(this.plugin.settings.autoNumberingSeparator);
-				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.autoNumberingSeparator = value;
-					await this.plugin.saveSettings();
-					this.updateFormatPreview();
-				});
-			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.headerSeparator.name"))
-			.setDesc(i18n.t("settings.autoNumbering.headerSeparator.desc"))
-			.addDropdown((dropdown) => {
-				dropdown.addOption("\t", "Tab");
-				dropdown.addOption(" ", "Space");
-				dropdown.setValue(
-					this.plugin.settings.autoNumberingHeaderSeparator
-				);
-				dropdown.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
-				dropdown.onChange(async (value) => {
-					if (this.checkHeaderSeparator(value)) {
-						this.plugin.settings.autoNumberingHeaderSeparator =
-							value;
-						await this.plugin.saveSettings();
-					} else {
-						new Notice(i18n.t("settings.autoNumbering.headerSeparator.error"));
-					}
-				});
-			});
-		new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.updateBacklinks.name"))
-			.setDesc(i18n.t("settings.autoNumbering.updateBacklinks.desc"))
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.updateBacklinks)
-					.onChange(async (value) => {
-						this.plugin.settings.updateBacklinks = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		this.formatPreviewSetting = new Setting(containerEl).setName(
-			i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
-		);
-
-		// Header Font Settings Section
-		containerEl.createEl("h2", { text: i18n.t("settings.headerFont.title") });
-		new Setting(containerEl)
-			.setName(i18n.t("settings.headerFont.separate.name"))
-			.setDesc(i18n.t("settings.headerFont.separate.desc"))
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.isSeparateHeaderFont)
-					.onChange(async (value) => {
-						this.plugin.settings.isSeparateHeaderFont = value;
-						await this.plugin.saveSettings();
-						this.plugin.styleManager.applyCSSStyles();
-						this.display();
-					});
-			});
-
-		// Header Font preview section - only show when separate font is enabled
-		if (this.plugin.settings.isSeparateHeaderFont) {
-			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-font-preview" });
-			previewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1em;
-				border: 1px solid var(--background-modifier-border);
-				border-radius: 6px;
-				background: var(--background-secondary);
-			`;
-			
-			previewContainer.createEl("div", { 
-				text: i18n.t("settings.headerFont.preview.title"),
-				cls: "setting-item-name"
-			});
-			
-			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
-			
-			// Create preview headers
-			for (let i = 1; i <= 3; i++) {
-				const tagName = i === 1 ? 'h1' : i === 2 ? 'h2' : 'h3';
-				const headerEl = previewContent.createEl(tagName, { 
-					text: `${i18n.t("settings.headerFont.preview.sample")} ${i}`,
-					cls: "header-enhancer-preview-header"
-				});
-				
-				// Apply current font settings to preview
-				this.updateHeaderPreviewStyles(headerEl);
-			}
-		}
-		this.createFontFamilySetting(containerEl, "header");
-		this.createFontSizeSetting(containerEl, "header");
-
-		// Title Font Settings Section
-		containerEl.createEl("h2", { text: i18n.t("settings.titleFont.title") });
-		new Setting(containerEl)
-			.setName(i18n.t("settings.titleFont.separate.name"))
-			.setDesc(i18n.t("settings.titleFont.separate.desc"))
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.isSeparateTitleFont)
-					.onChange(async (value) => {
-						this.plugin.settings.isSeparateTitleFont = value;
-						await this.plugin.saveSettings();
-						this.plugin.styleManager.applyCSSStyles();
-						this.display();
-					});
-			});
-
-		// Title Font preview section - only show when separate font is enabled
-		if (this.plugin.settings.isSeparateTitleFont) {
-			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-title-font-preview" });
-			previewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1em;
-				border: 1px solid var(--background-modifier-border);
-				border-radius: 6px;
-				background: var(--background-secondary);
-			`;
-			
-			previewContainer.createEl("div", { 
-				text: i18n.t("settings.titleFont.preview.title"),
-				cls: "setting-item-name"
-			});
-			
-			const previewContent = previewContainer.createDiv({ cls: "font-preview-content" });
-			
-			// Create title preview
-			const titleEl = previewContent.createEl('div', { 
-				text: i18n.t("settings.titleFont.preview.sample"),
-				cls: "header-enhancer-preview-title"
-			});
-			titleEl.style.cssText = "font-size: 1.5em; font-weight: bold; margin: 0.5em 0;";
-			
-			// Apply current font settings to preview
-			this.updateTitlePreviewStyles(titleEl);
-		}
-
-		this.createFontFamilySetting(containerEl, "title");
-		this.createFontSizeSetting(containerEl, "title");
-		new Setting(containerEl)
-			.addButton((button) => {
-				button.setButtonText(i18n.t("settings.resetSettings.name")).onClick(async () => {
-					if (
-						confirm(
-							i18n.t("settings.resetSettings.confirm")
-						)
-					) {
-						this.plugin.settings = DEFAULT_SETTINGS;
-						await this.plugin.saveSettings();
-						this.display();
-					}
-				});
-			});
-
-		containerEl.createEl("h2", { text: i18n.t("settings.moreInfo") });
-		containerEl.createEl("p", { text: i18n.t("settings.author") }).createEl("a", {
-			text: "Hobee Liu",
-			href: "https://github.com/HoBeedzc",
-		});
-		containerEl.createEl("p", { text: i18n.t("settings.license") }).createEl("a", {
-			text: "MIT",
-			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/blob/master/LICENSE",
-		});
-		containerEl.createEl("p", { text: i18n.t("settings.githubRepo") }).createEl("a", {
-			text: "obsidian-header-enhancer",
-			href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin",
-		});
-		containerEl
-			.createEl("p", { text: i18n.t("settings.anyQuestion") })
-			.createEl("a", {
-				text: "Github Issues",
-				href: "https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues",
-			});
-	}
-
-	getFormatPreview(): string {
-		const i18n = I18n.getInstance();
-		
-		switch (this.plugin.settings.autoNumberingMode) {
-			case AutoNumberingMode.OFF:
-				return i18n.t("settings.autoNumbering.format.disabled");
-			
-			case AutoNumberingMode.YAML_CONTROLLED:
-				return i18n.t("settings.autoNumbering.format.yamlControlled");
-			
-			case AutoNumberingMode.ON:
-			default:
-				// 构建实际的格式预览
-				const formatExample = "\t" +
-					this.plugin.settings.autoNumberingStartNumber +
-					this.plugin.settings.autoNumberingSeparator +
-					"1" +
-					this.plugin.settings.autoNumberingSeparator +
-					"1";
-				
-				const levelInfo = "\t" + 
-					i18n.t("settings.autoNumbering.format.fromLevel") + " " +
-					this.plugin.settings.startHeaderLevel +
-					" " + 
-					i18n.t("settings.autoNumbering.format.toLevel") + " " +
-					this.plugin.settings.endHeaderLevel +
-					" " +
-					(this.plugin.settings.isAutoDetectHeaderLevel 
-						? i18n.t("settings.autoNumbering.format.autoDetect")
-						: i18n.t("settings.autoNumbering.format.manual"));
-				
-				return formatExample + levelInfo;
-		}
-	}
-
-	updateFormatPreview(): void {
-		if (this.formatPreviewSetting) {
-			const i18n = I18n.getInstance();
-			this.formatPreviewSetting.setName(
-				i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
-			);
-		}
-	}
-
-	checkEndLevel(maxLevel: number): boolean {
-		return this.plugin.settings.startHeaderLevel <= maxLevel;
-	}
-
-	checkStartLevel(startLevel: number): boolean {
-		return startLevel <= this.plugin.settings.endHeaderLevel;
-	}
-
-	checkStartNumber(startNumber: string): boolean {
-		const reg = /^[0-9]*$/;
-		return reg.test(startNumber);
-	}
-
-	checkSeparator(separator: string): boolean {
-		if (separator.length != 1) {
-			return false;
-		}
-		const separators = [".", ",", "-", "/"];
-		return separators.includes(separator);
-	}
-
-	checkHeaderSeparator(_separator: string): boolean {
-		// only check when autoNumberingMode is ON
-		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Update preview styles for a single header element
-	 */
-	updateHeaderPreviewStyles(headerEl: HTMLElement): void {
-		if (this.plugin.settings.headerFontFamily && this.plugin.settings.headerFontFamily !== 'inherit') {
-			headerEl.style.fontFamily = this.plugin.settings.headerFontFamily;
-		} else {
-			headerEl.style.fontFamily = '';
-		}
-
-		if (this.plugin.settings.headerFontSize && this.plugin.settings.headerFontSize !== 'inherit') {
-			headerEl.style.fontSize = this.plugin.settings.headerFontSize;
-		} else {
-			headerEl.style.fontSize = '';
-		}
-	}
-
-	/**
-	 * Update preview styles for title element
-	 */
-	updateTitlePreviewStyles(titleEl: HTMLElement): void {
-		if (this.plugin.settings.titleFontFamily && this.plugin.settings.titleFontFamily !== 'inherit') {
-			titleEl.style.fontFamily = this.plugin.settings.titleFontFamily;
-		} else {
-			titleEl.style.fontFamily = '';
-		}
-
-		if (this.plugin.settings.titleFontSize && this.plugin.settings.titleFontSize !== 'inherit') {
-			titleEl.style.fontSize = this.plugin.settings.titleFontSize;
-		} else {
-			titleEl.style.fontSize = '';
-		}
-	}
-
-	/**
-	 * Update preview styles for all preview headers
-	 */
-	updateAllHeaderPreviewStyles(): void {
-		const previewHeaders = this.containerEl.querySelectorAll('.header-enhancer-preview-header');
-		previewHeaders.forEach((headerEl) => {
-			this.updateHeaderPreviewStyles(headerEl as HTMLElement);
-		});
-	}
-
-	/**
-	 * Update preview styles for all preview titles  
-	 */
-	updateAllTitlePreviewStyles(): void {
-		const previewTitles = this.containerEl.querySelectorAll('.header-enhancer-preview-title');
-		previewTitles.forEach((titleEl) => {
-			this.updateTitlePreviewStyles(titleEl as HTMLElement);
-		});
 	}
 
 	/**
@@ -1095,5 +784,141 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 				</div>
 			</div>
 		`;
+	}
+
+	/**
+	 * Get format preview string
+	 */
+	getFormatPreview(): string {
+		const i18n = I18n.getInstance();
+		
+		switch (this.plugin.settings.autoNumberingMode) {
+			case AutoNumberingMode.OFF:
+				return i18n.t("settings.autoNumbering.format.disabled");
+			
+			case AutoNumberingMode.YAML_CONTROLLED:
+				return i18n.t("settings.autoNumbering.format.yamlControlled");
+			
+			case AutoNumberingMode.ON:
+			default:
+				// 构建实际的格式预览
+				const formatExample = "\t" +
+					this.plugin.settings.autoNumberingStartNumber +
+					this.plugin.settings.autoNumberingSeparator +
+					"1" +
+					this.plugin.settings.autoNumberingSeparator +
+					"1";
+				
+				const levelInfo = "\t" + 
+					i18n.t("settings.autoNumbering.format.fromLevel") + " " +
+					this.plugin.settings.startHeaderLevel +
+					" " + 
+					i18n.t("settings.autoNumbering.format.toLevel") + " " +
+					this.plugin.settings.endHeaderLevel +
+					" " +
+					(this.plugin.settings.isAutoDetectHeaderLevel 
+						? i18n.t("settings.autoNumbering.format.autoDetect")
+						: i18n.t("settings.autoNumbering.format.manual"));
+				
+				return formatExample + levelInfo;
+		}
+	}
+
+	/**
+	 * Update format preview
+	 */
+	updateFormatPreview(): void {
+		if (this.formatPreviewSetting) {
+			const i18n = I18n.getInstance();
+			this.formatPreviewSetting.setName(
+				i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
+			);
+		}
+	}
+
+	/**
+	 * Validation methods
+	 */
+	checkEndLevel(maxLevel: number): boolean {
+		return this.plugin.settings.startHeaderLevel <= maxLevel;
+	}
+
+	checkStartLevel(startLevel: number): boolean {
+		return startLevel <= this.plugin.settings.endHeaderLevel;
+	}
+
+	checkStartNumber(startNumber: string): boolean {
+		const reg = /^[0-9]*$/;
+		return reg.test(startNumber);
+	}
+
+	checkSeparator(separator: string): boolean {
+		if (separator.length != 1) {
+			return false;
+		}
+		const separators = [".", ",", "-", "/"];
+		return separators.includes(separator);
+	}
+
+	checkHeaderSeparator(_separator: string): boolean {
+		// only check when autoNumberingMode is ON
+		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Update preview styles for a single header element
+	 */
+	updateHeaderPreviewStyles(headerEl: HTMLElement): void {
+		if (this.plugin.settings.headerFontFamily && this.plugin.settings.headerFontFamily !== 'inherit') {
+			headerEl.style.fontFamily = this.plugin.settings.headerFontFamily;
+		} else {
+			headerEl.style.fontFamily = '';
+		}
+
+		if (this.plugin.settings.headerFontSize && this.plugin.settings.headerFontSize !== 'inherit') {
+			headerEl.style.fontSize = this.plugin.settings.headerFontSize;
+		} else {
+			headerEl.style.fontSize = '';
+		}
+	}
+
+	/**
+	 * Update preview styles for title element
+	 */
+	updateTitlePreviewStyles(titleEl: HTMLElement): void {
+		if (this.plugin.settings.titleFontFamily && this.plugin.settings.titleFontFamily !== 'inherit') {
+			titleEl.style.fontFamily = this.plugin.settings.titleFontFamily;
+		} else {
+			titleEl.style.fontFamily = '';
+		}
+
+		if (this.plugin.settings.titleFontSize && this.plugin.settings.titleFontSize !== 'inherit') {
+			titleEl.style.fontSize = this.plugin.settings.titleFontSize;
+		} else {
+			titleEl.style.fontSize = '';
+		}
+	}
+
+	/**
+	 * Update preview styles for all preview headers
+	 */
+	updateAllHeaderPreviewStyles(): void {
+		const previewHeaders = this.containerEl.querySelectorAll('.header-enhancer-preview-header');
+		previewHeaders.forEach((headerEl) => {
+			this.updateHeaderPreviewStyles(headerEl as HTMLElement);
+		});
+	}
+
+	/**
+	 * Update preview styles for all preview titles  
+	 */
+	updateAllTitlePreviewStyles(): void {
+		const previewTitles = this.containerEl.querySelectorAll('.header-enhancer-preview-title');
+		previewTitles.forEach((titleEl) => {
+			this.updateTitlePreviewStyles(titleEl as HTMLElement);
+		});
 	}
 }

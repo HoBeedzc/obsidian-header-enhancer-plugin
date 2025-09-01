@@ -199,6 +199,17 @@ export default {
             autoDetect: "🔧 当前模式：自动检测 - 将根据文档内容智能确定编号范围",
             yamlControl: "⚙️ 当前模式：YAML控制 - 通过文件前置元数据配置",
             manual: "🎯 当前模式：手动设置 - 使用固定的层级范围"
+        },
+        info: {
+            yamlMode: {
+                title: "⚙️ YAML控制模式",
+                description: "在此模式下，标题编号由文件的YAML前置元数据控制。请在文档开头添加如下配置：",
+                usage: "您可以使用插件命令来快速添加或修改这些配置。"
+            },
+            offMode: {
+                title: "⏸️ 自动编号已关闭",
+                description: "当前标题自动编号功能已禁用。要启用自动编号，请在上方选择\"启用\"或\"通过YAML控制\"模式。"
+            }
         }
     },
     statusBar: {

@@ -197,6 +197,17 @@ export default {
             autoDetect: "🔧 Current Mode: Auto Detect - Intelligently determine numbering range based on document content",
             yamlControl: "⚙️ Current Mode: YAML Control - Configure through file frontmatter",
             manual: "🎯 Current Mode: Manual - Use fixed level range"
+        },
+        info: {
+            yamlMode: {
+                title: "⚙️ YAML Control Mode",
+                description: "In this mode, header numbering is controlled by YAML frontmatter in files. Please add the following configuration at the beginning of your document:",
+                usage: "You can use plugin commands to quickly add or modify these configurations."
+            },
+            offMode: {
+                title: "⏸️ Auto Numbering Disabled",
+                description: "Header auto numbering is currently disabled. To enable auto numbering, please select \"On\" or \"Controlled by YAML\" mode above."
+            }
         }
     },
     statusBar: {
