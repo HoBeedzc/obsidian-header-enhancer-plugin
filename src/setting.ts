@@ -564,10 +564,41 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 					.setDisabled(this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED);
 			});
 
-		// 格式预览
-		this.formatPreviewSetting = new Setting(containerEl)
-			.setName(i18n.t("settings.autoNumbering.format.name"))
-			.setDesc(this.getFormatPreview());
+		// 格式预览 - 简洁展示
+		const formatPreviewContainer = containerEl.createDiv({ 
+			cls: "header-enhancer-format-preview-container" 
+		});
+		formatPreviewContainer.style.cssText = `
+			margin: 1.5em 0;
+		`;
+		
+		// 标题
+		const previewTitle = formatPreviewContainer.createDiv();
+		previewTitle.style.cssText = `
+			font-weight: 600;
+			font-size: 1.1em;
+			color: var(--text-accent);
+			margin-bottom: 1em;
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+		`;
+		previewTitle.innerHTML = `<span style="color: var(--color-accent);">🎯</span> ${i18n.t("settings.autoNumbering.format.name")}`;
+		
+		// 格式预览内容容器
+		const previewContent = formatPreviewContainer.createDiv({
+			cls: "format-preview-content"
+		});
+		
+		// 存储预览内容元素的引用，用于后续更新
+		this.formatPreviewSetting = {
+			setDesc: (content: string) => {
+				previewContent.innerHTML = content;
+			}
+		} as Setting;
+		
+		// 初始化格式预览内容
+		previewContent.innerHTML = this.getFormatPreview();
 	}
 
 	/**
@@ -734,6 +765,8 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 		
 		if (!activeView) {
 			contentContainer.innerHTML = `<div style="color: var(--text-muted); font-style: italic;">${i18n.t("autoDetection.noActiveDocument")}</div>`;
+			// 更新格式预览，即使没有活动文档
+			this.updateFormatPreview();
 			return;
 		}
 		
@@ -745,6 +778,9 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 				${this.formatAnalysisResult(analysis)}
 			</div>
 		`;
+		
+		// 当自动检测预览更新时，同时更新格式预览
+		this.updateFormatPreview();
 	}
 
 	/**
@@ -794,33 +830,135 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 		
 		switch (this.plugin.settings.autoNumberingMode) {
 			case AutoNumberingMode.OFF:
-				return i18n.t("settings.autoNumbering.format.disabled");
+				return `<div style="
+					color: var(--text-muted); 
+					text-align: center; 
+					padding: 1.5em;
+					border: 2px dashed var(--background-modifier-border);
+					border-radius: 8px;
+					background: var(--background-modifier-hover);
+				">
+					<div style="font-size: 1.5em; margin-bottom: 0.5em;">⏹️</div>
+					<div style="font-size: 1em; font-weight: 500;">${i18n.t("settings.autoNumbering.format.disabled")}</div>
+				</div>`;
 			
 			case AutoNumberingMode.YAML_CONTROLLED:
-				return i18n.t("settings.autoNumbering.format.yamlControlled");
+				return `<div style="
+					color: var(--text-accent); 
+					text-align: center; 
+					padding: 1.5em;
+					border: 2px dashed var(--color-blue);
+					border-radius: 8px;
+					background: var(--background-modifier-hover);
+				">
+					<div style="font-size: 1.5em; margin-bottom: 0.5em;">📄</div>
+					<div style="font-size: 1em; font-weight: 500;">${i18n.t("settings.autoNumbering.format.yamlControlled")}</div>
+				</div>`;
 			
 			case AutoNumberingMode.ON:
 			default:
-				// 构建实际的格式预览
-				const formatExample = "\t" +
-					this.plugin.settings.autoNumberingStartNumber +
+				// 构建格式示例
+				const formatExample = this.plugin.settings.autoNumberingStartNumber +
 					this.plugin.settings.autoNumberingSeparator +
 					"1" +
 					this.plugin.settings.autoNumberingSeparator +
 					"1";
 				
-				const levelInfo = "\t" + 
-					i18n.t("settings.autoNumbering.format.fromLevel") + " " +
-					this.plugin.settings.startHeaderLevel +
-					" " + 
-					i18n.t("settings.autoNumbering.format.toLevel") + " " +
-					this.plugin.settings.endHeaderLevel +
-					" " +
-					(this.plugin.settings.isAutoDetectHeaderLevel 
-						? i18n.t("settings.autoNumbering.format.autoDetect")
-						: i18n.t("settings.autoNumbering.format.manual"));
+				let levelInfo: string;
+				let statusBadge: string;
 				
-				return formatExample + levelInfo;
+				// 如果启用了自动检测，尝试获取当前文档的实际层级范围
+				if (this.plugin.settings.isAutoDetectHeaderLevel) {
+					const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+					if (activeView) {
+						const content = activeView.editor.getValue();
+						const analysis = analyzeHeaderLevels(content);
+						
+						if (!analysis.isEmpty) {
+							levelInfo = `${i18n.t("settings.autoNumbering.format.fromLevel")} H${analysis.minLevel} ${i18n.t("settings.autoNumbering.format.toLevel")} H${analysis.maxLevel}`;
+							statusBadge = `<span style="
+								background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+								color: white;
+								padding: 0.3em 0.8em;
+								border-radius: 15px;
+								font-size: 0.85em;
+								font-weight: 600;
+								box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+							">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+						} else {
+							levelInfo = i18n.t("autoDetection.noHeaders");
+							statusBadge = `<span style="
+								background: var(--color-orange);
+								color: white;
+								padding: 0.3em 0.8em;
+								border-radius: 15px;
+								font-size: 0.85em;
+								font-weight: 600;
+							">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+						}
+					} else {
+						levelInfo = i18n.t("autoDetection.noActiveDocument");
+						statusBadge = `<span style="
+							background: var(--text-muted);
+							color: white;
+							padding: 0.3em 0.8em;
+							border-radius: 15px;
+							font-size: 0.85em;
+							font-weight: 600;
+						">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+					}
+				} else {
+					// 手动模式：使用设置的层级
+					levelInfo = `${i18n.t("settings.autoNumbering.format.fromLevel")} H${this.plugin.settings.startHeaderLevel} ${i18n.t("settings.autoNumbering.format.toLevel")} H${this.plugin.settings.endHeaderLevel}`;
+					statusBadge = `<span style="
+						background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+						color: white;
+						padding: 0.3em 0.8em;
+						border-radius: 15px;
+						font-size: 0.85em;
+						font-weight: 600;
+						box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+					">${i18n.t("settings.autoNumbering.format.manual")}</span>`;
+				}
+				
+				return `
+					<div style="display: flex; flex-direction: column; gap: 1.5em;">
+						<!-- Format example -->
+						<div style="
+							text-align: center;
+						">
+							<div style="
+								font-family: monospace;
+								font-size: 1.8em;
+								font-weight: 700;
+								color: var(--color-accent);
+								background: var(--background-primary);
+								padding: 1em;
+								border-radius: 8px;
+								border: 2px solid var(--color-accent);
+							">${formatExample}</div>
+						</div>
+						
+						<!-- Level range and status -->
+						<div style="
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+						">
+							<div style="
+								display: flex;
+								align-items: center;
+								gap: 0.5em;
+								font-weight: 500;
+								color: var(--text-normal);
+							">
+								<span style="color: var(--color-accent);">📏</span>
+								<span>${levelInfo}</span>
+							</div>
+							${statusBadge}
+						</div>
+					</div>
+				`;
 		}
 	}
 
@@ -829,10 +967,7 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 	 */
 	updateFormatPreview(): void {
 		if (this.formatPreviewSetting) {
-			const i18n = I18n.getInstance();
-			this.formatPreviewSetting.setName(
-				i18n.t("settings.autoNumbering.format.name") + ": " + this.getFormatPreview()
-			);
+			this.formatPreviewSetting.setDesc(this.getFormatPreview());
 		}
 	}
 

@@ -69,10 +69,10 @@ export default {
             startLevelError: "Start header level should be less than or equal to max header level",
             format: {
                 name: "Your auto numbering format is",
-                fromLevel: "from H",
-                toLevel: "to H",
-                autoDetect: "[Auto Detect]",
-                manual: "[Manual]",
+                fromLevel: "from",
+                toLevel: "to",
+                autoDetect: "Auto Detect",
+                manual: "Manual",
                 yamlControlled: "[Controlled by YAML]",
                 disabled: "[Disabled]"
             },

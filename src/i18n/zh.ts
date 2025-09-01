@@ -71,10 +71,10 @@ export default {
             startLevelError: "起始标题级别应该小于或等于最大标题级别",
             format: {
                 name: "当前格式",
-                fromLevel: "从级别",
-                toLevel: "到级别",
-                autoDetect: "（自动检测）",
-                manual: "（手动）",
+                fromLevel: "从",
+                toLevel: "到",
+                autoDetect: "自动检测",
+                manual: "手动",
                 yamlControlled: "（YAML控制）",
                 disabled: "（已关闭）"
             },
