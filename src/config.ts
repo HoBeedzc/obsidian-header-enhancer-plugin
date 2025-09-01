@@ -13,7 +13,9 @@ export interface AutoNumberingConfig {
 
 export function getAutoNumberingConfig(
 	setting: HeaderEnhancerSettings,
-	editor: Editor
+	editor: Editor,
+	getDocumentState?: (filePath: string) => boolean,
+	currentFilePath?: string
 ): AutoNumberingConfig {
 	let config: AutoNumberingConfig = {
 		state: setting.autoNumberingMode !== AutoNumberingMode.OFF,
@@ -22,6 +24,21 @@ export function getAutoNumberingConfig(
 		startNumber: parseInt(setting.autoNumberingStartNumber),
 		separator: setting.autoNumberingSeparator,
 	};
+
+	// Check global enablement first
+	if (!setting.globalAutoNumberingEnabled) {
+		config.state = false;
+		return config;
+	}
+
+	// Check per-document state if available
+	if (getDocumentState && currentFilePath) {
+		const documentEnabled = getDocumentState(currentFilePath);
+		if (!documentEnabled) {
+			config.state = false;
+			return config;
+		}
+	}
 
 	// YAML配置优先级最高
 	if (setting.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {

@@ -30,6 +30,14 @@ export default {
         },
         autoNumbering: {
             title: "Header Auto Numbering",
+            globalToggle: {
+                name: "Enable Auto Numbering Function",
+                desc: "Master switch to enable/disable the entire auto numbering functionality. When disabled, no documents will have auto numbering regardless of other settings."
+            },
+            globalDisabled: {
+                title: "Auto Numbering Function Disabled",
+                description: "The auto numbering function is currently disabled globally. Enable it above to access other auto numbering settings and use the sidebar button to control individual documents."
+            },
             mode: {
                 name: "Auto Numbering Mode",
                 desc: "Control how header auto numbering works",
@@ -213,9 +221,12 @@ export default {
     statusBar: {
         title: "Header Enhancer",
         off: "Off",
-        on: "On",
+        on: "On", 
         yaml: "YAML",
         auto: "Auto",
-        autoNoHeaders: "Auto(No Headers)"
+        autoNoHeaders: "Auto(No Headers)",
+        globalDisabled: "Global Disabled",
+        documentEnabled: "Document On",
+        documentDisabled: "Document Off"
     }
 };

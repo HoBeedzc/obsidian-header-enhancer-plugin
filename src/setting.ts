@@ -21,6 +21,10 @@ export interface HeaderEnhancerSettings {
 	autoNumberingSeparator: string;
 	autoNumberingHeaderSeparator: string;
 	updateBacklinks: boolean;
+	// Global function enablement
+	globalAutoNumberingEnabled: boolean;
+	// Per-document state management (stored as stringified JSON)
+	perDocumentStates: string;
 	// Header font settings (for markdown headers # ## ###)
 	isSeparateHeaderFont: boolean;
 	headerFontFamily: string;
@@ -43,6 +47,10 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
 	updateBacklinks: false,
+	// Global function enablement - enabled by default for backward compatibility
+	globalAutoNumberingEnabled: true,
+	// Per-document state management - empty object as JSON string
+	perDocumentStates: "{}",
 	// Header font settings
 	isSeparateHeaderFont: false,
 	headerFontFamily: "inherit",
@@ -116,6 +124,50 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			});
 
 		containerEl.createEl("h2", { text: i18n.t("settings.autoNumbering.title") });
+		
+		// Global auto numbering toggle
+		new Setting(containerEl)
+			.setName(i18n.t("settings.autoNumbering.globalToggle.name"))
+			.setDesc(i18n.t("settings.autoNumbering.globalToggle.desc"))
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.globalAutoNumberingEnabled)
+					.onChange(async (value) => {
+						this.plugin.settings.globalAutoNumberingEnabled = value;
+						await this.plugin.saveSettings();
+						this.plugin.handleShowStateBarChange();
+						this.plugin.updateRibbonIconState();
+						this.display(); // Refresh to show/hide dependent settings
+					});
+			});
+
+		// Only show auto numbering mode and related settings if global toggle is enabled
+		if (!this.plugin.settings.globalAutoNumberingEnabled) {
+			// Show info message when global toggle is disabled
+			const globalDisabledInfo = containerEl.createDiv({
+				cls: "header-enhancer-global-disabled-info"
+			});
+			globalDisabledInfo.style.cssText = `
+				margin: 1.5em 0;
+				padding: 1.2em;
+				border: 2px solid var(--text-muted);
+				border-radius: 8px;
+				background: var(--background-secondary);
+				opacity: 0.8;
+			`;
+			
+			globalDisabledInfo.innerHTML = `
+				<div style="font-weight: 600; color: var(--text-muted); margin-bottom: 0.8em; display: flex; align-items: center;">
+					${i18n.t("settings.autoNumbering.globalDisabled.title")}
+				</div>
+				<div style="line-height: 1.6; color: var(--text-muted);">
+					${i18n.t("settings.autoNumbering.globalDisabled.description")}
+				</div>
+			`;
+			
+			return; // Exit early, don't render other auto numbering settings
+		}
+
 		new Setting(containerEl)
 			.setName(i18n.t("settings.autoNumbering.mode.name"))
 			.setDesc(i18n.t("settings.autoNumbering.mode.desc"))
@@ -143,6 +195,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 								this.plugin.settings.autoNumberingMode = AutoNumberingMode.OFF;
 								await this.plugin.saveSettings();
 								this.plugin.handleShowStateBarChange();
+								this.plugin.updateRibbonIconState();
 								this.display();
 							}
 						);
@@ -166,6 +219,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 								this.plugin.settings.autoNumberingMode = newMode;
 								await this.plugin.saveSettings();
 								this.plugin.handleShowStateBarChange();
+								this.plugin.updateRibbonIconState();
 								this.display();
 							}
 						);
@@ -179,6 +233,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						this.plugin.settings.autoNumberingMode = newMode;
 						await this.plugin.saveSettings();
 						this.plugin.handleShowStateBarChange();
+						this.plugin.updateRibbonIconState();
 						this.display();
 					}
 				});

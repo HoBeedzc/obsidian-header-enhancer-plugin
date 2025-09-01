@@ -7,6 +7,7 @@ export class StyleManager {
 	private headerFontStyleEl: HTMLStyleElement | null = null;
 	private titleFontStyleEl: HTMLStyleElement | null = null;
 	private dialogStyleEl: HTMLStyleElement | null = null;
+	private ribbonIconStyleEl: HTMLStyleElement | null = null;
 
 	constructor(private settings: HeaderEnhancerSettings) {}
 
@@ -17,6 +18,7 @@ export class StyleManager {
 		this.applyHeaderFontStyles();
 		this.applyTitleFontStyles();
 		this.applyDialogStyles();
+		this.applyRibbonIconStyles();
 	}
 
 	/**
@@ -26,6 +28,7 @@ export class StyleManager {
 		this.removeHeaderFontStyles();
 		this.removeTitleFontStyles();
 		this.removeDialogStyles();
+		this.removeRibbonIconStyles();
 	}
 
 	/**
@@ -133,6 +136,64 @@ export class StyleManager {
 		if (cssRules) {
 			document.head.appendChild(this.titleFontStyleEl);
 		}
+	}
+
+	/**
+	 * Apply ribbon icon state styles
+	 */
+	applyRibbonIconStyles(): void {
+		// Remove existing ribbon icon styles
+		this.removeRibbonIconStyles();
+		
+		// Create ribbon icon style element
+		this.ribbonIconStyleEl = document.createElement('style');
+		this.ribbonIconStyleEl.id = 'header-enhancer-ribbon-icon-styles';
+		
+		// Ribbon icon CSS content
+		const ribbonIconCSS = `
+/* Ribbon icon state styles for Header Enhancer */
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled {
+    opacity: 0.4;
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled:hover {
+    opacity: 0.6;
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-enabled {
+    color: var(--color-accent);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-enabled:hover {
+    color: var(--color-accent-hover);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-disabled {
+    opacity: 0.7;
+    color: var(--text-muted);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-disabled:hover {
+    opacity: 1;
+    color: var(--text-normal);
+}
+
+/* Additional visual indicator for global disabled state */
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--text-error);
+    z-index: 10;
+}
+		`;
+		
+		this.ribbonIconStyleEl.textContent = ribbonIconCSS;
+		document.head.appendChild(this.ribbonIconStyleEl);
 	}
 
 	/**
@@ -283,6 +344,16 @@ export class StyleManager {
 		if (this.dialogStyleEl) {
 			this.dialogStyleEl.remove();
 			this.dialogStyleEl = null;
+		}
+	}
+
+	/**
+	 * 移除侧边栏图标样式
+	 */
+	removeRibbonIconStyles(): void {
+		if (this.ribbonIconStyleEl) {
+			this.ribbonIconStyleEl.remove();
+			this.ribbonIconStyleEl = null;
 		}
 	}
 

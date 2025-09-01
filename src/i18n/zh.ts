@@ -30,6 +30,14 @@ export default {
         },
         autoNumbering: {
             title: "标题自动编号",
+            globalToggle: {
+                name: "启用自动编号功能",
+                desc: "主开关，用于启用/禁用整个自动编号功能。禁用时，无论其他设置如何，都不会有文档进行自动编号。"
+            },
+            globalDisabled: {
+                title: "自动编号功能已禁用",
+                description: "自动编号功能当前在全局范围内被禁用。请在上方启用它以访问其他自动编号设置并使用侧边栏按钮控制单个文档。"
+            },
             mode: {
                 name: "自动编号模式",
                 desc: "控制标题自动编号的工作方式",
@@ -218,6 +226,9 @@ export default {
         on: "启用",
         yaml: "YAML",
         auto: "自动",
-        autoNoHeaders: "自动(无标题)"
+        autoNoHeaders: "自动(无标题)",
+        globalDisabled: "全局禁用",
+        documentEnabled: "文档启用",
+        documentDisabled: "文档关闭"
     }
 };
