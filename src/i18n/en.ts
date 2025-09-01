@@ -16,7 +16,7 @@ export default {
         },
         autoDetect: {
             name: "Auto Detect Header Level",
-            desc: "Automatically detect header level based on context"
+            desc: "Automatically detect and use the highest and lowest header levels in the document for numbering"
         },
         headerLevel: {
             start: {
@@ -30,6 +30,14 @@ export default {
         },
         autoNumbering: {
             title: "Header Auto Numbering",
+            globalToggle: {
+                name: "Enable Auto Numbering Function",
+                desc: "Master switch to enable/disable the entire auto numbering functionality. When disabled, no documents will have auto numbering regardless of other settings."
+            },
+            globalDisabled: {
+                title: "Auto Numbering Function Disabled",
+                description: "The auto numbering function is currently disabled globally. Enable it above to access other auto numbering settings and use the sidebar button to control individual documents."
+            },
             mode: {
                 name: "Auto Numbering Mode",
                 desc: "Control how header auto numbering works",
@@ -38,8 +46,13 @@ export default {
                 yaml: "Controlled by YAML"
             },
             headerLevel: {
-                name: "Header Level Settings",
-                desc: "Configure the header level settings"
+                name: "Header Level Numbering Method",
+                toggleLabel: "🔧 Enable Auto Detection",
+                desc: {
+                    autoDetect: "✅ Auto Detection Mode: Intelligently determine numbering range based on document content",
+                    manual: "⚙️ Manual Setting Mode: Use fixed level range settings",
+                    yamlControl: "📋 YAML Control Mode: Configure through file frontmatter"
+                }
             },
             startNumber: {
                 name: "Start Number",
@@ -64,10 +77,10 @@ export default {
             startLevelError: "Start header level should be less than or equal to max header level",
             format: {
                 name: "Your auto numbering format is",
-                fromLevel: "from H",
-                toLevel: "to H",
-                autoDetect: "[Auto Detect]",
-                manual: "[Manual]",
+                fromLevel: "from",
+                toLevel: "to",
+                autoDetect: "Auto Detect",
+                manual: "Manual",
                 yamlControlled: "[Controlled by YAML]",
                 disabled: "[Disabled]"
             },
@@ -180,10 +193,57 @@ export default {
         githubRepo: "GitHub Repository: ",
         anyQuestion: "Any questions? "
     },
+    autoDetection: {
+        currentDocument: "Current Document Analysis",
+        noActiveDocument: "No active document",
+        noHeaders: "No headers detected",
+        detected: "Detected levels",
+        range: "Level range",
+        mapping: "Number mapping", 
+        totalHeaders: "Total headers",
+        modes: {
+            autoDetect: "🔧 Current Mode: Auto Detect - Intelligently determine numbering range based on document content",
+            yamlControl: "⚙️ Current Mode: YAML Control - Configure through file frontmatter",
+            manual: "🎯 Current Mode: Manual - Use fixed level range"
+        },
+        info: {
+            yamlMode: {
+                title: "⚙️ YAML Control Mode",
+                description: "In this mode, header numbering is controlled by YAML frontmatter in files. Please add the following configuration at the beginning of your document:",
+                usage: "You can use plugin commands to quickly add or modify these configurations."
+            },
+            offMode: {
+                title: "⏸️ Auto Numbering Disabled",
+                description: "Header auto numbering is currently disabled. To enable auto numbering, please select \"On\" or \"Controlled by YAML\" mode above."
+            }
+        }
+    },
     statusBar: {
         title: "Header Enhancer",
         off: "Off",
-        on: "On",
-        yaml: "YAML"
+        on: "On", 
+        yaml: "YAML",
+        auto: "Auto",
+        autoNoHeaders: "Auto(No Headers)",
+        globalDisabled: "Global Disabled",
+        documentEnabled: "Document On",
+        documentDisabled: "Document Off"
+    },
+    commands: {
+        toggleGlobalAutoNumbering: "Toggle Global Auto Numbering",
+        toggleDocumentAutoNumbering: "Toggle Document Auto Numbering", 
+        addAutoNumberingYaml: "Add Auto Numbering YAML",
+        resetAutoNumberingYaml: "Reset Auto Numbering YAML",
+        removeAutoNumberingYaml: "Remove Auto Numbering YAML"
+    },
+    notices: {
+        noActiveView: "No active MarkdownView, cannot toggle auto numbering.",
+        globalDisabledNotice: "Auto numbering is globally disabled. Enable it in settings first.",
+        globalAutoNumberingEnabled: "Global auto numbering enabled",
+        globalAutoNumberingDisabled: "Global auto numbering disabled",
+        autoNumberingEnabledForDocument: "Auto numbering enabled for this document",
+        autoNumberingDisabledForDocument: "Auto numbering disabled for this document", 
+        yamlAlreadyExists: "auto numbering yaml already exists",
+        yamlNotExists: "auto numbering yaml not exists"
     }
 };

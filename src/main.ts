@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
+import { Editor, MarkdownView, Notice, Plugin, TFile } from "obsidian";
 
 import {
 	getHeaderLevel,
@@ -7,6 +7,7 @@ import {
 	isNeedInsertNumber,
 	removeHeaderNumber,
 	isHeader,
+	analyzeHeaderLevels,
 } from "./core";
 import { getAutoNumberingYaml, setAutoNumberingYaml } from "./utils";
 import {
@@ -28,6 +29,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	backlinkManager: BacklinkManager;
 	editorHandlers: EditorHandlers;
 	styleManager: StyleManager;
+	private perDocumentStatesMap: Map<string, boolean> = new Map();
 
 	async onload() {
 		await this.loadSettings();
@@ -45,28 +47,40 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			"heading-glyph",
 			"Header Enhancer",
 			async (_evt: MouseEvent) => {
-				const app = this.app; // this is the obsidian App instance
-				const activeView =
-					app.workspace.getActiveViewOfType(MarkdownView);
-				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot toggle auto numbering."
-					);
+				const i18n = I18n.getInstance();
+				const app = this.app;
+				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView?.file) {
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				}
-				// Toggle header numbering on/off - direct toggle without dialog
-				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
-					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
-					new Notice("Auto numbering is off");
-					await this.handleRemoveHeaderNumber(activeView);
-				} else {
-					// Turn on auto-numbering directly
-					this.settings.autoNumberingMode = AutoNumberingMode.ON;
-					new Notice("Auto numbering is on");
-					await this.handleAddHeaderNumber(activeView);
+
+				const filePath = activeView.file.path;
+				
+				// Check if global function is disabled
+				if (!this.settings.globalAutoNumberingEnabled) {
+					new Notice(i18n.t("notices.globalDisabledNotice"));
+					return;
 				}
-				await this.saveSettings();
-				this.handleShowStateBarChange();
+
+				// Toggle document-specific state
+				const currentState = this.getDocumentAutoNumberingState(filePath);
+				const newState = !currentState;
+				
+				await this.setDocumentAutoNumberingState(filePath, newState);
+
+				// Apply changes to document based on new state
+				if (newState) {
+					// Enable: add numbering to current document
+					await this.handleAddHeaderNumber(activeView);
+					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
+				} else {
+					// Disable: remove numbering from current document
+					await this.handleRemoveHeaderNumber(activeView);
+					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
+				}
+
+				this.updateAllUIStates();
 			}
 		);
 
@@ -75,51 +89,98 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.handleShowStateBarChange();
 		this.handleShowSidebarChange();
 
+		// Update all UI states after initialization
+		this.updateAllUIStates();
+
 		// Register editor extensions
 		const keyHandlers = this.editorHandlers.registerKeyHandlers();
 		keyHandlers.forEach(handler => this.registerEditorExtension(handler));
 
-		// This adds a command that can be triggered anywhere
+		// Register event listeners for document switching
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', () => {
+				// Always update UI states when switching documents
+				this.updateAllUIStates();
+			})
+		);
+		
+		// Also listen for file open events to ensure state sync
+		this.registerEvent(
+			this.app.workspace.on('file-open', () => {
+				// Small delay to ensure the view is fully loaded
+				setTimeout(() => {
+					this.updateAllUIStates();
+				}, 50);
+			})
+		);
+
+		// Initialize i18n
+		const i18n = I18n.getInstance();
+		
+		// Global toggle command
 		this.addCommand({
-			id: "toggle-auto-numbering",
-			name: "toggle auto numbering",
+			id: "toggle-global-auto-numbering",
+			name: i18n.t("commands.toggleGlobalAutoNumbering"),
 			callback: async () => {
-				const app = this.app; // this is the obsidian App instance
-				const activeView =
-					app.workspace.getActiveViewOfType(MarkdownView);
-				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot toggle auto numbering."
-					);
-					return;
-				}
-				// Toggle header numbering on/off - direct toggle without dialog
-				if (this.settings.autoNumberingMode !== AutoNumberingMode.OFF) {
-					this.settings.autoNumberingMode = AutoNumberingMode.OFF;
-					new Notice("Auto numbering is off");
-					await this.handleRemoveHeaderNumber(activeView);
-				} else {
-					// Turn on auto-numbering directly
-					this.settings.autoNumberingMode = AutoNumberingMode.ON;
-					new Notice("Auto numbering is on");
-					await this.handleAddHeaderNumber(activeView);
-				}
+				const newState = !this.settings.globalAutoNumberingEnabled;
+				this.settings.globalAutoNumberingEnabled = newState;
 				await this.saveSettings();
-				this.handleShowStateBarChange();
+				
+				new Notice(newState ? i18n.t("notices.globalAutoNumberingEnabled") : i18n.t("notices.globalAutoNumberingDisabled"));
+				this.updateAllUIStates();
 			},
 		});
 
+		// Document toggle command
+		this.addCommand({
+			id: "toggle-document-auto-numbering",
+			name: i18n.t("commands.toggleDocumentAutoNumbering"),
+			callback: async () => {
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView?.file) {
+					new Notice(i18n.t("notices.noActiveView"));
+					return;
+				}
+
+				const filePath = activeView.file.path;
+				
+				// Check if global function is disabled
+				if (!this.settings.globalAutoNumberingEnabled) {
+					new Notice(i18n.t("notices.globalDisabledNotice"));
+					return;
+				}
+
+				// Toggle document-specific state
+				const currentState = this.getDocumentAutoNumberingState(filePath);
+				const newState = !currentState;
+				
+				await this.setDocumentAutoNumberingState(filePath, newState);
+
+				// Apply changes to document based on new state
+				if (newState) {
+					await this.handleAddHeaderNumber(activeView);
+					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
+				} else {
+					await this.handleRemoveHeaderNumber(activeView);
+					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
+				}
+
+				this.updateAllUIStates();
+			},
+		});
+
+		// Remove the legacy toggle command to avoid confusion
+		// Only keep the two clear, distinct commands: Global and Document
+
 		this.addCommand({
 			id: "add-auto-numbering-yaml",
-			name: "add auto numbering yaml",
+			name: i18n.t("commands.addAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot add auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
@@ -127,7 +188,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					if (yaml === "") {
 						setAutoNumberingYaml(editor);
 					} else {
-						new Notice("auto numbering yaml already exists");
+						new Notice(i18n.t("notices.yamlAlreadyExists"));
 					}
 				}
 			},
@@ -135,21 +196,19 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "reset-auto-numbering-yaml",
-			name: "reset auto numbering yaml",
+			name: i18n.t("commands.resetAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot reset auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
 					const yaml = getAutoNumberingYaml(editor);
 					if (yaml === "") {
-						new Notice("auto numbering yaml not exists");
+						new Notice(i18n.t("notices.yamlNotExists"));
 					} else {
 						const value = [
 							"state on",
@@ -166,21 +225,19 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "remove-auto-numbering-yaml",
-			name: "remove auto numbering yaml",
+			name: i18n.t("commands.removeAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot remove auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
 					const yaml = getAutoNumberingYaml(editor);
 					if (yaml === "") {
-						new Notice("auto numbering yaml not exists");
+						new Notice(i18n.t("notices.yamlNotExists"));
 					} else {
 						setAutoNumberingYaml(editor, []);
 					}
@@ -210,33 +267,216 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			DEFAULT_SETTINGS,
 			await this.loadData()
 		);
+		
+		// Backward compatibility migration
+		this.migrateSettings();
+		
+		// Load per-document states from JSON string
+		try {
+			if (this.settings.perDocumentStates) {
+				const parsedStates = JSON.parse(this.settings.perDocumentStates);
+				this.perDocumentStatesMap = new Map(Object.entries(parsedStates));
+			}
+		} catch (error) {
+			console.warn('Failed to parse perDocumentStates, using empty map:', error);
+			this.perDocumentStatesMap = new Map();
+		}
+	}
+
+	/**
+	 * Migrate settings for backward compatibility
+	 */
+	private migrateSettings() {
+		// If globalAutoNumberingEnabled is undefined (old version), set it based on current mode
+		if (this.settings.globalAutoNumberingEnabled === undefined) {
+			// Enable global toggle if mode is not OFF
+			this.settings.globalAutoNumberingEnabled = this.settings.autoNumberingMode !== AutoNumberingMode.OFF;
+		}
+		
+		// Initialize perDocumentStates if undefined
+		if (this.settings.perDocumentStates === undefined) {
+			this.settings.perDocumentStates = "{}";
+		}
 	}
 
 	async saveSettings() {
+		// Convert per-document states map to JSON string before saving
+		const statesObject = Object.fromEntries(this.perDocumentStatesMap.entries());
+		this.settings.perDocumentStates = JSON.stringify(statesObject);
+		
 		await this.saveData(this.settings);
 		// Update style manager with new settings
 		this.styleManager.updateSettings(this.settings);
 	}
 
+	/**
+	 * Get the current document auto numbering state
+	 * Legacy method - now uses unified state evaluation
+	 */
+	getDocumentAutoNumberingState(filePath: string): boolean {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView?.file || activeView.file.path !== filePath) {
+			// For non-active documents, use simplified logic without YAML parsing
+			return this.getSimpleDocumentState(filePath);
+		}
+		
+		// For active document, use full state evaluation including YAML
+		return this.getUnifiedDocumentState(activeView.editor, filePath);
+	}
+
+	/**
+	 * Get unified document auto numbering state - includes YAML parsing
+	 * This ensures UI and actual numbering use exactly the same logic
+	 */
+	getUnifiedDocumentState(editor: Editor, filePath: string): boolean {
+		// Use the exact same logic as getAutoNumberingConfig but only return the state
+		const config = getAutoNumberingConfig(
+			this.settings, 
+			editor,
+			(path: string) => this.getSimpleDocumentState(path),
+			filePath
+		);
+		
+		// Debug logging for development - can be removed in production
+		if (this.settings.language === 'debug' || console.debug) {
+			console.debug(`HeaderEnhancer: Unified state for ${filePath}:`, {
+				state: config.state,
+				mode: this.settings.autoNumberingMode,
+				globalEnabled: this.settings.globalAutoNumberingEnabled,
+				hasPerDocumentState: this.perDocumentStatesMap.has(filePath),
+				perDocumentState: this.perDocumentStatesMap.get(filePath)
+			});
+		}
+		
+		return config.state;
+	}
+
+	/**
+	 * Get simple document state without YAML parsing (for non-active documents)
+	 */
+	private getSimpleDocumentState(filePath: string): boolean {
+		// If global is disabled, always return false
+		if (!this.settings.globalAutoNumberingEnabled) {
+			return false;
+		}
+		
+		// Check if this document has a specific state set
+		if (this.perDocumentStatesMap.has(filePath)) {
+			return this.perDocumentStatesMap.get(filePath) ?? false;
+		}
+		
+		// For new documents, default based on current auto numbering mode
+		// Both ON and YAML modes should be considered enabled by default
+		return this.settings.autoNumberingMode !== AutoNumberingMode.OFF;
+	}
+
+	/**
+	 * Set the current document auto numbering state
+	 */
+	async setDocumentAutoNumberingState(filePath: string, enabled: boolean): Promise<void> {
+		this.perDocumentStatesMap.set(filePath, enabled);
+		await this.saveSettings();
+	}
+
+	/**
+	 * Update all UI states (ribbon icon, status bar)
+	 */
+	updateAllUIStates(): void {
+		this.updateRibbonIconState();
+		this.handleShowStateBarChange();
+	}
+
+	/**
+	 * Update ribbon icon state based on global and document settings
+	 */
+	updateRibbonIconState(): void {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		
+		// Handle case when no active markdown document
+		if (!activeView?.file) {
+			if (!this.settings.globalAutoNumberingEnabled) {
+				this.ribbonIconEl.addClass('header-enhancer-global-disabled');
+				this.ribbonIconEl.removeClass('header-enhancer-document-enabled');
+				this.ribbonIconEl.removeClass('header-enhancer-document-disabled');
+				this.ribbonIconEl.setAttribute('aria-label', 'Header Enhancer (Global Disabled)');
+			} else {
+				this.ribbonIconEl.removeClass('header-enhancer-global-disabled');
+				this.ribbonIconEl.removeClass('header-enhancer-document-enabled');
+				this.ribbonIconEl.addClass('header-enhancer-document-disabled');
+				this.ribbonIconEl.setAttribute('aria-label', 'Header Enhancer (No Active Document)');
+			}
+			return;
+		}
+
+		const filePath = activeView.file.path;
+		const globalEnabled = this.settings.globalAutoNumberingEnabled;
+		const documentEnabled = this.getDocumentAutoNumberingState(filePath);
+
+		// Update icon appearance based on state
+		if (!globalEnabled) {
+			this.ribbonIconEl.addClass('header-enhancer-global-disabled');
+			this.ribbonIconEl.removeClass('header-enhancer-document-enabled');
+			this.ribbonIconEl.removeClass('header-enhancer-document-disabled');
+			this.ribbonIconEl.setAttribute('aria-label', 'Header Enhancer (Global Disabled)');
+		} else if (documentEnabled) {
+			this.ribbonIconEl.removeClass('header-enhancer-global-disabled');
+			this.ribbonIconEl.addClass('header-enhancer-document-enabled');
+			this.ribbonIconEl.removeClass('header-enhancer-document-disabled');
+			this.ribbonIconEl.setAttribute('aria-label', 'Header Enhancer (Document Enabled)');
+		} else {
+			this.ribbonIconEl.removeClass('header-enhancer-global-disabled');
+			this.ribbonIconEl.removeClass('header-enhancer-document-enabled');
+			this.ribbonIconEl.addClass('header-enhancer-document-disabled');
+			this.ribbonIconEl.setAttribute('aria-label', 'Header Enhancer (Document Disabled)');
+		}
+	}
+
 	handleShowStateBarChange() {
 		if (this.settings.showOnStatusBar) {
-			// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 			const i18n = I18n.getInstance();
 			let autoNumberingStatus: string;
-			switch (this.settings.autoNumberingMode) {
-				case AutoNumberingMode.OFF:
+			
+			// Check global enablement first
+			if (!this.settings.globalAutoNumberingEnabled) {
+				autoNumberingStatus = i18n.t("statusBar.globalDisabled");
+			} else {
+				// Get current document state
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView?.file) {
 					autoNumberingStatus = i18n.t("statusBar.off");
-					break;
-				case AutoNumberingMode.ON:
-					autoNumberingStatus = i18n.t("statusBar.on");
-					break;
-				case AutoNumberingMode.YAML_CONTROLLED:
-					autoNumberingStatus = i18n.t("statusBar.yaml");
-					break;
-				default:
-					autoNumberingStatus = "Unknown";
-					break;
+				} else {
+					const filePath = activeView.file.path;
+					const documentEnabled = this.getDocumentAutoNumberingState(filePath);
+					
+					if (documentEnabled) {
+						// Document is enabled - show current mode details
+						switch (this.settings.autoNumberingMode) {
+							case AutoNumberingMode.ON:
+								if (this.settings.isAutoDetectHeaderLevel) {
+									const analysis = analyzeHeaderLevels(activeView.editor.getValue());
+									if (!analysis.isEmpty) {
+										autoNumberingStatus = `${i18n.t("statusBar.auto")}(H${analysis.minLevel}-H${analysis.maxLevel})`;
+									} else {
+										autoNumberingStatus = i18n.t("statusBar.autoNoHeaders");
+									}
+								} else {
+									autoNumberingStatus = `${i18n.t("statusBar.on")}(H${this.settings.startHeaderLevel}-H${this.settings.endHeaderLevel})`;
+								}
+								break;
+							case AutoNumberingMode.YAML_CONTROLLED:
+								autoNumberingStatus = i18n.t("statusBar.yaml");
+								break;
+							case AutoNumberingMode.OFF:
+							default:
+								autoNumberingStatus = i18n.t("statusBar.documentEnabled");
+								break;
+						}
+					} else {
+						autoNumberingStatus = i18n.t("statusBar.documentDisabled");
+					}
+				}
 			}
+			
 			this.statusBarItemEl.setText(
 				`${i18n.t("statusBar.title")}: ${autoNumberingStatus}`
 			);
@@ -259,9 +499,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		const lineCount = editor.lineCount();
 		let docCharCount = 0;
 
-		const config = getAutoNumberingConfig(this.settings, editor);
+		// Pass the document state getter to config
+		const filePath = view.file?.path;
+		const config = getAutoNumberingConfig(
+			this.settings, 
+			editor,
+			filePath ? (path: string) => this.getDocumentAutoNumberingState(path) : undefined,
+			filePath
+		);
 
-		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
+		// Check if numbering should be applied based on all conditions
+		if (!config.state) {
 			return false;
 		}
 
@@ -430,52 +678,59 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		const editor = view.editor;
 		const lineCount = editor.lineCount();
 
-		const config = getAutoNumberingConfig(this.settings, editor);
+		// Pass the document state getter to config
+		const filePath = view.file?.path;
+		const config = getAutoNumberingConfig(
+			this.settings, 
+			editor,
+			filePath ? (path: string) => this.getDocumentAutoNumberingState(path) : undefined,
+			filePath
+		);
 		
 		// Get current file for backlink processing
 		const currentFile = view.file;
 		const headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}> = [];
 
-		if (this.settings.autoNumberingMode !== AutoNumberingMode.ON) {
-			for (let i = 0; i <= lineCount; i++) {
-				const line = editor.getLine(i);
-				if (isHeader(line)) {
-					const [headerLevel, _] = getHeaderLevel(
-						line,
-						config.startLevel
-					);
-					if (headerLevel <= 0) {
-						continue;
+		// Always attempt to remove numbering regardless of current state
+		// This allows cleanup even when auto numbering is disabled
+		for (let i = 0; i <= lineCount; i++) {
+			const line = editor.getLine(i);
+			if (isHeader(line)) {
+				const [headerLevel, _] = getHeaderLevel(
+					line,
+					config.startLevel
+				);
+				if (headerLevel <= 0) {
+					continue;
+				}
+				
+				const newLine = removeHeaderNumber(
+					line,
+					this.settings.autoNumberingHeaderSeparator
+				);
+				
+				// Only record and update when line actually changes
+				if (newLine !== line) {
+					// Extract pure title text after removing numbering
+					const originalHeading = this.extractHeadingText(newLine);
+					
+					if (originalHeading) {
+						headerChanges.push({
+							lineIndex: i,
+							oldText: line,
+							newText: newLine,
+							originalHeading: originalHeading
+						});
 					}
 					
-					const newLine = removeHeaderNumber(
-						line,
-						this.settings.autoNumberingHeaderSeparator
-					);
-					
-					// Only record and update when line actually changes
-					if (newLine !== line) {
-						// Extract pure title text after removing numbering
-						const originalHeading = this.extractHeadingText(newLine);
-						
-						if (originalHeading) {
-							headerChanges.push({
-								lineIndex: i,
-								oldText: line,
-								newText: newLine,
-								originalHeading: originalHeading
-							});
-						}
-						
-						editor.setLine(i, newLine);
-					}
+					editor.setLine(i, newLine);
 				}
 			}
-			
-			// Handle backlink updates - from numbered format back to original format
-			if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
-				await this.updateBacklinksForRemoval(currentFile, headerChanges);
-			}
+		}
+		
+		// Handle backlink updates - from numbered format back to original format
+		if (this.settings.updateBacklinks && headerChanges.length > 0 && currentFile) {
+			await this.updateBacklinksForRemoval(currentFile, headerChanges);
 		}
 		return true;
 	}

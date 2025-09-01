@@ -1,5 +1,44 @@
 # 更新记录 - Changelog
 
+## [0.4.0] - 2025-09-02
+### Added
+- ✨ 🆕 全局与文档级别控制系统 - Global & Document-Level Control system
+  - 整个知识库的主开关功能 - Master switch for entire vault functionality
+  - 单文档级别的编号控制 - Per-document numbering control
+  - 独立的全局和文档切换命令 - Separate global and document toggle commands
+- ✨ 🆕 自动标题级别检测 - Auto Header Level Detection
+  - 智能检测文档中存在的标题级别 - Intelligent detection of header levels in documents
+  - 自动配置编号范围和层次结构 - Auto-configure numbering range and hierarchy
+- ✨ 🆕 增强的国际化支持 - Enhanced internationalization support
+  - 新功能的中英文翻译完整覆盖 - Complete Chinese and English translation coverage for new features
+  - 改进的通知消息和用户提示 - Improved notification messages and user prompts
+- ✨ 🆕 视觉状态指示器 - Visual status indicators
+  - 状态栏显示当前文档和全局状态 - Status bar shows current document and global status
+  - 功能区图标反映编号状态 - Ribbon icon reflects numbering status
+### Improved
+- 🔧 设置界面全面重构 - Comprehensive settings UI refactoring
+  - 新增全局启用/禁用主开关 - Added global enable/disable master switch
+  - 依赖选项的智能显示/隐藏 - Smart show/hide of dependent options
+  - 改进的设置组织和用户引导 - Improved settings organization and user guidance
+- 🔧 用户体验大幅提升 - Significantly enhanced user experience
+  - 清楚区分全局和文档控制功能 - Clear distinction between global and document controls
+  - 上下文感知的操作提示 - Context-aware operation prompts
+  - 智能化的功能状态管理 - Intelligent feature state management
+- 🔧 状态同步和UI响应优化 - Status synchronization and UI responsiveness optimization
+  - 实时状态更新和视觉反馈 - Real-time status updates and visual feedback
+  - 文档切换时的状态同步 - Status sync when switching documents
+  - 改进的异步操作处理 - Improved async operation handling
+### Fixed
+- 🐛 命令系统优化和混淆消除 - Command system optimization and confusion elimination
+  - 移除遗留的切换命令避免用户困惑 - Remove legacy toggle commands to avoid user confusion
+  - 统一命名规范和功能职责 - Unified naming conventions and functional responsibilities
+- 🐛 状态管理和持久化改进 - State management and persistence improvements
+  - 修复文档状态的存储和恢复问题 - Fixed document state storage and restoration issues
+  - 改进跨会话的状态一致性 - Improved cross-session state consistency
+- 🐛 边界情况处理和错误恢复 - Edge case handling and error recovery
+  - 改进异常情况下的用户体验 - Improved user experience in exceptional cases
+  - 增强错误提示和引导信息 - Enhanced error prompts and guidance information
+
 ## [0.3.3] - 2025-08-26
 ### Fixed
 - 修复 build 失败的问题 - Fixed build failure issue

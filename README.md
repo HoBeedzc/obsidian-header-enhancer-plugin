@@ -7,7 +7,7 @@
 
 A powerful Obsidian plugin that enhances your markdown headers with automatic numbering, intelligent backlink management, and customizable formatting options.
 
-**Current Version**: 0.3.1
+**Current Version**: 0.4.0
 
 ## ✨ Core Features
 
@@ -15,6 +15,8 @@ A powerful Obsidian plugin that enhances your markdown headers with automatic nu
 Automatically adds hierarchical numbering to your headers (1.1, 1.2, 2.1, etc.) with intelligent detection and real-time updates.
 
 **Key Features:**
+- **Global & Document-Level Control**: Master switch for entire vault plus per-document control
+- **Auto Header Level Detection**: Intelligent detection of header levels in your documents
 - **Real-time Updates**: Numbers update automatically when you press `Enter` on header lines
 - **Hierarchical Structure**: Supports nested numbering (1.1.1, 1.1.2, 1.2.1, etc.)
 - **Customizable Separators**: Choose from `.`, `-`, `/`, or `,` as separators
@@ -87,17 +89,26 @@ Seamless integration with Obsidian's editor using CodeMirror 6 extensions.
 ## ⚙️ Configuration & Usage
 
 ### Basic Setup
-The plugin is **enabled by default** after installation. You can:
+The plugin provides **dual-level control** over auto-numbering:
 
-- **Toggle via Ribbon**: Click the header icon in the left ribbon
-- **Toggle via Command**: Use `Ctrl/Cmd+P` → "Header Enhancer: toggle auto numbering"
-- **Status Bar**: View current status in the bottom status bar (if enabled)
+#### Global Control
+- **Master Switch**: Enable/disable auto-numbering functionality for the entire vault
+- **Settings Access**: Configure global defaults when enabled
+- **Status Display**: Shows current global state in status bar and ribbon
+
+#### Document Control
+- **Per-Document Toggle**: Enable/disable numbering for individual documents (when global is enabled)
+- **Ribbon Button**: Click the header icon to toggle current document's numbering state
+- **Command Access**: Use `Ctrl/Cmd+P` → "Header Enhancer: Toggle Document Auto Numbering"
+- **Status Bar**: View current document status in the bottom status bar (if enabled)
 
 ### Global Settings
 
 #### Numbering Configuration
-- **Start Level**: Choose which header level (H1-H6) to begin numbering
-- **End Level**: Choose which header level (H1-H6) to stop numbering  
+- **Enable Auto Numbering Function**: Master switch to enable/disable entire auto-numbering functionality
+- **Auto Header Level Detection**: Automatically detect and use header levels present in your document
+- **Start Level**: Choose which header level (H1-H6) to begin numbering (when auto-detection is off)
+- **End Level**: Choose which header level (H1-H6) to stop numbering (when auto-detection is off)
 - **Separator**: Select from `.`, `-`, `/`, or `,` (default: `.`)
 - **Start Number**: Set the initial number (default: `1`)
 - **Header Separator**: Character between number and header text (default: tab `\t`)
@@ -140,7 +151,8 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 
 | Command | Description |
 |---------|-------------|
-| **Toggle auto numbering** | Turn header numbering on/off globally |
+| **Toggle Global Auto Numbering** | Turn header numbering function on/off for entire vault |
+| **Toggle Document Auto Numbering** | Turn header numbering on/off for current document only |
 | **Bulk apply numbering** | Add numbering to all files in vault (with confirmation) |
 | **Bulk remove numbering** | Remove numbering from all files in vault (with confirmation) |
 | **Add auto numbering yaml** | Add YAML configuration to current file |
@@ -150,11 +162,13 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 ## 💡 Usage Tips
 
 ### Header Numbering Best Practices
-1. **Consistent Structure**: Maintain logical header hierarchy (H1 → H2 → H3)
-2. **YAML Override**: Use per-file YAML for special documents (no numbering, different start levels)
-3. **Separator Choice**: Choose separators that don't conflict with your content
-4. **Backup First**: Always backup your vault before bulk operations
-5. **Use Bulk Operations Wisely**: Take advantage of bulk apply/remove with confirmation dialogs for large vaults
+1. **Dual-Level Control**: Use the global switch to enable/disable the entire function, and the document toggle for individual files
+2. **Auto-Detection**: Enable "Auto Header Level Detection" for intelligent header level management
+3. **Consistent Structure**: Maintain logical header hierarchy (H1 → H2 → H3)
+4. **YAML Override**: Use per-file YAML for special documents (no numbering, different start levels)
+5. **Separator Choice**: Choose separators that don't conflict with your content
+6. **Backup First**: Always backup your vault before bulk operations
+7. **Use Bulk Operations Wisely**: Take advantage of bulk apply/remove with confirmation dialogs for large vaults
 
 ### Backlink Management
 - Links are updated automatically when you add/remove header numbers
@@ -163,9 +177,10 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 - Preserves link context and formatting
 
 ### Keyboard Shortcuts
-- **Enter on Header Line**: Automatically adds/updates numbering for new headers
+- **Enter on Header Line**: Automatically adds/updates numbering for new headers (when enabled)
 - **Backspace on Header**: Smart deletion handling (preserves structure)
-- **Ribbon Click**: Quick toggle between numbered/unnumbered modes
+- **Ribbon Click**: Toggle current document's numbering state (when global is enabled)
+- **Command Palette**: Access both global and document-level toggle commands
 
 ## 🔧 Technical Details
 
@@ -213,12 +228,13 @@ Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obs
 - ✅ **Custom Typography** - Separate header and title font customization (v0.3.0)
 - ✅ **Live Settings Preview** - Real-time format and font preview (v0.3.0)
 - ✅ **Enhanced UI Controls** - Improved settings with sidebar toggle (v0.3.0)
+- ✅ **Global & Document Control** - Dual-level auto-numbering control (v0.4.0)
+- ✅ **Auto Header Level Detection** - Intelligent header level detection (v0.4.0)
 - ✅ **Internationalization** - English and Chinese support
 - ✅ **Status Bar Integration** - Real-time status display
 - ✅ **CodeMirror 6 Integration** - Modern editor compatibility
 
 ### Upcoming Features
-- 🔄 **Auto-level Detection** - Intelligent header level detection
 - 📱 **Mobile Optimization** - Enhanced mobile experience  
 - 🔍 **Search Integration** - Header search and navigation
 - 🎯 **Quick Actions** - Header manipulation shortcuts
@@ -226,7 +242,19 @@ Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obs
 
 ## 📊 Changelog
 
-### Version 0.3.3 (Current)
+### Version 0.4.0 (Current)
+- ✨ **NEW**: Global & Document-Level Control - Master switch for entire vault with per-document control
+- ✨ **NEW**: Auto Header Level Detection - Intelligent detection of header levels in documents
+- ✨ **NEW**: Enhanced internationalization support with improved translations
+- ✨ **NEW**: Separate commands for global and document-level auto-numbering control
+- ✨ **NEW**: Visual status indicators showing current auto-numbering state
+- 🔧 **IMPROVED**: Settings UI with global enable/disable switch and dependent options
+- 🔧 **IMPROVED**: Status bar and ribbon icon reflect current numbering state
+- 🔧 **IMPROVED**: Better user experience with clear distinction between global and document controls
+- 🔧 **IMPROVED**: Enhanced notification messages for different operation contexts
+- 🐛 **FIXED**: Command organization and removed legacy toggle commands to avoid confusion
+
+### Version 0.3.3
 - ✨ **NEW**: Bulk operation dialogs with confirmation and progress tracking
 - ✨ **NEW**: Auto-numbering activation dialog with vault-wide application option
 - ✨ **NEW**: Auto-numbering removal confirmation with bulk removal option

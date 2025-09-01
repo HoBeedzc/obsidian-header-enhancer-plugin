@@ -30,6 +30,14 @@ export default {
         },
         autoNumbering: {
             title: "标题自动编号",
+            globalToggle: {
+                name: "启用自动编号功能",
+                desc: "主开关，用于启用/禁用整个自动编号功能。禁用时，无论其他设置如何，都不会有文档进行自动编号。"
+            },
+            globalDisabled: {
+                title: "自动编号功能已禁用",
+                description: "自动编号功能当前在全局范围内被禁用。请在上方启用它以访问其他自动编号设置并使用侧边栏按钮控制单个文档。"
+            },
             mode: {
                 name: "自动编号模式",
                 desc: "控制标题自动编号的工作方式",
@@ -38,8 +46,13 @@ export default {
                 yaml: "通过YAML控制"
             },
             headerLevel: {
-                name: "标题级别设置",
-                desc: "配置标题级别设置"
+                name: "标题层级编号方式",
+                toggleLabel: "🔧 启用自动检测",
+                desc: {
+                    autoDetect: "✅ 自动检测模式：根据文档内容智能确定编号范围",
+                    manual: "⚙️ 手动设置模式：使用固定的层级范围设置",
+                    yamlControl: "📋 YAML控制模式：通过文件前置元数据配置"
+                }
             },
             startNumber: {
                 name: "起始数字",
@@ -66,10 +79,10 @@ export default {
             startLevelError: "起始标题级别应该小于或等于最大标题级别",
             format: {
                 name: "当前格式",
-                fromLevel: "从级别",
-                toLevel: "到级别",
-                autoDetect: "（自动检测）",
-                manual: "（手动）",
+                fromLevel: "从",
+                toLevel: "到",
+                autoDetect: "自动检测",
+                manual: "手动",
                 yamlControlled: "（YAML控制）",
                 disabled: "（已关闭）"
             },
@@ -182,10 +195,57 @@ export default {
         githubRepo: "GitHub 仓库：",
         anyQuestion: "有任何问题？"
     },
+    autoDetection: {
+        currentDocument: "当前文档检测结果",
+        noActiveDocument: "没有活动文档",
+        noHeaders: "未检测到标题",
+        detected: "检测到层级",
+        range: "层级范围", 
+        mapping: "编号映射",
+        totalHeaders: "标题总数",
+        modes: {
+            autoDetect: "🔧 当前模式：自动检测 - 将根据文档内容智能确定编号范围",
+            yamlControl: "⚙️ 当前模式：YAML控制 - 通过文件前置元数据配置",
+            manual: "🎯 当前模式：手动设置 - 使用固定的层级范围"
+        },
+        info: {
+            yamlMode: {
+                title: "⚙️ YAML控制模式",
+                description: "在此模式下，标题编号由文件的YAML前置元数据控制。请在文档开头添加如下配置：",
+                usage: "您可以使用插件命令来快速添加或修改这些配置。"
+            },
+            offMode: {
+                title: "⏸️ 自动编号已关闭",
+                description: "当前标题自动编号功能已禁用。要启用自动编号，请在上方选择\"启用\"或\"通过YAML控制\"模式。"
+            }
+        }
+    },
     statusBar: {
         title: "标题增强器",
         off: "关闭",
         on: "启用",
-        yaml: "YAML"
+        yaml: "YAML",
+        auto: "自动",
+        autoNoHeaders: "自动(无标题)",
+        globalDisabled: "全局禁用",
+        documentEnabled: "文档启用",
+        documentDisabled: "文档关闭"
+    },
+    commands: {
+        toggleGlobalAutoNumbering: "切换全局自动编号",
+        toggleDocumentAutoNumbering: "切换文档自动编号",
+        addAutoNumberingYaml: "添加自动编号YAML配置",
+        resetAutoNumberingYaml: "重置自动编号YAML配置",
+        removeAutoNumberingYaml: "移除自动编号YAML配置"
+    },
+    notices: {
+        noActiveView: "没有活跃的MarkdownView，无法切换自动编号。",
+        globalDisabledNotice: "自动编号在全局范围内被禁用。请先在设置中启用。",
+        globalAutoNumberingEnabled: "全局自动编号已启用",
+        globalAutoNumberingDisabled: "全局自动编号已禁用",
+        autoNumberingEnabledForDocument: "已为此文档启用自动编号",
+        autoNumberingDisabledForDocument: "已为此文档禁用自动编号",
+        yamlAlreadyExists: "自动编号YAML配置已存在",
+        yamlNotExists: "自动编号YAML配置不存在"
     }
 };
