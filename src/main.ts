@@ -47,10 +47,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			"heading-glyph",
 			"Header Enhancer",
 			async (_evt: MouseEvent) => {
+				const i18n = I18n.getInstance();
 				const app = this.app;
 				const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView?.file) {
-					new Notice("No active MarkdownView, cannot toggle auto numbering.");
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				}
 
@@ -58,7 +59,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				
 				// Check if global function is disabled
 				if (!this.settings.globalAutoNumberingEnabled) {
-					new Notice("Auto numbering is globally disabled. Enable it in settings first.");
+					new Notice(i18n.t("notices.globalDisabledNotice"));
 					return;
 				}
 
@@ -72,11 +73,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				if (newState) {
 					// Enable: add numbering to current document
 					await this.handleAddHeaderNumber(activeView);
-					new Notice("Auto numbering enabled for this document");
+					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
 				} else {
 					// Disable: remove numbering from current document
 					await this.handleRemoveHeaderNumber(activeView);
-					new Notice("Auto numbering disabled for this document");
+					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
 				}
 
 				this.updateAllUIStates();
@@ -113,28 +114,31 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			})
 		);
 
+		// Initialize i18n
+		const i18n = I18n.getInstance();
+		
 		// Global toggle command
 		this.addCommand({
 			id: "toggle-global-auto-numbering",
-			name: "Toggle Global Auto Numbering",
+			name: i18n.t("commands.toggleGlobalAutoNumbering"),
 			callback: async () => {
 				const newState = !this.settings.globalAutoNumberingEnabled;
 				this.settings.globalAutoNumberingEnabled = newState;
 				await this.saveSettings();
 				
-				new Notice(`Global auto numbering ${newState ? 'enabled' : 'disabled'}`);
+				new Notice(newState ? i18n.t("notices.globalAutoNumberingEnabled") : i18n.t("notices.globalAutoNumberingDisabled"));
 				this.updateAllUIStates();
 			},
 		});
 
-		// Document toggle command (rename existing)
+		// Document toggle command
 		this.addCommand({
 			id: "toggle-document-auto-numbering",
-			name: "Toggle Document Auto Numbering",
+			name: i18n.t("commands.toggleDocumentAutoNumbering"),
 			callback: async () => {
 				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView?.file) {
-					new Notice("No active MarkdownView, cannot toggle auto numbering.");
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				}
 
@@ -142,7 +146,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				
 				// Check if global function is disabled
 				if (!this.settings.globalAutoNumberingEnabled) {
-					new Notice("Auto numbering is globally disabled. Enable it in settings first.");
+					new Notice(i18n.t("notices.globalDisabledNotice"));
 					return;
 				}
 
@@ -155,70 +159,28 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				// Apply changes to document based on new state
 				if (newState) {
 					await this.handleAddHeaderNumber(activeView);
-					new Notice("Auto numbering enabled for this document");
+					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
 				} else {
 					await this.handleRemoveHeaderNumber(activeView);
-					new Notice("Auto numbering disabled for this document");
+					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
 				}
 
 				this.updateAllUIStates();
 			},
 		});
 
-		// Legacy command for backward compatibility - now acts as document toggle
-		this.addCommand({
-			id: "toggle-auto-numbering",
-			name: "toggle auto numbering",
-			callback: async () => {
-				// Execute document toggle for backward compatibility
-				const commands = this.app.commands;
-				const command = commands.commands['header-enhancer:toggle-document-auto-numbering'];
-				if (command) {
-					await command.callback();
-				} else {
-					// Fallback: execute the logic directly
-					const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-					if (!activeView?.file) {
-						new Notice("No active MarkdownView, cannot toggle auto numbering.");
-						return;
-					}
-
-					const filePath = activeView.file.path;
-					
-					if (!this.settings.globalAutoNumberingEnabled) {
-						new Notice("Auto numbering is globally disabled. Enable it in settings first.");
-						return;
-					}
-
-					const currentState = this.getDocumentAutoNumberingState(filePath);
-					const newState = !currentState;
-					
-					await this.setDocumentAutoNumberingState(filePath, newState);
-
-					if (newState) {
-						await this.handleAddHeaderNumber(activeView);
-						new Notice("Auto numbering enabled for this document");
-					} else {
-						await this.handleRemoveHeaderNumber(activeView);
-						new Notice("Auto numbering disabled for this document");
-					}
-
-					this.updateAllUIStates();
-				}
-			},
-		});
+		// Remove the legacy toggle command to avoid confusion
+		// Only keep the two clear, distinct commands: Global and Document
 
 		this.addCommand({
 			id: "add-auto-numbering-yaml",
-			name: "add auto numbering yaml",
+			name: i18n.t("commands.addAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot add auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
@@ -226,7 +188,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					if (yaml === "") {
 						setAutoNumberingYaml(editor);
 					} else {
-						new Notice("auto numbering yaml already exists");
+						new Notice(i18n.t("notices.yamlAlreadyExists"));
 					}
 				}
 			},
@@ -234,21 +196,19 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "reset-auto-numbering-yaml",
-			name: "reset auto numbering yaml",
+			name: i18n.t("commands.resetAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot reset auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
 					const yaml = getAutoNumberingYaml(editor);
 					if (yaml === "") {
-						new Notice("auto numbering yaml not exists");
+						new Notice(i18n.t("notices.yamlNotExists"));
 					} else {
 						const value = [
 							"state on",
@@ -265,21 +225,19 @@ export default class HeaderEnhancerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "remove-auto-numbering-yaml",
-			name: "remove auto numbering yaml",
+			name: i18n.t("commands.removeAutoNumberingYaml"),
 			callback: () => {
 				const app = this.app;
 				const activeView =
 					app.workspace.getActiveViewOfType(MarkdownView);
 				if (!activeView) {
-					new Notice(
-						"No active MarkdownView, cannot remove auto numbering yaml."
-					);
+					new Notice(i18n.t("notices.noActiveView"));
 					return;
 				} else {
 					const editor = activeView.editor;
 					const yaml = getAutoNumberingYaml(editor);
 					if (yaml === "") {
-						new Notice("auto numbering yaml not exists");
+						new Notice(i18n.t("notices.yamlNotExists"));
 					} else {
 						setAutoNumberingYaml(editor, []);
 					}

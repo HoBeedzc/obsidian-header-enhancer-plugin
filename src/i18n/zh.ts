@@ -230,5 +230,22 @@ export default {
         globalDisabled: "全局禁用",
         documentEnabled: "文档启用",
         documentDisabled: "文档关闭"
+    },
+    commands: {
+        toggleGlobalAutoNumbering: "切换全局自动编号",
+        toggleDocumentAutoNumbering: "切换文档自动编号",
+        addAutoNumberingYaml: "添加自动编号YAML配置",
+        resetAutoNumberingYaml: "重置自动编号YAML配置",
+        removeAutoNumberingYaml: "移除自动编号YAML配置"
+    },
+    notices: {
+        noActiveView: "没有活跃的MarkdownView，无法切换自动编号。",
+        globalDisabledNotice: "自动编号在全局范围内被禁用。请先在设置中启用。",
+        globalAutoNumberingEnabled: "全局自动编号已启用",
+        globalAutoNumberingDisabled: "全局自动编号已禁用",
+        autoNumberingEnabledForDocument: "已为此文档启用自动编号",
+        autoNumberingDisabledForDocument: "已为此文档禁用自动编号",
+        yamlAlreadyExists: "自动编号YAML配置已存在",
+        yamlNotExists: "自动编号YAML配置不存在"
     }
 };

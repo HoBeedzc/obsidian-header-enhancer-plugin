@@ -228,5 +228,22 @@ export default {
         globalDisabled: "Global Disabled",
         documentEnabled: "Document On",
         documentDisabled: "Document Off"
+    },
+    commands: {
+        toggleGlobalAutoNumbering: "Toggle Global Auto Numbering",
+        toggleDocumentAutoNumbering: "Toggle Document Auto Numbering", 
+        addAutoNumberingYaml: "Add Auto Numbering YAML",
+        resetAutoNumberingYaml: "Reset Auto Numbering YAML",
+        removeAutoNumberingYaml: "Remove Auto Numbering YAML"
+    },
+    notices: {
+        noActiveView: "No active MarkdownView, cannot toggle auto numbering.",
+        globalDisabledNotice: "Auto numbering is globally disabled. Enable it in settings first.",
+        globalAutoNumberingEnabled: "Global auto numbering enabled",
+        globalAutoNumberingDisabled: "Global auto numbering disabled",
+        autoNumberingEnabledForDocument: "Auto numbering enabled for this document",
+        autoNumberingDisabledForDocument: "Auto numbering disabled for this document", 
+        yamlAlreadyExists: "auto numbering yaml already exists",
+        yamlNotExists: "auto numbering yaml not exists"
     }
 };
