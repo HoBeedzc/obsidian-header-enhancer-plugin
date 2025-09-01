@@ -143,8 +143,8 @@ export class EditorHandlers {
 		});
 
 		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
-			// some header may be deleted, so we need to recalculate the number
-			// TODO: feature
+			// Note: Header deletion recalculation is not yet implemented
+			// This would require analyzing all headers and renumbering them
 		}
 
 		view.dispatch({
