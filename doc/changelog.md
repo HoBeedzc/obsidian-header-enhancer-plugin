@@ -1,5 +1,17 @@
 # 更新记录 - Changelog
 
+## [0.4.1] - 2025-10-28
+### Fixed
+- 🐛 修复标题包含空格时自动编号失效的问题 - Fixed header auto-numbering failure when headers contain spaces
+- 🐛 修复英文标题（单词间必然有空格）无法使用自动编号的问题 - Fixed English headers (which always contain spaces between words) unable to use auto-numbering
+- 🐛 修复中文标题使用空格分隔时编号失效的问题 - Fixed Chinese headers with spaces as separators unable to be numbered
+### Improved
+- 🔧 核心编号函数改用正则表达式匹配替代简单split操作 - Core numbering functions now use regex pattern matching instead of simple split operations
+- 🔧 改进 `isNeedInsertNumber` 函数，使用 `/^\d+(?:\.\d+)*\s+/` 模式检测编号 - Improved `isNeedInsertNumber` function using `/^\d+(?:\.\d+)*\s+/` pattern to detect numbering
+- 🔧 改进 `isNeedUpdateNumber` 函数，正确提取和比较现有编号 - Improved `isNeedUpdateNumber` function to correctly extract and compare existing numbers
+- 🔧 改进 `removeHeaderNumber` 函数，保留标题中的所有空格 - Improved `removeHeaderNumber` function to preserve all spaces in header content
+- 🔧 更好地处理特殊空格情况（多空格、Tab字符等） - Better handling of special space cases (multiple spaces, tabs, etc.)
+
 ## [0.4.0] - 2025-09-02
 ### Added
 - ✨ 🆕 全局与文档级别控制系统 - Global & Document-Level Control system

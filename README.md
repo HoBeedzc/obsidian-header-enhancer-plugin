@@ -5,134 +5,95 @@
 
 </div>
 
-A powerful Obsidian plugin that enhances your markdown headers with automatic numbering, intelligent backlink management, and customizable formatting options.
+A powerful Obsidian plugin that enhances markdown headers with automatic numbering, intelligent backlink management, and custom fonts.
 
-**Current Version**: 0.4.0
+**Current Version**: 0.4.1
 
-## ✨ Core Features
+## ✨ Features
 
-### 🔢 Smart Header Auto Numbering
-Automatically adds hierarchical numbering to your headers (1.1, 1.2, 2.1, etc.) with intelligent detection and real-time updates.
+### 🔢 Smart Auto Numbering
+Automatically adds hierarchical numbering (1.1, 1.2, 2.1) with real-time updates.
 
-**Key Features:**
-- **Global & Document-Level Control**: Master switch for entire vault plus per-document control
-- **Auto Header Level Detection**: Intelligent detection of header levels in your documents
-- **Real-time Updates**: Numbers update automatically when you press `Enter` on header lines
-- **Hierarchical Structure**: Supports nested numbering (1.1.1, 1.1.2, 1.2.1, etc.)
-- **Customizable Separators**: Choose from `.`, `-`, `/`, or `,` as separators
-- **Flexible Start Levels**: Configure which header level (H1-H6) to start numbering from
-- **Per-file Control**: Override global settings using YAML frontmatter
-- **Bulk Operations**: Apply or remove numbering across entire vault with confirmation dialogs
+- Global & per-document control with master switch
+- Auto header level detection and configurable separators (`.`, `-`, `/`, `,`)
+- Flexible start levels (H1-H6) and YAML frontmatter override
+- Bulk operations across entire vault with confirmation dialogs
 
 ![header-auto-numbering-example](./doc/img/header-auto-numbering-example.gif)
 
 ### 🔗 Intelligent Backlink Management
-Automatically maintains backlinks when header numbering changes, ensuring your wiki-style links stay connected.
+Automatically updates `[[file#header]]` links when headers change, with batch processing and bidirectional support.
 
-**Features:**
-- **Automatic Link Updates**: Updates `[[file#header]]` links when headers get numbered
-- **Batch Processing**: Efficiently handles multiple link updates across your vault
-- **Bidirectional Updates**: Works both when adding and removing header numbers
-- **Safe Operations**: Preserves link integrity with error handling and notifications
+### 🎨 Font Customization
+Separate font family and size controls for headers and document titles, with live preview and organized font categories.
 
-### 🎨 Advanced Font Customization  
-Fine-tune the visual appearance of your headers and document titles with comprehensive font options.
-
-**Features:**
-- **Separate Header Fonts**: Customize font family and size for markdown headers (#, ##, ###, etc.)
-- **Separate Title Fonts**: Customize font family and size specifically for document titles
-- **Organized Font Categories**: Choose from categorized font families including Serif, Sans-Serif, Monospace, and more
-- **Live Preview**: Real-time preview of font changes in the settings panel
-- **Inheritance Support**: Use "inherit" to maintain Obsidian's default styling
-- **Independent Control**: Header and title fonts can be customized separately
-
-### 📝 Enhanced YAML Configuration Support
-Fine-tune header numbering behavior on a per-file basis using YAML frontmatter with improved schema.
-
-**Example Configuration:**
+### 📝 YAML Configuration
+Per-file control using frontmatter:
 ```yaml
 ---
 header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
 ---
-```
-
-**New Features:**
-- **Updated Schema**: More intuitive parameter naming and structure
-- **Better Validation**: Improved error handling and user feedback
-- **Smart Defaults**: Intelligent default values based on global settings
-
-### 🎯 Advanced Editor Integration
-Seamless integration with Obsidian's editor using CodeMirror 6 extensions.
-
-**Features:**
-- **Smart Key Handling**: Custom `Enter` and `Backspace` behavior for headers
-- **High Priority Handling**: Ensures compatibility with other plugins
-- **Real-time Processing**: Immediate feedback and updates as you type
-- **Bulk Operation Dialogs**: Confirmation dialogs for vault-wide operations with progress tracking 
+``` 
 
 ## 🚀 Installation
 
-### From Obsidian Community Plugins [Recommended]
-1. Open **Settings** → **Community plugins**
-2. Disable **Safe mode**
-3. Click **Browse** community plugins
-4. Search for "**Header Enhancer**"
-5. Click **Install**
-6. Enable the plugin in your installed plugins list
+### From Community Plugins (Recommended)
+1. Open **Settings** → **Community plugins** → **Browse**
+2. Search "**Header Enhancer**" → **Install** → Enable
 
 ### Manual Installation
-1. Download the [Latest release](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
-2. Extract the ZIP file to `<vault>/.obsidian/plugins/header-enhancer/`
-3. Ensure `main.js`, `manifest.json`, and `styles.css` are in the plugin folder
-4. Reload Obsidian or enable the plugin in Settings
+1. Download [latest release](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/releases/latest)
+2. Extract to `<vault>/.obsidian/plugins/header-enhancer/`
+3. Reload Obsidian
 
-## ⚙️ Configuration & Usage
+## ⚙️ Usage Guide
 
-### Basic Setup
-The plugin provides **dual-level control** over auto-numbering:
+### Quick Start
 
-#### Global Control
-- **Master Switch**: Enable/disable auto-numbering functionality for the entire vault
-- **Settings Access**: Configure global defaults when enabled
-- **Status Display**: Shows current global state in status bar and ribbon
+1. **Enable the Plugin**
+   - After installation, find "Header Enhancer" in settings
+   - Turn on "Enable Auto Numbering Function" master switch
 
-#### Document Control
-- **Per-Document Toggle**: Enable/disable numbering for individual documents (when global is enabled)
-- **Ribbon Button**: Click the header icon to toggle current document's numbering state
-- **Command Access**: Use `Ctrl/Cmd+P` → "Header Enhancer: Toggle Document Auto Numbering"
-- **Status Bar**: View current document status in the bottom status bar (if enabled)
+2. **Start Using**
+   - Press `Enter` on a header line (e.g., `## Header`)
+   - Plugin automatically adds numbering (e.g., `## 1. Header`)
+   - Sub-headers get hierarchical numbers (1.1, 1.1.1, etc.)
 
-### Global Settings
+### Dual-Level Control System
 
-#### Numbering Configuration
-- **Enable Auto Numbering Function**: Master switch to enable/disable entire auto-numbering functionality
-- **Auto Header Level Detection**: Automatically detect and use header levels present in your document
-- **Start Level**: Choose which header level (H1-H6) to begin numbering (when auto-detection is off)
-- **End Level**: Choose which header level (H1-H6) to stop numbering (when auto-detection is off)
-- **Separator**: Select from `.`, `-`, `/`, or `,` (default: `.`)
-- **Start Number**: Set the initial number (default: `1`)
-- **Header Separator**: Character between number and header text (default: tab `\t`)
-- **Format Preview**: Live preview of numbering format as you customize settings
+**Global Control** (Entire Vault)
+- Location: Settings → Header Enhancer → "Enable Auto Numbering Function"
+- Purpose: Controls auto-numbering functionality for entire vault
+- Status: When disabled, auto-numbering unavailable for all documents
 
-#### Font Customization
-- **Header Fonts**: Separate font family and size for markdown headers
-- **Title Fonts**: Separate font family and size for document titles
-- **Font Categories**: Organized options including Serif, Sans-Serif, Monospace, System, and Popular fonts
-- **Live Preview**: Real-time font preview in the settings panel
-- **Inheritance**: Option to inherit from Obsidian's default styling
+**Document Control** (Individual File)
+- Method 1: Click header icon 📝 in left sidebar (ribbon)
+- Method 2: Command palette (`Ctrl/Cmd+P`) → "Toggle Document Auto Numbering"
+- Requirement: Global switch must be enabled first
+- Status: Bottom status bar shows current document state
 
-#### Backlink Management
-- **Update Backlinks**: Automatically update `[[file#header]]` links when headers change
-- **Safe Updates**: Batch processing with error handling and rollback capability
+### Settings Explained
 
-#### Interface Options
-- **Show Status Bar**: Display auto-numbering status in the bottom bar
-- **Show on Sidebar**: Toggle the ribbon icon in the left sidebar
-- **Language**: English and Chinese (中文) support
+**Numbering Configuration**
+- **Start Level**: Which header level to begin numbering (e.g., start from H2, skip H1)
+- **End Level**: Which header level to stop numbering
+- **Auto Detection**: Automatically detect header levels in document
+- **Separator**: Number separator, supports `.` (1.1), `-` (1-1), `/` (1/1), `,` (1,1)
+- **Start Number**: First header number (default: 1)
 
-### Per-file YAML Control
+**Font Customization**
+- **Header Fonts**: Control Markdown headers (#, ##, ###) font family/size
+- **Title Fonts**: Control document title font family/size
+- Organized font categories (Serif, Sans-Serif, Monospace, etc.)
+- Live preview in settings panel
 
-Override global settings for individual files using frontmatter:
+**Backlinks**
+- Enable "Update Backlinks" to auto-update links when adding/removing numbers
+- Supports `[[file#header]]` format link maintenance
+
+### Per-File YAML Configuration
+
+For files needing special numbering rules, add at the beginning:
 
 ```yaml
 ---
@@ -140,202 +101,67 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 ---
 ```
 
-**YAML Parameters:**
-- `state on/off`: Enable/disable for this file
+**Parameters:**
+- `state on/off`: Enable/disable numbering for this file
 - `first-level h1-h6`: Starting header level
 - `max N`: Maximum nesting depth
 - `start-at N`: Starting number
-- `separator X`: Separator character
+- `separator ./-/,`: Separator character
 
-### Commands Available
+**Quick Tip:** Use command "Add auto numbering yaml" to insert correct format quickly
 
-| Command | Description |
-|---------|-------------|
-| **Toggle Global Auto Numbering** | Turn header numbering function on/off for entire vault |
-| **Toggle Document Auto Numbering** | Turn header numbering on/off for current document only |
-| **Bulk apply numbering** | Add numbering to all files in vault (with confirmation) |
-| **Bulk remove numbering** | Remove numbering from all files in vault (with confirmation) |
-| **Add auto numbering yaml** | Add YAML configuration to current file |
-| **Reset auto numbering yaml** | Reset YAML to default values |
-| **Remove auto numbering yaml** | Remove YAML configuration |
+### Common Commands
 
-## 💡 Usage Tips
+| Command | Access | Description |
+|---------|--------|-------------|
+| Toggle Global Auto Numbering | Command palette | Enable/disable numbering for entire vault |
+| Toggle Document Auto Numbering | Ribbon icon / Command palette | Control current document numbering |
+| Bulk apply numbering | Command palette | Add numbering to all files (with confirmation) |
+| Bulk remove numbering | Command palette | Remove numbering from all files (with confirmation) |
+| Add auto numbering yaml | Command palette | Add YAML config to current file |
 
-### Header Numbering Best Practices
-1. **Dual-Level Control**: Use the global switch to enable/disable the entire function, and the document toggle for individual files
-2. **Auto-Detection**: Enable "Auto Header Level Detection" for intelligent header level management
-3. **Consistent Structure**: Maintain logical header hierarchy (H1 → H2 → H3)
-4. **YAML Override**: Use per-file YAML for special documents (no numbering, different start levels)
-5. **Separator Choice**: Choose separators that don't conflict with your content
-6. **Backup First**: Always backup your vault before bulk operations
-7. **Use Bulk Operations Wisely**: Take advantage of bulk apply/remove with confirmation dialogs for large vaults
+### Usage Tips
 
-### Backlink Management
-- Links are updated automatically when you add/remove header numbers
-- Works with standard Obsidian `[[file#header]]` syntax
-- Handles complex header text with special characters
-- Preserves link context and formatting
+**Daily Usage**
+- ✅ Press `Enter` on header line to auto-add/update numbering
+- ✅ After manually changing header level, move cursor to line and press `Enter` to refresh
+- ✅ Click ribbon icon to quickly toggle current document numbering
 
-### Keyboard Shortcuts
-- **Enter on Header Line**: Automatically adds/updates numbering for new headers (when enabled)
-- **Backspace on Header**: Smart deletion handling (preserves structure)
-- **Ribbon Click**: Toggle current document's numbering state (when global is enabled)
-- **Command Palette**: Access both global and document-level toggle commands
+**Bulk Operations**
+- ⚠️ Always backup vault before bulk operations
+- 💡 Bulk apply shows confirmation dialog with scope options
+- 💡 Bulk remove supports safe rollback mechanism
 
-## 🔧 Technical Details
+**Special Scenarios**
+- 📝 Daily notes: Global on, disable individual files with YAML
+- 📚 Knowledge management: Use different separators for different doc types
+- 🎯 Project docs: Start from H2, preserve H1 as document title
 
-### Architecture
-- **CodeMirror 6 Integration**: High-priority key handling for seamless editing
-- **Real-time Processing**: Immediate updates without performance impact
-- **Safe File Operations**: Atomic updates with rollback capability
-- **Internationalization**: Full i18n support with fallback system
+## 🐛 Known Issues
+- Manual refresh needed when changing header levels (press `Enter`)
+- Default separator uses tab character (`\t`)
 
-### Compatibility
-- **Obsidian Version**: Requires 0.16.0+
-- **Platform Support**: Desktop and mobile
-- **Plugin Compatibility**: High-priority keymaps prevent conflicts
-- **Export Compatibility**: Numbered headers work in external Markdown editors
-
-## 🐛 Known Issues & Troubleshooting
-
-### Current Limitations
-- **Manual Refresh Required**: When changing header levels, numbering may not update immediately. Move cursor to the header line and press `Enter` to refresh
-- **Tab Character Separator**: Default separator uses tab (`\t`) character. If your headers contain tabs, numbering may not work correctly
-- **Space in Headers**: When using space as separator, ensure headers don't contain leading/trailing spaces
-
-### Common Issues & Solutions
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Numbers not updating | Header level changed manually | Press `Enter` on the header line to refresh |
-| Backlinks broken after numbering | Links not updated automatically | Check "Update Backlinks" setting is enabled |
-| Plugin conflicts | Key handling conflicts | Header Enhancer uses highest priority - report conflicts via GitHub |
-| YAML not working | Incorrect YAML format | Use command "Add auto numbering yaml" for correct format |
-
-### Reporting Issues
-Found a bug? Please report it on [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues) with:
-- Obsidian version
-- Plugin version  
-- Steps to reproduce
-- Expected vs actual behavior
-
-## 🗺️ Roadmap & Development
-
-### Completed Features
-- ✅ **Header Auto Numbering** - Smart hierarchical numbering system
-- ✅ **YAML Configuration** - Per-file settings override
-- ✅ **Backlink Management** - Automatic link updates (v0.2.0)
-- ✅ **Custom Typography** - Separate header and title font customization (v0.3.0)
-- ✅ **Live Settings Preview** - Real-time format and font preview (v0.3.0)
-- ✅ **Enhanced UI Controls** - Improved settings with sidebar toggle (v0.3.0)
-- ✅ **Global & Document Control** - Dual-level auto-numbering control (v0.4.0)
-- ✅ **Auto Header Level Detection** - Intelligent header level detection (v0.4.0)
-- ✅ **Internationalization** - English and Chinese support
-- ✅ **Status Bar Integration** - Real-time status display
-- ✅ **CodeMirror 6 Integration** - Modern editor compatibility
-
-### Upcoming Features
-- 📱 **Mobile Optimization** - Enhanced mobile experience  
-- 🔍 **Search Integration** - Header search and navigation
-- 🎯 **Quick Actions** - Header manipulation shortcuts
-- 🎨 **Advanced Styling** - More typography options and themes
+Report bugs at [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)
 
 ## 📊 Changelog
 
-### Version 0.4.0 (Current)
-- ✨ **NEW**: Global & Document-Level Control - Master switch for entire vault with per-document control
-- ✨ **NEW**: Auto Header Level Detection - Intelligent detection of header levels in documents
-- ✨ **NEW**: Enhanced internationalization support with improved translations
-- ✨ **NEW**: Separate commands for global and document-level auto-numbering control
-- ✨ **NEW**: Visual status indicators showing current auto-numbering state
-- 🔧 **IMPROVED**: Settings UI with global enable/disable switch and dependent options
-- 🔧 **IMPROVED**: Status bar and ribbon icon reflect current numbering state
-- 🔧 **IMPROVED**: Better user experience with clear distinction between global and document controls
-- 🔧 **IMPROVED**: Enhanced notification messages for different operation contexts
-- 🐛 **FIXED**: Command organization and removed legacy toggle commands to avoid confusion
+### v0.4.1 (Current)
+- Fixed headers with spaces support (English & Chinese)
+- Improved regex pattern matching for special cases
 
-### Version 0.3.3
-- ✨ **NEW**: Bulk operation dialogs with confirmation and progress tracking
-- ✨ **NEW**: Auto-numbering activation dialog with vault-wide application option
-- ✨ **NEW**: Auto-numbering removal confirmation with bulk removal option
-- ✨ **NEW**: Enhanced YAML schema with better validation and user guidance
-- ✨ **NEW**: Expanded font family categories with organized font selection
-- ✨ **NEW**: Progress indicators for long-running operations
-- 🔧 **IMPROVED**: Extracted and modularized editor handlers and CSS style management
-- 🔧 **IMPROVED**: Better error handling and user feedback for bulk operations
-- 🔧 **IMPROVED**: Enhanced dialog UI with warnings and manual operation tips
-- 🐛 **FIXED**: Various edge cases in bulk processing and editor conflict prevention
+### v0.4.0
+- Global & document-level dual control system
+- Auto header level detection
+- Enhanced i18n and status indicators
 
-### Version 0.3.0
-- ✨ **NEW**: Custom typography system with separate header and title font controls
-- ✨ **NEW**: Live preview for both numbering format and font changes in settings
-- ✨ **NEW**: Sidebar toggle option to show/hide the ribbon icon
-- ✨ **NEW**: Enhanced settings UI with improved validation and internationalization
-- 🔧 **IMPROVED**: Renamed "max header level" to "end header level" for clarity
-- 🔧 **IMPROVED**: YAML-controlled and disabled state previews in settings
-- 🔧 **IMPROVED**: Better settings organization and user experience
-- 🐛 **FIXED**: Various UI consistency issues and edge cases
+Full changelog: [doc/changelog.md](./doc/changelog.md)
 
-### Version 0.2.0
-- ✨ **NEW**: Intelligent backlink management system
-- ✨ **NEW**: Automatic `[[file#header]]` link updates
-- ✨ **NEW**: Batch link processing with error recovery
-- ✨ **NEW**: Bidirectional link updates (when adding/removing numbering)
-- 🔧 **IMPROVED**: Enhanced header text extraction and parsing
-- 🔧 **IMPROVED**: Better error handling and user notifications
-- 🐛 **FIXED**: Multiple edge cases in header numbering logic
-
-### Previous Versions
-Full changelog available at [doc/changelog.md](./doc/changelog.md)
-
-## 🙏 Acknowledgements & Credits
-
-This plugin builds upon the excellent work of the Obsidian community:
-
-- **[easy-typing-obsidian](https://github.com/Yaozhuwa/easy-typing-obsidian)** - Editor integration patterns
-- **[obsidian-state-switcher](https://github.com/lijyze/obsidian-state-switcher)** - State management inspiration  
-- **[number-headings-obsidian](https://github.com/onlyafly/number-headings-obsidian)** - Initial numbering concepts
-- **Obsidian Community** - Feedback, testing, and feature suggestions
-
-## 💖 Support & Contributing
-
-### Show Your Support
-If this plugin helps improve your note-taking workflow:
+## 💖 Support
 
 <a href="https://bmc.link/hobee">
   <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=hobee&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" />
 </a>
 
-### Contributing
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request with detailed description
-4. Follow existing code style and patterns
-
-### Development Setup
-```bash
-# Clone and setup
-git clone https://github.com/HoBeedzc/obsidian-header-enhancer-plugin.git
-cd obsidian-header-enhancer-plugin
-npm install
-
-# Development mode (watch & rebuild)
-npm run dev
-
-# Production build
-npm run build
-
-# Version bump
-npm run version
-```
-
----
-
-<div align="center">
-
 **Made with ❤️ by [Hobee Liu](https://github.com/HoBeedzc)**
 
-⭐ **Star this repo** if you find it useful! ⭐
-
-</div>
+Contributions welcome! See [GitHub](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin) for details.

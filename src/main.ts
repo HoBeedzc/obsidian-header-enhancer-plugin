@@ -336,18 +336,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 			(path: string) => this.getSimpleDocumentState(path),
 			filePath
 		);
-		
-		// Debug logging for development - can be removed in production
-		if (this.settings.language === 'debug' || console.debug) {
-			console.debug(`HeaderEnhancer: Unified state for ${filePath}:`, {
-				state: config.state,
-				mode: this.settings.autoNumberingMode,
-				globalEnabled: this.settings.globalAutoNumberingEnabled,
-				hasPerDocumentState: this.perDocumentStatesMap.has(filePath),
-				perDocumentState: this.perDocumentStatesMap.get(filePath)
-			});
-		}
-		
+
 		return config.state;
 	}
 
@@ -620,8 +609,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		try {
 			for (const change of headerChanges) {
 				const oldHeading = change.originalHeading;
-				// const newHeading = this.extractHeadingText(change.newText);
-				
+
 				// Update backlinks when header format changes (numbering added)
 				if (oldHeading && change.oldText !== change.newText) {
 					// Find backlinks pointing to the old heading
