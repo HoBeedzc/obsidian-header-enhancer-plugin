@@ -27,8 +27,20 @@ export function getNextNumber(
 export function isNeedInsertNumber(text: string, splitor: string): boolean {
 	// '## header' true
 	// '## 1.1 splitor header' false
-	if (splitor == " ") return text.split(splitor).length === 2;
-	else return !text.contains(splitor);
+	// Extract the part after the # symbols
+	const match = text.match(/^(#{1,6})\s+(.*)/);
+	if (!match) return false;
+
+	const contentAfterHash = match[2];
+
+	if (splitor == " ") {
+		// Check if content starts with a number pattern (e.g., "1.1 text" or "1 text")
+		// Should return false if numbering exists, true if it doesn't
+		return !/^\d+(?:\.\d+)*\s+/.test(contentAfterHash);
+	} else {
+		// For other splitors, check if the splitor exists in the content
+		return !contentAfterHash.contains(splitor);
+	}
 }
 
 export function isNeedUpdateNumber(
@@ -36,27 +48,47 @@ export function isNeedUpdateNumber(
 	text: string,
 	splitor: string
 ): boolean {
+	// Extract the part after the # symbols
+	const match = text.match(/^(#{1,6})\s+(.*)/);
+	if (!match) return false;
+
+	const contentAfterHash = match[2];
 	let cntNumsStr: string;
+
 	if (splitor == " ") {
-		cntNumsStr = text.split(splitor)[1];
+		// Extract the number pattern at the start (e.g., "1.1" from "1.1 header text")
+		const numMatch = contentAfterHash.match(/^(\d+(?:\.\d+)*)\s+/);
+		if (!numMatch) return true; // No number found, needs update
+		cntNumsStr = numMatch[1];
 	} else {
-		cntNumsStr = text.split(splitor)[0].split(" ")[1];
+		// For other splitors, extract number before the splitor
+		const parts = contentAfterHash.split(splitor);
+		if (parts.length < 2) return true; // No splitor found, needs update
+		cntNumsStr = parts[0].trim();
 	}
 	return nextNumsStr !== cntNumsStr;
 }
 
 export function removeHeaderNumber(text: string, splitor: string): string {
 	// remove '1.1 splitor' from '## 1.1 splitor text'
-	let sharp: string, header: string;
+	// Extract the # symbols and content
+	const match = text.match(/^(#{1,6})\s+(.*)/);
+	if (!match) return text;
+
+	const sharp = match[1];
+	const contentAfterHash = match[2];
+
 	if (splitor == " ") {
-		sharp = text.split(splitor)[0];
-		header = text.split(splitor).slice(2).join(splitor);
+		// Remove number pattern at the start (e.g., "1.1 " from "1.1 header text")
+		const header = contentAfterHash.replace(/^\d+(?:\.\d+)*\s+/, '');
+		return sharp + " " + header;
 	} else {
-		if (!text.contains(splitor)) return text;
-		sharp = text.split(splitor)[0].split(" ")[0];
-		header = text.split(splitor)[1];
+		// For other splitors, remove everything before and including the first splitor
+		if (!contentAfterHash.contains(splitor)) return text;
+		const parts = contentAfterHash.split(splitor);
+		const header = parts.slice(1).join(splitor).trim();
+		return sharp + " " + header;
 	}
-	return sharp + " " + header;
 }
 
 export function isHeader(text: string): boolean {
