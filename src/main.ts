@@ -173,28 +173,6 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Only keep the two clear, distinct commands: Global and Document
 
 		this.addCommand({
-			id: "add-auto-numbering-yaml",
-			name: i18n.t("commands.addAutoNumberingYaml"),
-			callback: () => {
-				const app = this.app;
-				const activeView =
-					app.workspace.getActiveViewOfType(MarkdownView);
-				if (!activeView) {
-					new Notice(i18n.t("notices.noActiveView"));
-					return;
-				} else {
-					const editor = activeView.editor;
-					const yaml = getAutoNumberingYaml(editor);
-					if (yaml === "") {
-						setAutoNumberingYaml(editor);
-					} else {
-						new Notice(i18n.t("notices.yamlAlreadyExists"));
-					}
-				}
-			},
-		});
-
-		this.addCommand({
 			id: "reset-auto-numbering-yaml",
 			name: i18n.t("commands.resetAutoNumberingYaml"),
 			callback: () => {
@@ -212,8 +190,8 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					} else {
 						const value = [
 							"state on",
-							"first-level h2",
-							"max 1",
+							"start-level h2",
+							"end-level h6",
 							"start-at 1",
 							"separator .",
 						];
@@ -240,6 +218,37 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						new Notice(i18n.t("notices.yamlNotExists"));
 					} else {
 						setAutoNumberingYaml(editor, []);
+					}
+				}
+			},
+		});
+
+		this.addCommand({
+			id: "apply-custom-yaml-config",
+			name: i18n.t("commands.applyCustomYamlConfig"),
+			callback: () => {
+				const app = this.app;
+				const activeView =
+					app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView) {
+					new Notice(i18n.t("notices.noActiveView"));
+					return;
+				} else {
+					const editor = activeView.editor;
+					const yaml = getAutoNumberingYaml(editor);
+					if (yaml !== "") {
+						new Notice(i18n.t("notices.yamlAlreadyExists"));
+					} else {
+						// Insert YAML template with default values
+						const value = [
+							"state on",
+							`start-level h${this.settings.yamlDefaultStartLevel}`,
+							`end-level h${this.settings.yamlDefaultEndLevel}`,
+							`start-at ${this.settings.yamlDefaultStartNumber}`,
+							`separator ${this.settings.yamlDefaultSeparator}`,
+						];
+						setAutoNumberingYaml(editor, value);
+						new Notice(i18n.t("notices.yamlTemplateInserted"));
 					}
 				}
 			},

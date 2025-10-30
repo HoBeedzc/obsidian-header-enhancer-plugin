@@ -4,8 +4,8 @@ import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
 const DEFAULT_YAML_SETTING = [
 	"state on",
-	"first-level h2",
-	"max 1",
+	"start-level h2",
+	"end-level h6",
 	"start-at 1",
 	"separator .",
 ];

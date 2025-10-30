@@ -7,7 +7,7 @@
 
 A powerful Obsidian plugin that enhances markdown headers with automatic numbering, intelligent backlink management, and custom fonts.
 
-**Current Version**: 0.4.1
+**Current Version**: 0.5.0
 
 ## ✨ Features
 
@@ -28,12 +28,14 @@ Automatically updates `[[file#header]]` links when headers change, with batch pr
 Separate font family and size controls for headers and document titles, with live preview and organized font categories.
 
 ### 📝 YAML Configuration
-Per-file control using frontmatter:
+Per-file control using frontmatter with smart defaults:
 ```yaml
 ---
-header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 1", "separator ."]
 ---
-``` 
+```
+
+**New in v0.5.0**: YAML mode now supports default settings - no need to add YAML to every file! 
 
 ## 🚀 Installation
 
@@ -93,22 +95,35 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 
 ### Per-File YAML Configuration
 
-For files needing special numbering rules, add at the beginning:
+**🆕 New in v0.5.0**: YAML mode now has smart defaults!
+
+**How it works:**
+1. Choose "YAML Controlled" mode in settings
+2. Set default configuration (start level, end level, start number, separator)
+3. All files automatically use default settings - **no manual YAML needed**
+4. Only add YAML for files that need special numbering
+
+**For files needing custom rules:**
 
 ```yaml
 ---
-header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 1", "separator ."]
 ---
 ```
 
 **Parameters:**
 - `state on/off`: Enable/disable numbering for this file
-- `first-level h1-h6`: Starting header level
-- `max N`: Maximum nesting depth
+- `start-level h1-h6`: Starting header level (replaces old `first-level`)
+- `end-level h1-h6`: Ending header level (replaces old `max`)
 - `start-at N`: Starting number
-- `separator ./-/,`: Separator character
+- `separator ./-/,/`: Separator character
 
-**Quick Tip:** Use command "Add auto numbering yaml" to insert correct format quickly
+**Quick Commands:**
+- `Apply Custom YAML Configuration`: Insert template with your default settings
+- `Reset Auto Numbering YAML`: Reset to default values
+- `Remove Auto Numbering YAML`: Remove YAML configuration
+
+**Note**: Old format (`first-level`, `max`) still works but is deprecated and will be removed in future versions.
 
 ### Common Commands
 
@@ -116,9 +131,9 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 |---------|--------|-------------|
 | Toggle Global Auto Numbering | Command palette | Enable/disable numbering for entire vault |
 | Toggle Document Auto Numbering | Ribbon icon / Command palette | Control current document numbering |
-| Bulk apply numbering | Command palette | Add numbering to all files (with confirmation) |
-| Bulk remove numbering | Command palette | Remove numbering from all files (with confirmation) |
-| Add auto numbering yaml | Command palette | Add YAML config to current file |
+| Apply Custom YAML Configuration | Command palette | Insert YAML template with your default settings (v0.5.0) |
+| Reset Auto Numbering YAML | Command palette | Reset existing YAML to default values |
+| Remove Auto Numbering YAML | Command palette | Remove YAML configuration from file |
 
 ### Usage Tips
 
@@ -145,7 +160,16 @@ Report bugs at [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhan
 
 ## 📊 Changelog
 
-### v0.4.1 (Current)
+### v0.5.0 (Current)
+**Major YAML Mode Improvements**
+- 🎯 Smart defaults for YAML mode - no need to add YAML to every file
+- 📝 New unified YAML format: `start-level` and `end-level` (more intuitive)
+- ✨ Separate default configuration for YAML mode
+- 🔧 New command: "Apply Custom YAML Configuration" with user defaults
+- ⚠️ Old format (`first-level`, `max`) deprecated but still supported
+- 🗑️ Removed duplicate "Add Auto Numbering YAML" command
+
+### v0.4.1
 - Fixed headers with spaces support (English & Chinese)
 - Improved regex pattern matching for special cases
 

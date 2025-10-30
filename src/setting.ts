@@ -5,8 +5,13 @@ import { analyzeHeaderLevels } from './core';
 
 export enum AutoNumberingMode {
 	OFF = "off",
-	ON = "on", 
+	ON = "on",
 	YAML_CONTROLLED = "yaml"
+}
+
+export enum YamlFallbackMode {
+	NO_NUMBERING = "no_numbering",
+	USE_DEFAULT = "use_default"
 }
 
 export interface HeaderEnhancerSettings {
@@ -21,6 +26,12 @@ export interface HeaderEnhancerSettings {
 	autoNumberingSeparator: string;
 	autoNumberingHeaderSeparator: string;
 	updateBacklinks: boolean;
+	// YAML mode specific settings
+	yamlFallbackMode: YamlFallbackMode;
+	yamlDefaultStartLevel: number;
+	yamlDefaultEndLevel: number;
+	yamlDefaultStartNumber: string;
+	yamlDefaultSeparator: string;
 	// Global function enablement
 	globalAutoNumberingEnabled: boolean;
 	// Per-document state management (stored as stringified JSON)
@@ -47,6 +58,12 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	autoNumberingSeparator: ".",
 	autoNumberingHeaderSeparator: "\t",
 	updateBacklinks: false,
+	// YAML mode specific settings
+	yamlFallbackMode: YamlFallbackMode.USE_DEFAULT,
+	yamlDefaultStartLevel: 2,
+	yamlDefaultEndLevel: 6,
+	yamlDefaultStartNumber: "1",
+	yamlDefaultSeparator: ".",
 	// Global function enablement - enabled by default for backward compatibility
 	globalAutoNumberingEnabled: true,
 	// Per-document state management - empty object as JSON string
@@ -243,32 +260,8 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.ON) {
 			this.renderAutoNumberingSettings(containerEl);
 		} else if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
-			// YAML控制模式下显示说明信息
-			const yamlInfo = containerEl.createDiv({
-				cls: "header-enhancer-yaml-info"
-			});
-			yamlInfo.style.cssText = `
-				margin: 1.5em 0;
-				padding: 1.2em;
-				border: 2px solid var(--color-blue);
-				border-radius: 8px;
-				background: var(--background-secondary);
-			`;
-			
-			yamlInfo.innerHTML = `
-				<div style="font-weight: 600; color: var(--color-blue); margin-bottom: 0.8em; display: flex; align-items: center;">
-					${i18n.t("autoDetection.info.yamlMode.title")}
-				</div>
-				<div style="line-height: 1.6; color: var(--text-normal);">
-					${i18n.t("autoDetection.info.yamlMode.description")}<br><br>
-					<code style="background: var(--code-background); padding: 0.5em; border-radius: 4px; display: block; font-family: monospace;">
----<br>
-header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "separator ."]<br>
----
-					</code><br>
-					${i18n.t("autoDetection.info.yamlMode.usage")}
-				</div>
-			`;
+			// YAML控制模式下显示配置选项
+			this.renderYamlModeSettings(containerEl);
 		} else {
 			// OFF模式下显示提示信息
 			const offInfo = containerEl.createDiv({
@@ -1103,12 +1096,149 @@ header-auto-numbering: ["state on", "first-level h2", "max 3", "start-at 1", "se
 	}
 
 	/**
-	 * Update preview styles for all preview titles  
+	 * Update preview styles for all preview titles
 	 */
 	updateAllTitlePreviewStyles(): void {
 		const previewTitles = this.containerEl.querySelectorAll('.header-enhancer-preview-title');
 		previewTitles.forEach((titleEl) => {
 			this.updateTitlePreviewStyles(titleEl as HTMLElement);
 		});
+	}
+
+	/**
+	 * 渲染 YAML 模式的设置项
+	 */
+	private renderYamlModeSettings(containerEl: HTMLElement): void {
+		const i18n = I18n.getInstance();
+
+		// 构建动态 YAML 示例（使用用户的默认设置）
+		const yamlExample = `["state on", "start-level h${this.plugin.settings.yamlDefaultStartLevel}", "end-level h${this.plugin.settings.yamlDefaultEndLevel}", "start-at ${this.plugin.settings.yamlDefaultStartNumber}", "separator ${this.plugin.settings.yamlDefaultSeparator}"]`;
+
+		// YAML 模式说明信息
+		const yamlInfo = containerEl.createDiv({
+			cls: "header-enhancer-yaml-info"
+		});
+		yamlInfo.style.cssText = `
+			margin: 1.5em 0;
+			padding: 1.2em;
+			border: 2px solid var(--color-blue);
+			border-radius: 8px;
+			background: var(--background-secondary);
+		`;
+
+		yamlInfo.innerHTML = `
+			<div style="font-weight: 600; color: var(--color-blue); margin-bottom: 0.8em; display: flex; align-items: center;">
+				${i18n.t("autoDetection.info.yamlMode.title")}
+			</div>
+			<div style="line-height: 1.6; color: var(--text-normal);">
+				${i18n.t("autoDetection.info.yamlMode.description")}<br><br>
+				<code style="background: var(--code-background); padding: 0.5em; border-radius: 4px; display: block; font-family: monospace;">
+---<br>
+header-auto-numbering: ${yamlExample}<br>
+---
+				</code><br>
+				${i18n.t("autoDetection.info.yamlMode.usage")}
+			</div>
+		`;
+
+		// 没有 YAML 的文档操作选项
+		new Setting(containerEl)
+			.setName(i18n.t("settings.yamlMode.fallback.name"))
+			.setDesc(i18n.t("settings.yamlMode.fallback.desc"))
+			.addDropdown((dropdown) => {
+				dropdown.addOption(YamlFallbackMode.NO_NUMBERING, i18n.t("settings.yamlMode.fallback.noNumbering"));
+				dropdown.addOption(YamlFallbackMode.USE_DEFAULT, i18n.t("settings.yamlMode.fallback.useDefault"));
+				dropdown.setValue(this.plugin.settings.yamlFallbackMode);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.yamlFallbackMode = value as YamlFallbackMode;
+					await this.plugin.saveSettings();
+					this.display(); // 重新渲染以显示/隐藏默认值配置
+				});
+			});
+
+		// 如果选择了使用默认值，显示默认值配置选项
+		if (this.plugin.settings.yamlFallbackMode === YamlFallbackMode.USE_DEFAULT) {
+			// 默认起始层级
+			new Setting(containerEl)
+				.setName(i18n.t("settings.yamlMode.defaultStartLevel.name"))
+				.setDesc(i18n.t("settings.yamlMode.defaultStartLevel.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(this.plugin.settings.yamlDefaultStartLevel.toString());
+					dropdown.onChange(async (value) => {
+						const numValue = parseInt(value, 10);
+						if (numValue <= this.plugin.settings.yamlDefaultEndLevel) {
+							this.plugin.settings.yamlDefaultStartLevel = numValue;
+							await this.plugin.saveSettings();
+							this.display(); // 刷新界面以更新 YAML 示例
+						} else {
+							new Notice(i18n.t("settings.autoNumbering.startLevelError"));
+							dropdown.setValue(this.plugin.settings.yamlDefaultStartLevel.toString());
+						}
+					});
+				});
+
+			// 默认结束层级
+			new Setting(containerEl)
+				.setName(i18n.t("settings.yamlMode.defaultEndLevel.name"))
+				.setDesc(i18n.t("settings.yamlMode.defaultEndLevel.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("1", "H1");
+					dropdown.addOption("2", "H2");
+					dropdown.addOption("3", "H3");
+					dropdown.addOption("4", "H4");
+					dropdown.addOption("5", "H5");
+					dropdown.addOption("6", "H6");
+					dropdown.setValue(this.plugin.settings.yamlDefaultEndLevel.toString());
+					dropdown.onChange(async (value) => {
+						const numValue = parseInt(value, 10);
+						if (numValue >= this.plugin.settings.yamlDefaultStartLevel) {
+							this.plugin.settings.yamlDefaultEndLevel = numValue;
+							await this.plugin.saveSettings();
+							this.display(); // 刷新界面以更新 YAML 示例
+						} else {
+							new Notice(i18n.t("settings.autoNumbering.endLevelError"));
+							dropdown.setValue(this.plugin.settings.yamlDefaultEndLevel.toString());
+						}
+					});
+				});
+
+			// 默认起始数字
+			new Setting(containerEl)
+				.setName(i18n.t("settings.yamlMode.defaultStartNumber.name"))
+				.setDesc(i18n.t("settings.yamlMode.defaultStartNumber.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption("0", "0");
+					dropdown.addOption("1", "1");
+					dropdown.setValue(this.plugin.settings.yamlDefaultStartNumber);
+					dropdown.onChange(async (value) => {
+						this.plugin.settings.yamlDefaultStartNumber = value;
+						await this.plugin.saveSettings();
+						this.display(); // 刷新界面以更新 YAML 示例
+					});
+				});
+
+			// 默认分隔符
+			new Setting(containerEl)
+				.setName(i18n.t("settings.yamlMode.defaultSeparator.name"))
+				.setDesc(i18n.t("settings.yamlMode.defaultSeparator.desc"))
+				.addDropdown((dropdown) => {
+					dropdown.addOption(".", ".");
+					dropdown.addOption(",", ",");
+					dropdown.addOption("-", "-");
+					dropdown.addOption("/", "/");
+					dropdown.setValue(this.plugin.settings.yamlDefaultSeparator);
+					dropdown.onChange(async (value) => {
+						this.plugin.settings.yamlDefaultSeparator = value;
+						await this.plugin.saveSettings();
+						this.display(); // 刷新界面以更新 YAML 示例
+					});
+				});
+		}
 	}
 }

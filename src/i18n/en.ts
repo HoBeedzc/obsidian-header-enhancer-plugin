@@ -174,13 +174,37 @@ export default {
                 options: {
                     inherit: "Inherit from global size",
                     smaller: "Smaller",
-                    small: "Small", 
+                    small: "Small",
                     normal: "Normal",
                     large: "Large",
                     larger: "Larger",
                     xlarge: "Extra Large",
                     xxlarge: "Extra Extra Large"
                 }
+            }
+        },
+        yamlMode: {
+            fallback: {
+                name: "Documents without YAML configuration",
+                desc: "Choose how to handle documents that don't have YAML configuration",
+                noNumbering: "No numbering",
+                useDefault: "Use default settings"
+            },
+            defaultStartLevel: {
+                name: "Default Start Level",
+                desc: "Default starting header level for documents without YAML"
+            },
+            defaultEndLevel: {
+                name: "Default End Level",
+                desc: "Default ending header level for documents without YAML"
+            },
+            defaultStartNumber: {
+                name: "Default Start Number",
+                desc: "Default starting number for documents without YAML"
+            },
+            defaultSeparator: {
+                name: "Default Separator",
+                desc: "Default number separator for documents without YAML"
             }
         },
         resetSettings: {
@@ -231,10 +255,10 @@ export default {
     },
     commands: {
         toggleGlobalAutoNumbering: "Toggle Global Auto Numbering",
-        toggleDocumentAutoNumbering: "Toggle Document Auto Numbering", 
-        addAutoNumberingYaml: "Add Auto Numbering YAML",
+        toggleDocumentAutoNumbering: "Toggle Document Auto Numbering",
         resetAutoNumberingYaml: "Reset Auto Numbering YAML",
-        removeAutoNumberingYaml: "Remove Auto Numbering YAML"
+        removeAutoNumberingYaml: "Remove Auto Numbering YAML",
+        applyCustomYamlConfig: "Apply Custom YAML Configuration"
     },
     notices: {
         noActiveView: "No active MarkdownView, cannot toggle auto numbering.",
@@ -242,8 +266,9 @@ export default {
         globalAutoNumberingEnabled: "Global auto numbering enabled",
         globalAutoNumberingDisabled: "Global auto numbering disabled",
         autoNumberingEnabledForDocument: "Auto numbering enabled for this document",
-        autoNumberingDisabledForDocument: "Auto numbering disabled for this document", 
+        autoNumberingDisabledForDocument: "Auto numbering disabled for this document",
         yamlAlreadyExists: "auto numbering yaml already exists",
-        yamlNotExists: "auto numbering yaml not exists"
+        yamlNotExists: "auto numbering yaml not exists",
+        yamlTemplateInserted: "YAML configuration template inserted successfully"
     }
 };
