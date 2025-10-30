@@ -179,10 +179,34 @@ export default {
                     small: "小",
                     normal: "正常",
                     large: "大",
-                    larger: "较大", 
+                    larger: "较大",
                     xlarge: "特大",
                     xxlarge: "超大"
                 }
+            }
+        },
+        yamlMode: {
+            fallback: {
+                name: "没有YAML配置的文档处理方式",
+                desc: "选择如何处理没有YAML配置的文档",
+                noNumbering: "不编号",
+                useDefault: "使用默认设置"
+            },
+            defaultStartLevel: {
+                name: "默认起始层级",
+                desc: "没有YAML配置的文档使用的默认起始标题层级"
+            },
+            defaultEndLevel: {
+                name: "默认结束层级",
+                desc: "没有YAML配置的文档使用的默认结束标题层级"
+            },
+            defaultStartNumber: {
+                name: "默认起始数字",
+                desc: "没有YAML配置的文档使用的默认起始编号"
+            },
+            defaultSeparator: {
+                name: "默认分隔符",
+                desc: "没有YAML配置的文档使用的默认数字分隔符"
             }
         },
         resetSettings: {
@@ -234,9 +258,9 @@ export default {
     commands: {
         toggleGlobalAutoNumbering: "切换全局自动编号",
         toggleDocumentAutoNumbering: "切换文档自动编号",
-        addAutoNumberingYaml: "添加自动编号YAML配置",
         resetAutoNumberingYaml: "重置自动编号YAML配置",
-        removeAutoNumberingYaml: "移除自动编号YAML配置"
+        removeAutoNumberingYaml: "移除自动编号YAML配置",
+        applyCustomYamlConfig: "为当前文件应用自定义配置"
     },
     notices: {
         noActiveView: "没有活跃的MarkdownView，无法切换自动编号。",
@@ -246,6 +270,7 @@ export default {
         autoNumberingEnabledForDocument: "已为此文档启用自动编号",
         autoNumberingDisabledForDocument: "已为此文档禁用自动编号",
         yamlAlreadyExists: "自动编号YAML配置已存在",
-        yamlNotExists: "自动编号YAML配置不存在"
+        yamlNotExists: "自动编号YAML配置不存在",
+        yamlTemplateInserted: "YAML配置模板已成功插入"
     }
 };

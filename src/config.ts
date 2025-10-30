@@ -1,5 +1,5 @@
 import { Editor } from "obsidian";
-import { HeaderEnhancerSettings, AutoNumberingMode } from "./setting";
+import { HeaderEnhancerSettings, AutoNumberingMode, YamlFallbackMode } from "./setting";
 import { getAutoNumberingYaml } from "./utils";
 import { analyzeHeaderLevels } from "./core";
 
@@ -42,7 +42,7 @@ export function getAutoNumberingConfig(
 
 	// YAML配置优先级最高
 	if (setting.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
-		config = applyYamlConfig(config, editor);
+		config = applyYamlConfig(config, editor, setting);
 	}
 	// 自动检测模式
 	else if (setting.isAutoDetectHeaderLevel && setting.autoNumberingMode === AutoNumberingMode.ON) {
@@ -59,9 +59,28 @@ export function getAutoNumberingConfig(
 	return config;
 }
 
-function applyYamlConfig(config: AutoNumberingConfig, editor: Editor): AutoNumberingConfig {
+function applyYamlConfig(config: AutoNumberingConfig, editor: Editor, setting: HeaderEnhancerSettings): AutoNumberingConfig {
 	const yaml = getAutoNumberingYaml(editor);
-	if (yaml === "") return config;
+
+	// If no YAML exists, use fallback mode
+	if (yaml === "") {
+		if (setting.yamlFallbackMode === YamlFallbackMode.NO_NUMBERING) {
+			// No numbering for files without YAML
+			config.state = false;
+		} else {
+			// Use YAML default values
+			config.state = true;
+			config.startLevel = setting.yamlDefaultStartLevel;
+			config.endLevel = setting.yamlDefaultEndLevel;
+			config.startNumber = parseInt(setting.yamlDefaultStartNumber);
+			config.separator = setting.yamlDefaultSeparator;
+		}
+		return config;
+	}
+
+	// YAML exists, parse and apply it
+	let hasDeprecatedKeys = false;
+	const deprecatedKeys: string[] = [];
 
 	for (const item of yaml) {
 		const [key, ...valueParts] = item.split(" ");
@@ -70,12 +89,24 @@ function applyYamlConfig(config: AutoNumberingConfig, editor: Editor): AutoNumbe
 			case "state":
 				config.state = value === "on";
 				break;
-			case "first-level":
+			case "start-level":
 				// Parse "h2" -> 2
 				config.startLevel = parseInt(value.substring(1));
 				break;
-			case "max":
-				// This is max levels, not end level
+			case "first-level": // @deprecated since v0.4.2 - Use "start-level" instead
+				hasDeprecatedKeys = true;
+				deprecatedKeys.push("first-level");
+				// Parse "h2" -> 2
+				config.startLevel = parseInt(value.substring(1));
+				break;
+			case "end-level":
+				// Parse "h6" -> 6
+				config.endLevel = parseInt(value.substring(1));
+				break;
+			case "max": // @deprecated since v0.4.2 - Use "end-level" instead
+				hasDeprecatedKeys = true;
+				deprecatedKeys.push("max");
+				// Keep backward compatibility: max levels, not end level
 				config.endLevel = config.startLevel + parseInt(value) - 1;
 				break;
 			case "start-at":
@@ -86,5 +117,15 @@ function applyYamlConfig(config: AutoNumberingConfig, editor: Editor): AutoNumbe
 				break;
 		}
 	}
+
+	// Log deprecation warning (will be removed in future version)
+	if (hasDeprecatedKeys) {
+		console.warn(
+			`[Header Enhancer] Deprecated YAML keys detected: ${deprecatedKeys.join(", ")}. ` +
+			`Please update to new format: use "start-level" instead of "first-level", ` +
+			`and "end-level" instead of "max". The old format will be removed in a future version.`
+		);
+	}
+
 	return config;
 }
