@@ -1,5 +1,37 @@
 # 更新记录 - Changelog
 
+## [0.5.0] - 2025-10-30
+### Added
+- ✨ 🆕 YAML 模式智能默认值系统 - YAML mode smart defaults system
+  - 支持为没有 YAML 配置的文档设置默认值 - Support default settings for documents without YAML configuration
+  - 新增"没有 YAML 的文档处理方式"选项（不编号/使用默认设置） - Added "Documents without YAML configuration" option (no numbering/use defaults)
+  - YAML 模式独立的默认配置（起始层级、结束层级、起始数字、分隔符） - Separate default configuration for YAML mode (start level, end level, start number, separator)
+  - 大幅减少手动添加 YAML 配置的需求 - Significantly reduced need for manual YAML configuration
+- ✨ 🆕 统一的 YAML 格式 - Unified YAML format
+  - 新格式使用 `start-level` 和 `end-level` 替代 `first-level` 和 `max` - New format uses `start-level` and `end-level` instead of `first-level` and `max`
+  - 与设置界面保持完全一致，更加直观 - Fully consistent with settings UI, more intuitive
+  - 向后兼容旧格式（已标记为 deprecated） - Backward compatible with old format (marked as deprecated)
+- ✨ 🆕 新命令："为当前文件应用自定义配置" - New command: "Apply Custom YAML Configuration"
+  - 自动插入使用用户默认设置的 YAML 模板 - Automatically insert YAML template with user default settings
+  - 插入后可直接编辑修改 - Can be edited directly after insertion
+### Improved
+- 🔧 动态 YAML 示例显示 - Dynamic YAML example display
+  - 设置界面中的 YAML 示例实时反映用户配置 - YAML example in settings UI reflects user configuration in real-time
+  - 修改任何默认值时，示例立即更新 - Example updates immediately when changing any default value
+- 🔧 简化命令系统 - Simplified command system
+  - 删除重复的 "Add Auto Numbering YAML" 命令 - Removed duplicate "Add Auto Numbering YAML" command
+  - 保留功能更完整的新命令 - Retained new command with more complete functionality
+- 🔧 代码质量改进 - Code quality improvements
+  - 为废弃的 YAML 键添加 `@deprecated` 标记 - Added `@deprecated` annotations for deprecated YAML keys
+  - 添加运行时警告提示用户更新格式 - Added runtime warnings to prompt users to update format
+  - 完善的向后兼容性保证 - Comprehensive backward compatibility guarantees
+### Changed
+- ⚠️ 废弃旧的 YAML 格式键 - Deprecated old YAML format keys
+  - `first-level` → `start-level` (仍可用但已废弃) - `first-level` → `start-level` (still works but deprecated)
+  - `max` → `end-level` (仍可用但已废弃) - `max` → `end-level` (still works but deprecated)
+  - 使用旧格式时控制台会显示警告 - Console warnings when using old format
+  - 计划在未来版本中移除旧格式支持 - Planned removal of old format support in future versions
+
 ## [0.4.1] - 2025-10-28
 ### Fixed
 - 🐛 修复标题包含空格时自动编号失效的问题 - Fixed header auto-numbering failure when headers contain spaces

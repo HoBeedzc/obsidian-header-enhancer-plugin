@@ -7,7 +7,7 @@
 
 功能强大的 Obsidian 插件，为 Markdown 标题提供自动编号、智能反向链接管理和自定义字体。
 
-**当前版本**: 0.4.1
+**当前版本**: 0.5.0
 
 ## ✨ 功能特性
 
@@ -28,12 +28,14 @@
 标题和文档标题独立的字体系列和大小控制，实时预览，分类字体选择。
 
 ### 📝 YAML 配置
-使用前置元数据进行单文件控制：
+使用前置元数据进行单文件控制，支持智能默认值：
 ```yaml
 ---
-header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 1", "separator ."]
 ---
 ```
+
+**v0.5.0 新功能**：YAML 模式现在支持默认设置 - 无需为每个文件手动添加 YAML！
 
 ## 🚀 安装
 
@@ -93,22 +95,35 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 
 ### YAML 单文件配置
 
-如果某个文件需要特殊的编号规则，可以在文件开头添加：
+**🆕 v0.5.0 新功能**：YAML 模式现在支持智能默认值！
+
+**工作原理：**
+1. 在设置中选择 "YAML 控制" 模式
+2. 设置默认配置（起始层级、结束层级、起始数字、分隔符）
+3. 所有文件自动使用默认设置 - **无需手动添加 YAML**
+4. 只有需要特殊编号规则的文件才添加 YAML
+
+**为需要自定义规则的文件添加配置：**
 
 ```yaml
 ---
-header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "separator ."]
+header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 1", "separator ."]
 ---
 ```
 
 **参数说明：**
 - `state on/off`：该文件是否启用编号
-- `first-level h1-h6`：起始标题级别
-- `max N`：最大嵌套层数
+- `start-level h1-h6`：起始标题级别（替代旧的 `first-level`）
+- `end-level h1-h6`：结束标题级别（替代旧的 `max`）
 - `start-at N`：起始编号
-- `separator ./-/,`：分隔符
+- `separator ./-/,/`：分隔符
 
-**快捷操作：** 使用命令 "添加自动编号 YAML" 可快速插入正确格式的配置
+**快捷命令：**
+- `为当前文件应用自定义配置`：插入使用您的默认设置的模板
+- `重置自动编号YAML配置`：重置为默认值
+- `移除自动编号YAML配置`：移除 YAML 配置
+
+**注意**：旧格式（`first-level`、`max`）仍然可用，但已弃用，将在未来版本中移除。
 
 ### 常用命令
 
@@ -116,9 +131,9 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 |------|---------|------|
 | 切换全局自动编号 | 命令面板 | 开启/关闭整个知识库的编号功能 |
 | 切换文档自动编号 | 功能区图标 / 命令面板 | 控制当前文档的编号状态 |
-| 批量应用编号 | 命令面板 | 为所有文件添加编号（带确认对话框） |
-| 批量移除编号 | 命令面板 | 从所有文件移除编号（带确认对话框） |
-| 添加自动编号 YAML | 命令面板 | 在当前文件添加 YAML 配置 |
+| 为当前文件应用自定义配置 | 命令面板 | 插入使用您的默认设置的 YAML 模板（v0.5.0） |
+| 重置自动编号YAML配置 | 命令面板 | 将现有 YAML 重置为默认值 |
+| 移除自动编号YAML配置 | 命令面板 | 从文件中移除 YAML 配置 |
 
 ### 使用技巧
 
@@ -145,7 +160,16 @@ header-auto-numbering: ["state on", "first-level h2", "max 1", "start-at 1", "se
 
 ## 📊 更新日志
 
-### v0.4.1（当前）
+### v0.5.0（当前）
+**YAML 模式重大改进**
+- 🎯 YAML 模式支持智能默认值 - 无需为每个文件添加 YAML
+- 📝 新的统一 YAML 格式：`start-level` 和 `end-level`（更直观）
+- ✨ YAML 模式独立的默认配置
+- 🔧 新命令："为当前文件应用自定义配置"（使用用户默认设置）
+- ⚠️ 旧格式（`first-level`、`max`）已弃用但仍支持
+- 🗑️ 移除重复的 "添加自动编号 YAML" 命令
+
+### v0.4.1
 - 修复标题包含空格的支持（英文和中文）
 - 改进正则表达式模式匹配处理特殊情况
 
