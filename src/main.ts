@@ -56,7 +56,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				}
 
 				const filePath = activeView.file.path;
-				
+
 				// Check if global function is disabled
 				if (!this.settings.globalAutoNumberingEnabled) {
 					new Notice(i18n.t("notices.globalDisabledNotice"));
@@ -66,19 +66,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				// Toggle document-specific state
 				const currentState = this.getDocumentAutoNumberingState(filePath);
 				const newState = !currentState;
-				
-				await this.setDocumentAutoNumberingState(filePath, newState);
 
-				// Apply changes to document based on new state
-				if (newState) {
-					// Enable: add numbering to current document
-					await this.handleAddHeaderNumber(activeView);
-					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
-				} else {
-					// Disable: remove numbering from current document
-					await this.handleRemoveHeaderNumber(activeView);
-					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
-				}
+				// Toggle state based on current mode
+				await this.toggleDocumentState(activeView, newState);
 
 				this.updateAllUIStates();
 			}
@@ -143,7 +133,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				}
 
 				const filePath = activeView.file.path;
-				
+
 				// Check if global function is disabled
 				if (!this.settings.globalAutoNumberingEnabled) {
 					new Notice(i18n.t("notices.globalDisabledNotice"));
@@ -153,17 +143,9 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				// Toggle document-specific state
 				const currentState = this.getDocumentAutoNumberingState(filePath);
 				const newState = !currentState;
-				
-				await this.setDocumentAutoNumberingState(filePath, newState);
 
-				// Apply changes to document based on new state
-				if (newState) {
-					await this.handleAddHeaderNumber(activeView);
-					new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
-				} else {
-					await this.handleRemoveHeaderNumber(activeView);
-					new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
-				}
+				// Toggle state based on current mode
+				await this.toggleDocumentState(activeView, newState);
 
 				this.updateAllUIStates();
 			},
@@ -736,25 +718,25 @@ export default class HeaderEnhancerPlugin extends Plugin {
 	 * Handle backlink updates when removing header numbers
 	 */
 	private async updateBacklinksForRemoval(
-		currentFile: TFile, 
+		currentFile: TFile,
 		headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}>
 	): Promise<void> {
 		try {
 			for (const change of headerChanges) {
 				const oldFullHeading = this.extractFullHeadingWithNumber(change.oldText);
 				const newHeading = change.originalHeading;
-				
+
 				if (oldFullHeading && newHeading) {
 					// Find backlinks pointing to the numbered heading
 					const backlinks = await this.backlinkManager.findHeadingBacklinks(
-						currentFile, 
+						currentFile,
 						oldFullHeading
 					);
-					
+
 					// Create updated links - from numbered format back to original format
 					const updates = backlinks.map(link => {
 						const newLink = link.oldLink.replace(
-							`#${oldFullHeading}`, 
+							`#${oldFullHeading}`,
 							`#${newHeading}`
 						);
 						return {
@@ -762,7 +744,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							newLink: newLink
 						};
 					});
-					
+
 					// Update backlinks in batch
 					if (updates.length > 0) {
 						await this.backlinkManager.updateBacklinks(updates);
@@ -772,6 +754,76 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		} catch (error) {
 			console.error('Error updating backlinks for removal:', error);
 			new Notice('Failed to update backlinks during removal: ' + error.message);
+		}
+	}
+
+	/**
+	 * Toggle document auto-numbering state
+	 * In YAML mode: synchronizes both perDocumentStatesMap and YAML state
+	 * In ON mode: only modifies perDocumentStatesMap
+	 */
+	private async toggleDocumentState(activeView: MarkdownView, newState: boolean): Promise<void> {
+		const i18n = I18n.getInstance();
+		const filePath = activeView.file?.path;
+		if (!filePath) return;
+
+		// YAML mode: synchronize both perDocumentStatesMap and YAML state
+		if (this.settings.autoNumberingMode === AutoNumberingMode.YAML_CONTROLLED) {
+			// 1. Update perDocumentStatesMap
+			await this.setDocumentAutoNumberingState(filePath, newState);
+
+			// 2. Update or create YAML configuration
+			const editor = activeView.editor;
+			const yaml = getAutoNumberingYaml(editor);
+
+			if (yaml === "") {
+				// No YAML exists - create minimal configuration with only state
+				// Other settings will use global defaults
+				const value = [
+					`state ${newState ? 'on' : 'off'}`,
+				];
+				setAutoNumberingYaml(editor, value);
+			} else {
+				// YAML exists - modify state line
+				// At this point, yaml must be string[] since we've handled "" case
+				const yamlArray = yaml as string[];
+				let hasState = false;
+				const newYaml = yamlArray.map((line: string) => {
+					if (line.startsWith('state ')) {
+						hasState = true;
+						return `state ${newState ? 'on' : 'off'}`;
+					}
+					return line;
+				});
+
+				// If no state line exists, add it at the beginning
+				if (!hasState) {
+					newYaml.unshift(`state ${newState ? 'on' : 'off'}`);
+				}
+
+				setAutoNumberingYaml(editor, newYaml);
+			}
+
+			// 3. Apply or remove numbering
+			if (newState) {
+				await this.handleAddHeaderNumber(activeView);
+				new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
+			} else {
+				await this.handleRemoveHeaderNumber(activeView);
+				new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
+			}
+		} else {
+			// ON mode: only modify perDocumentStatesMap
+			await this.setDocumentAutoNumberingState(filePath, newState);
+
+			// Apply or remove numbering
+			if (newState) {
+				await this.handleAddHeaderNumber(activeView);
+				new Notice(i18n.t("notices.autoNumberingEnabledForDocument"));
+			} else {
+				await this.handleRemoveHeaderNumber(activeView);
+				new Notice(i18n.t("notices.autoNumberingDisabledForDocument"));
+			}
 		}
 	}
 

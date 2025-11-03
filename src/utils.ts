@@ -29,14 +29,30 @@ export function setAutoNumberingYaml(
 	value: string[] = DEFAULT_YAML_SETTING
 ): void {
 	const yaml = getYaml(editor);
-	const parsedYaml = parseYaml(yaml.slice(4, -4));
+	let parsedYaml = parseYaml(yaml.slice(4, -4));
 
-	if (parsedYaml) {
-		parsedYaml["header-auto-numbering"] = value;
+	// If no YAML exists or parsing failed, create a new object
+	if (!parsedYaml) {
+		parsedYaml = {};
 	}
 
-	const newContent = `---\n${stringifyYaml(parsedYaml)}---`;
+	// Set or update the header-auto-numbering configuration
+	parsedYaml["header-auto-numbering"] = value;
+
+	const newContent = `---\n${stringifyYaml(parsedYaml)}---\n`;
 	const startPosition: EditorPosition = { line: 0, ch: 0 };
-	const endPosition: EditorPosition = editor.offsetToPos(yaml.length);
+
+	// Calculate end position: yaml.length + 1 to include the newline after "---"
+	// This ensures we replace the entire YAML block including trailing newline
+	let endOffset = yaml.length;
+	if (yaml.length > 0) {
+		// If YAML exists and there's a newline after it, include it in the replacement
+		const contentAfterYaml = editor.getValue().substring(yaml.length, yaml.length + 1);
+		if (contentAfterYaml === '\n') {
+			endOffset += 1;
+		}
+	}
+	const endPosition: EditorPosition = editor.offsetToPos(endOffset);
+
 	editor.replaceRange(newContent, startPosition, endPosition);
 }

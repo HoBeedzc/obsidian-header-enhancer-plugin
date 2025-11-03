@@ -7,7 +7,7 @@
 
 功能强大的 Obsidian 插件，为 Markdown 标题提供自动编号、智能反向链接管理和自定义字体。
 
-**当前版本**: 0.5.0
+**当前版本**: 0.5.1
 
 ## ✨ 功能特性
 
@@ -160,7 +160,13 @@ header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 
 
 ## 📊 更新日志
 
-### v0.5.0（当前）
+### v0.5.1（当前）
+**Bug 修复和改进**
+- 修复 Enter 键在标题行的自动编号行为
+- 修复 YAML 状态与文档切换按钮的同步问题
+- 提升整体稳定性和用户体验
+
+### v0.5.0
 **YAML 模式重大改进**
 - 🎯 YAML 模式支持智能默认值 - 无需为每个文件添加 YAML
 - 📝 新的统一 YAML 格式：`start-level` 和 `end-level`（更直观）

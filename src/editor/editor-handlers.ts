@@ -27,9 +27,34 @@ export class EditorHandlers {
 							const pos = state.selection.main.to;
 							const currentLine = state.doc.lineAt(pos);
 
-							// 只有在标题行并且自动编号开启时才进行处理
-							if (!isHeader(currentLine.text) || this.plugin.settings.autoNumberingMode === AutoNumberingMode.OFF) {
-								return false; // 不处理，让默认处理程序处理
+							// 只有在标题行时才考虑处理
+							if (!isHeader(currentLine.text)) {
+								return false; // 不是标题行，让默认处理程序处理
+							}
+
+							// 如果模式是 OFF，不处理
+							if (this.plugin.settings.autoNumberingMode === AutoNumberingMode.OFF) {
+								return false;
+							}
+
+							// 检查完整的配置状态（包括全局开关、文档级别开关、YAML配置）
+							const app = this.plugin.app;
+							const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+							if (activeView) {
+								const editor = activeView.editor;
+								const filePath = activeView.file?.path;
+								const config = getAutoNumberingConfig(
+									this.plugin.settings,
+									editor,
+									filePath ? (path: string) => this.plugin.getDocumentAutoNumberingState(path) : undefined,
+									filePath
+								);
+
+								// 如果最终状态是关闭的（全局关闭、文档级别关闭、或YAML中state为off），
+								// 不处理，让默认换行生效
+								if (!config.state) {
+									return false;
+								}
 							}
 
 							// 执行自定义Enter处理 - 异步调用但不等待结果
@@ -69,24 +94,31 @@ export class EditorHandlers {
 		let state = view.state;
 		let doc = state.doc;
 		const pos = state.selection.main.to;
-		
+
 		const app = this.plugin.app;
 		const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
 			return false; // 让默认处理程序处理
 		}
-	
+
 		// 获取当前行信息
 		const currentLine = doc.lineAt(pos);
-		
-		// 注意：这个检查已经在外层run函数做过了，这里可以简化
-		// 但保留这个检查作为额外的安全措施
-		if (!isHeader(currentLine.text) || this.plugin.settings.autoNumberingMode !== AutoNumberingMode.ON) {
+
+		// 先获取配置（包括 YAML 配置和文档级状态）
+		const editor = activeView.editor;
+		const filePath = activeView.file?.path;
+		const config = getAutoNumberingConfig(
+			this.plugin.settings,
+			editor,
+			filePath ? (path: string) => this.plugin.getDocumentAutoNumberingState(path) : undefined,
+			filePath
+		);
+
+		// 检查是否需要处理：必须是标题行且配置开启
+		// config.state 会根据 autoNumberingMode (ON/OFF/YAML_CONTROLLED)、YAML 配置和文档级状态计算最终状态
+		if (!isHeader(currentLine.text) || !config.state) {
 			return false;
 		}
-	
-		const editor = activeView.editor;
-		const config = getAutoNumberingConfig(this.plugin.settings, editor);
 		
 		// 处理在标题中间按Enter的情况
 		// 获取光标前后的文本
@@ -106,19 +138,17 @@ export class EditorHandlers {
 			selection: { anchor: currentLine.from + textBeforeCursor.length + 1 },
 			userEvent: "HeaderEnhancer.changeAutoNumbering",
 		});
-		
+
 		// 在操作完成后更新标题编号
-		if (config.state) {
-			// 使用setTimeout确保编辑操作已完成
-			setTimeout(async () => {
-				await this.plugin.handleAddHeaderNumber(activeView);
-				// 如果是自动检测模式，更新状态栏
-				if (this.plugin.settings.isAutoDetectHeaderLevel) {
-					this.plugin.handleShowStateBarChange();
-				}
-			}, 10);
-		}
-		
+		// 使用setTimeout确保编辑操作已完成
+		setTimeout(async () => {
+			await this.plugin.handleAddHeaderNumber(activeView);
+			// 如果是自动检测模式，更新状态栏
+			if (this.plugin.settings.isAutoDetectHeaderLevel) {
+				this.plugin.handleShowStateBarChange();
+			}
+		}, 10);
+
 		return true;
 	}
 

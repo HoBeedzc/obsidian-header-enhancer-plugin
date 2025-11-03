@@ -1,5 +1,13 @@
 # 更新记录 - Changelog
 
+## [0.5.1] - 2025-11-03
+### Fixed
+- 🐛 修复 Enter 键在标题行的自动编号行为 - Fixed Enter key behavior for automatic header numbering on header lines
+- 🐛 修复 YAML 状态与文档切换按钮的同步问题 - Fixed YAML state synchronization with document toggle button
+### Improved
+- 🔧 提升整体稳定性和用户体验 - Improved overall stability and user experience
+- 🔧 优化编辑器事件处理和状态管理 - Optimized editor event handling and state management
+
 ## [0.5.0] - 2025-10-30
 ### Added
 - ✨ 🆕 YAML 模式智能默认值系统 - YAML mode smart defaults system
