@@ -8,6 +8,7 @@ import {
 	removeHeaderNumber,
 	isHeader,
 	analyzeHeaderLevels,
+	updateCodeBlockState,
 } from "./core";
 import { getAutoNumberingYaml, setAutoNumberingYaml } from "./utils";
 import {
@@ -504,12 +505,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 				const line = editor.getLine(i);
 				docCharCount += line.length;
 
-				if (line.startsWith("```")) {
-					isCodeBlock = !isCodeBlock;
-					if (line.slice(3).contains("```")) {
-						isCodeBlock = !isCodeBlock;
-					}
-				}
+				isCodeBlock = updateCodeBlockState(line, isCodeBlock);
 
 				if (isCodeBlock) {
 					continue;

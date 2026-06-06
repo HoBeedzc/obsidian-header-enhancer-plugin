@@ -95,6 +95,19 @@ export function isHeader(text: string): boolean {
 	return /^#{1,6} .*/.test(text.trim());
 }
 
+export function updateCodeBlockState(line: string, isCodeBlock: boolean): boolean {
+	const trimmedLine = line.trimStart();
+	if (!trimmedLine.startsWith("```")) {
+		return isCodeBlock;
+	}
+
+	isCodeBlock = !isCodeBlock;
+	if (trimmedLine.slice(3).includes("```")) {
+		isCodeBlock = !isCodeBlock;
+	}
+	return isCodeBlock;
+}
+
 export interface HeaderLevelAnalysis {
 	minLevel: number;      // 文档中最高层级（数字最小的#，如H2=2）
 	maxLevel: number;      // 文档中最低层级（数字最大的#，如H5=5）
@@ -111,12 +124,7 @@ export function analyzeHeaderLevels(content: string): HeaderLevelAnalysis {
 	
 	for (const line of lines) {
 		// 处理代码块（复用现有逻辑）
-		if (line.startsWith("```")) {
-			isCodeBlock = !isCodeBlock;
-			if (line.slice(3).includes("```")) {
-				isCodeBlock = !isCodeBlock;
-			}
-		}
+		isCodeBlock = updateCodeBlockState(line, isCodeBlock);
 		
 		if (isCodeBlock) continue;
 		
