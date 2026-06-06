@@ -1,5 +1,11 @@
 # 更新记录 - Changelog
 
+## [0.5.2] - 2026-06-06
+### Fixed
+- 🐛 修复手动/YAML 标题层级范围未正确生效的问题 - Fixed configured manual/YAML header level ranges not being fully respected
+- 🐛 修复选中标题文本后按 Backspace 或直接输入无法正常删除/替换的问题 - Fixed deleting or replacing selected heading text with Backspace or direct typing
+- 🐛 修复带缩进的代码块围栏导致后续标题编号异常的问题 - Fixed indented code fences causing later header numbering issues
+
 ## [0.5.1] - 2025-11-03
 ### Fixed
 - 🐛 修复 Enter 键在标题行的自动编号行为 - Fixed Enter key behavior for automatic header numbering on header lines
