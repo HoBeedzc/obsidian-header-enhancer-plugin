@@ -520,7 +520,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						line,
 						config.startLevel
 					);
-					if (headerLevel <= 0) {
+					if (headerLevel <= 0 || realHeaderLevel > config.endLevel) {
 						continue;
 					}
 					insertNumber = getNextNumber(insertNumber, headerLevel);
