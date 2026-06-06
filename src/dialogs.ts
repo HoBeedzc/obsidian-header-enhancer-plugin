@@ -1,7 +1,7 @@
 import { App, Modal, Setting, Notice, TFile } from "obsidian";
 import HeaderEnhancerPlugin from "./main";
 import { I18n } from "./i18n";
-import { removeHeaderNumber, isHeader, getNextNumber } from "./core";
+import { removeHeaderNumber, isHeader, getNextNumber, updateCodeBlockState } from "./core";
 import { getAutoNumberingConfig } from "./config";
 
 export class AutoNumberingRemovalDialog extends Modal {
@@ -232,10 +232,7 @@ export class AutoNumberingRemovalDialog extends Modal {
                 const line = lines[i];
                 
                 // Track code blocks
-                if (line.startsWith("```")) {
-                    isInCodeBlock = !isInCodeBlock;
-                    continue;
-                }
+                isInCodeBlock = updateCodeBlockState(line, isInCodeBlock);
                 
                 // Skip processing headers inside code blocks
                 if (isInCodeBlock) {
@@ -532,12 +529,7 @@ export class AutoNumberingActivationDialog extends Modal {
                 const line = lines[i];
                 
                 // Track code blocks
-                if (line.startsWith("```")) {
-                    isInCodeBlock = !isInCodeBlock;
-                    if (line.slice(3).contains("```")) {
-                        isInCodeBlock = !isInCodeBlock;
-                    }
-                }
+                isInCodeBlock = updateCodeBlockState(line, isInCodeBlock);
                 
                 // Skip processing headers inside code blocks
                 if (isInCodeBlock) {
