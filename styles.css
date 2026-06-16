@@ -1,8 +1,467 @@
-/*
+/* Header and title font settings */
+body.header-enhancer-custom-header-font-family .markdown-preview-view h1,
+body.header-enhancer-custom-header-font-family .markdown-preview-view h2,
+body.header-enhancer-custom-header-font-family .markdown-preview-view h3,
+body.header-enhancer-custom-header-font-family .markdown-preview-view h4,
+body.header-enhancer-custom-header-font-family .markdown-preview-view h5,
+body.header-enhancer-custom-header-font-family .markdown-preview-view h6,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-1,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-2,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-3,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-4,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-5,
+body.header-enhancer-custom-header-font-family .markdown-source-view.mod-cm6 .HyperMD-header-6 {
+	font-family: var(--header-enhancer-header-font-family) !important;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+body.header-enhancer-custom-header-font-size .markdown-preview-view h1,
+body.header-enhancer-custom-header-font-size .markdown-preview-view h2,
+body.header-enhancer-custom-header-font-size .markdown-preview-view h3,
+body.header-enhancer-custom-header-font-size .markdown-preview-view h4,
+body.header-enhancer-custom-header-font-size .markdown-preview-view h5,
+body.header-enhancer-custom-header-font-size .markdown-preview-view h6,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-1,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-2,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-3,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-4,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-5,
+body.header-enhancer-custom-header-font-size .markdown-source-view.mod-cm6 .HyperMD-header-6 {
+	font-size: var(--header-enhancer-header-font-size) !important;
+}
 
-If your plugin does not need CSS, delete this file.
+body.header-enhancer-custom-title-font-family .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-family .workspace-tab-header .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-family .workspace-tabs .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-family .workspace-leaf-content .view-header-title,
+body.header-enhancer-custom-title-font-family .inline-title,
+body.header-enhancer-custom-title-font-family .markdown-preview-view .inline-title,
+body.header-enhancer-custom-title-font-family .markdown-source-view .inline-title,
+body.header-enhancer-custom-title-font-family .nav-file-title-content,
+body.header-enhancer-custom-title-font-family .tree-item-inner.nav-file-title-content,
+body.header-enhancer-custom-title-font-family .frontmatter-container .metadata-property[data-property-key="title"] .metadata-property-value {
+	font-family: var(--header-enhancer-title-font-family) !important;
+}
 
-*/
+body.header-enhancer-custom-title-font-size .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-size .workspace-tab-header .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-size .workspace-tabs .workspace-tab-header-inner-title,
+body.header-enhancer-custom-title-font-size .workspace-leaf-content .view-header-title,
+body.header-enhancer-custom-title-font-size .inline-title,
+body.header-enhancer-custom-title-font-size .markdown-preview-view .inline-title,
+body.header-enhancer-custom-title-font-size .markdown-source-view .inline-title,
+body.header-enhancer-custom-title-font-size .nav-file-title-content,
+body.header-enhancer-custom-title-font-size .tree-item-inner.nav-file-title-content,
+body.header-enhancer-custom-title-font-size .frontmatter-container .metadata-property[data-property-key="title"] .metadata-property-value {
+	font-size: var(--header-enhancer-title-font-size) !important;
+}
+
+/* Ribbon icon state styles */
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled {
+	opacity: 0.4;
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled:hover {
+	opacity: 0.6;
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-enabled {
+	color: var(--color-accent);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-enabled:hover {
+	color: var(--color-accent-hover);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-disabled {
+	opacity: 0.7;
+	color: var(--text-muted);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-document-disabled:hover {
+	opacity: 1;
+	color: var(--text-normal);
+}
+
+.side-dock-ribbon-action[aria-label*="Header Enhancer"].header-enhancer-global-disabled::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: var(--text-error);
+	z-index: 10;
+}
+
+/* Settings page */
+.header-enhancer-global-disabled-info,
+.header-enhancer-off-info {
+	margin: 1.5em 0;
+	padding: 1.2em;
+	border: 2px solid var(--text-muted);
+	border-radius: 8px;
+	background: var(--background-secondary);
+	opacity: 0.8;
+}
+
+.header-enhancer-info-title {
+	font-weight: 600;
+	color: var(--text-muted);
+	margin-bottom: 0.8em;
+	display: flex;
+	align-items: center;
+}
+
+.header-enhancer-info-description {
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+.header-enhancer-font-preview,
+.header-enhancer-title-font-preview {
+	margin: 1em 0;
+	padding: 1em;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+}
+
+.header-enhancer-preview-title {
+	font-size: 1.5em;
+	font-weight: bold;
+	margin: 0.5em 0;
+}
+
+.header-enhancer-auto-detection-preview {
+	margin: 1em 0;
+	padding: 1.2em;
+	border: 2px solid var(--color-green);
+	border-radius: 8px;
+	background: var(--background-secondary);
+	position: relative;
+}
+
+.header-enhancer-auto-detection-title {
+	font-weight: 600;
+	font-size: 1em;
+	color: var(--color-green);
+	margin-bottom: 0.8em;
+	display: flex;
+	align-items: center;
+}
+
+.header-enhancer-muted-italic {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.header-enhancer-empty-analysis {
+	color: var(--text-muted);
+	text-align: center;
+	padding: 1em;
+}
+
+.header-enhancer-analysis-grid {
+	display: grid;
+	gap: 0.8em;
+	line-height: 1.6;
+}
+
+.header-enhancer-analysis-row {
+	display: flex;
+	align-items: center;
+	gap: 0.8em;
+}
+
+.header-enhancer-analysis-row-start {
+	align-items: flex-start;
+}
+
+.header-enhancer-analysis-label {
+	color: var(--text-normal);
+	min-width: 70px;
+}
+
+.header-enhancer-analysis-row-start .header-enhancer-analysis-label {
+	margin-top: 0.2em;
+}
+
+.header-enhancer-analysis-values {
+	display: flex;
+	gap: 0.4em;
+	flex-wrap: wrap;
+}
+
+.header-enhancer-level-chip {
+	background: var(--tag-background);
+	color: var(--tag-color);
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-family: monospace;
+}
+
+.header-enhancer-mapping-chip {
+	background: var(--background-modifier-hover);
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-family: monospace;
+}
+
+.header-enhancer-range-badge,
+.header-enhancer-total-badge {
+	color: var(--text-on-accent);
+	padding: 0.3em 0.6em;
+	border-radius: 4px;
+	font-weight: 500;
+}
+
+.header-enhancer-range-badge {
+	background: var(--color-green);
+}
+
+.header-enhancer-total-badge {
+	background: var(--color-blue);
+}
+
+.header-enhancer-format-preview-container {
+	margin: 1.5em 0;
+}
+
+.header-enhancer-format-preview-title {
+	font-weight: 600;
+	font-size: 1.1em;
+	color: var(--text-accent);
+	margin-bottom: 1em;
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.header-enhancer-format-preview-icon {
+	color: var(--color-accent);
+}
+
+.header-enhancer-format-state {
+	text-align: center;
+	padding: 1.5em;
+	border: 2px dashed var(--background-modifier-border);
+	border-radius: 8px;
+	background: var(--background-modifier-hover);
+}
+
+.header-enhancer-format-state-muted {
+	color: var(--text-muted);
+}
+
+.header-enhancer-format-state-yaml {
+	color: var(--text-accent);
+	border-color: var(--color-blue);
+}
+
+.header-enhancer-format-state-icon {
+	font-size: 1.5em;
+	margin-bottom: 0.5em;
+}
+
+.header-enhancer-format-state-text {
+	font-size: 1em;
+	font-weight: 500;
+}
+
+.header-enhancer-format-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5em;
+}
+
+.header-enhancer-format-example-wrapper {
+	text-align: center;
+}
+
+.header-enhancer-format-example {
+	font-family: monospace;
+	font-size: 1.8em;
+	font-weight: 700;
+	color: var(--color-accent);
+	background: var(--background-primary);
+	padding: 1em;
+	border-radius: 8px;
+	border: 2px solid var(--color-accent);
+}
+
+.header-enhancer-format-details {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1em;
+}
+
+.header-enhancer-format-level-info {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.header-enhancer-status-badge {
+	color: white;
+	padding: 0.3em 0.8em;
+	border-radius: 15px;
+	font-size: 0.85em;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.header-enhancer-status-auto {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.header-enhancer-status-warning {
+	background: var(--color-orange);
+}
+
+.header-enhancer-status-muted {
+	background: var(--text-muted);
+}
+
+.header-enhancer-status-manual {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.header-enhancer-yaml-info {
+	margin: 1.5em 0;
+	padding: 1.2em;
+	border: 2px solid var(--color-blue);
+	border-radius: 8px;
+	background: var(--background-secondary);
+}
+
+.header-enhancer-yaml-title {
+	font-weight: 600;
+	color: var(--color-blue);
+	margin-bottom: 0.8em;
+	display: flex;
+	align-items: center;
+}
+
+.header-enhancer-yaml-description {
+	display: grid;
+	gap: 1em;
+	line-height: 1.6;
+	color: var(--text-normal);
+}
+
+.header-enhancer-yaml-example {
+	background: var(--code-background);
+	padding: 0.5em;
+	border-radius: 4px;
+	display: block;
+	font-family: monospace;
+	white-space: pre-wrap;
+}
+
+/* Auto numbering dialog styles */
+.header-enhancer-removal-dialog,
+.header-enhancer-activation-dialog {
+	max-width: 500px;
+}
+
+.header-enhancer-removal-dialog .modal-title,
+.header-enhancer-activation-dialog .modal-title {
+	margin-bottom: 1em;
+	padding-bottom: 0.5em;
+	color: var(--text-accent);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.header-enhancer-removal-dialog .modal-message,
+.header-enhancer-activation-dialog .modal-message {
+	margin-bottom: 1.5em;
+	line-height: 1.5;
+	color: var(--text-normal);
+}
+
+.header-enhancer-removal-dialog .modal-actions,
+.header-enhancer-activation-dialog .modal-actions {
+	margin-top: 1em;
+	padding-top: 1em;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.header-enhancer-removal-dialog .modal-actions .setting-item,
+.header-enhancer-activation-dialog .modal-actions .setting-item {
+	margin-bottom: 0.75em;
+	padding: 0.75em;
+	background-color: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	transition: all 0.2s ease;
+}
+
+.header-enhancer-removal-dialog .modal-actions .setting-item:hover,
+.header-enhancer-activation-dialog .modal-actions .setting-item:hover {
+	background-color: var(--background-secondary-alt);
+	border-color: var(--background-modifier-border-hover);
+}
+
+.header-enhancer-removal-dialog .setting-item-warning,
+.header-enhancer-removal-dialog .setting-item-tip,
+.header-enhancer-activation-dialog .setting-item-warning,
+.header-enhancer-activation-dialog .setting-item-tip {
+	margin-top: 0.5em;
+	font-size: 0.85em;
+	line-height: 1.3;
+}
+
+.header-enhancer-removal-dialog .warning-label,
+.header-enhancer-activation-dialog .warning-label {
+	color: var(--text-error);
+	font-weight: 600;
+}
+
+.header-enhancer-removal-dialog .warning-text,
+.header-enhancer-removal-dialog .progress-text,
+.header-enhancer-activation-dialog .warning-text,
+.header-enhancer-activation-dialog .progress-text {
+	color: var(--text-muted);
+	margin: 0;
+}
+
+.header-enhancer-removal-dialog .manual-tip-text,
+.header-enhancer-activation-dialog .manual-tip-text {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.header-enhancer-removal-dialog .modal-cancel,
+.header-enhancer-activation-dialog .modal-cancel {
+	margin-top: 1em;
+	padding-top: 1em;
+	text-align: center;
+	border-top: 1px solid var(--background-modifier-border-focus);
+}
+
+.header-enhancer-removal-dialog .progress-container,
+.header-enhancer-activation-dialog .progress-container {
+	margin-top: 1em;
+	padding: 1em;
+	background-color: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	text-align: center;
+}
+
+.header-enhancer-removal-dialog .progress-text,
+.header-enhancer-activation-dialog .progress-text {
+	font-size: 0.9em;
+}
+
+.header-enhancer-removal-dialog button:disabled,
+.header-enhancer-activation-dialog button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

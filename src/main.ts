@@ -99,7 +99,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('file-open', () => {
 				// Small delay to ensure the view is fully loaded
-				setTimeout(() => {
+				window.setTimeout(() => {
 					this.updateAllUIStates();
 				}, 50);
 			})
