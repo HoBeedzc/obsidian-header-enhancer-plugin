@@ -7,7 +7,7 @@
 
 A powerful Obsidian plugin that enhances markdown headers with automatic numbering, intelligent backlink management, and custom fonts.
 
-**Current Version**: 0.5.1
+**Current Version**: 0.6.0
 
 ## ✨ Features
 
@@ -160,7 +160,20 @@ Report bugs at [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhan
 
 ## 📊 Changelog
 
-### v0.5.1 (Current)
+### v0.6.0 (Current)
+**Community Scorecard Improvements**
+- Replaced unsafe settings UI HTML rendering with Obsidian DOM APIs
+- Moved runtime-injected styles into `styles.css`
+- Added reproducible dependency locking and pinned package versions
+- Updated compatibility metadata for Obsidian 1.8.7+
+
+### v0.5.2
+**Bug Fixes**
+- Fixed manual/YAML header level ranges not being fully respected
+- Fixed deleting or replacing selected heading text with Backspace or direct typing
+- Fixed indented code fences causing later header numbering issues
+
+### v0.5.1
 **Bug Fixes and Improvements**
 - Fixed Enter key behavior for automatic header numbering
 - Fixed YAML state synchronization with document toggle button

@@ -1,5 +1,17 @@
 # 更新记录 - Changelog
 
+## [0.6.0] - 2026-06-16
+### Improved
+- 🔒 改进社区插件 Scorecard 风险项 - Improved community plugin Scorecard risk findings
+  - 使用 Obsidian DOM API 替换设置界面的 unsafe HTML 渲染 - Replaced unsafe settings UI HTML rendering with Obsidian DOM APIs
+  - 将运行时注入样式迁移到 `styles.css` - Moved runtime-injected styles into `styles.css`
+  - 新增可复现依赖锁定并固定依赖版本 - Added reproducible dependency locking and pinned package versions
+  - 移除 `builtin-modules` 依赖并使用 Node 内置模块列表 - Removed `builtin-modules` dependency in favor of Node builtin module metadata
+  - 显式声明 CodeMirror 运行依赖 - Explicitly declared CodeMirror runtime dependencies
+  - 更新 Obsidian 1.8.7+ 兼容性元数据 - Updated compatibility metadata for Obsidian 1.8.7+
+### Fixed
+- 🐛 改进弹窗进度显示和延时调用的 Obsidian 兼容性 - Improved modal progress display and timeout calls for Obsidian compatibility
+
 ## [0.5.2] - 2026-06-06
 ### Fixed
 - 🐛 修复手动/YAML 标题层级范围未正确生效的问题 - Fixed configured manual/YAML header level ranges not being fully respected
