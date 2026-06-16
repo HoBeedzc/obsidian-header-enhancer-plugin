@@ -101,9 +101,9 @@ export class AutoNumberingRemovalDialog extends Modal {
         
         // Progress container (initially hidden)
         this.progressContainer = contentEl.createDiv({ 
-            cls: "progress-container",
-            attr: { style: "display: none;" }
+            cls: "progress-container"
         });
+        this.progressContainer.hide();
     }
 
     private async handleRemoveAndTurnOff(): Promise<void> {
@@ -137,7 +137,7 @@ export class AutoNumberingRemovalDialog extends Modal {
     private showProgress(): void {
         const i18n = I18n.getInstance();
         if (this.progressContainer) {
-            this.progressContainer.style.display = "block";
+            this.progressContainer.show();
             this.progressContainer.empty();
             this.progressContainer.createEl("p", { 
                 text: i18n.t("settings.autoNumbering.removeConfirmation.processing"),
@@ -153,7 +153,7 @@ export class AutoNumberingRemovalDialog extends Modal {
     
     private hideProgress(): void {
         if (this.progressContainer) {
-            this.progressContainer.style.display = "none";
+            this.progressContainer.hide();
             this.progressContainer.empty();
         }
         
@@ -183,7 +183,7 @@ export class AutoNumberingRemovalDialog extends Modal {
                     if (modified) {
                         modifiedCount++;
                         // Additional delay after file modification to allow other plugins to process
-                        await new Promise(resolve => setTimeout(resolve, 10));
+                        await new Promise(resolve => window.setTimeout(resolve, 10));
                     }
                     processedCount++;
                     
@@ -195,11 +195,11 @@ export class AutoNumberingRemovalDialog extends Modal {
                 }
                 
                 // Small delay between individual files
-                await new Promise(resolve => setTimeout(resolve, 5));
+                await new Promise(resolve => window.setTimeout(resolve, 5));
             }
             
             // Longer delay between batches to allow system to stabilize
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => window.setTimeout(resolve, 50));
         }
         
         // Show completion message
@@ -253,7 +253,7 @@ export class AutoNumberingRemovalDialog extends Modal {
                 
                 // If file was currently open, add extra delay to prevent editor conflicts
                 if (isCurrentlyOpen) {
-                    await new Promise(resolve => setTimeout(resolve, 20));
+                    await new Promise(resolve => window.setTimeout(resolve, 20));
                 }
                 
                 // Handle backlink updates if enabled
@@ -386,9 +386,9 @@ export class AutoNumberingActivationDialog extends Modal {
         
         // Progress container (initially hidden)
         this.progressContainer = contentEl.createDiv({ 
-            cls: "progress-container",
-            attr: { style: "display: none;" }
+            cls: "progress-container"
         });
+        this.progressContainer.hide();
     }
 
     private async handleAddToAll(): Promise<void> {
@@ -422,7 +422,7 @@ export class AutoNumberingActivationDialog extends Modal {
     private showProgress(): void {
         const i18n = I18n.getInstance();
         if (this.progressContainer) {
-            this.progressContainer.style.display = "block";
+            this.progressContainer.show();
             this.progressContainer.empty();
             this.progressContainer.createEl("p", { 
                 text: i18n.t("settings.autoNumbering.activationConfirmation.processing"),
@@ -438,7 +438,7 @@ export class AutoNumberingActivationDialog extends Modal {
     
     private hideProgress(): void {
         if (this.progressContainer) {
-            this.progressContainer.style.display = "none";
+            this.progressContainer.hide();
             this.progressContainer.empty();
         }
         
@@ -467,7 +467,7 @@ export class AutoNumberingActivationDialog extends Modal {
                     if (modified) {
                         modifiedCount++;
                         // Additional delay after file modification
-                        await new Promise(resolve => setTimeout(resolve, 10));
+                        await new Promise(resolve => window.setTimeout(resolve, 10));
                     }
                     processedCount++;
                     
@@ -479,11 +479,11 @@ export class AutoNumberingActivationDialog extends Modal {
                 }
                 
                 // Small delay between individual files
-                await new Promise(resolve => setTimeout(resolve, 5));
+                await new Promise(resolve => window.setTimeout(resolve, 5));
             }
             
             // Longer delay between batches
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => window.setTimeout(resolve, 50));
         }
         
         // Show completion message
@@ -568,7 +568,7 @@ export class AutoNumberingActivationDialog extends Modal {
                 
                 // If file was currently open, add extra delay
                 if (isCurrentlyOpen) {
-                    await new Promise(resolve => setTimeout(resolve, 20));
+                    await new Promise(resolve => window.setTimeout(resolve, 20));
                 }
             }
             

@@ -1,7 +1,7 @@
-import { App, PluginSettingTab, Setting, Notice, MarkdownView } from "obsidian";
+import { App, Modal, PluginSettingTab, Setting, Notice, MarkdownView } from "obsidian";
 import HeaderEnhancerPlugin from "./main";
 import { I18n } from './i18n';
-import { analyzeHeaderLevels } from './core';
+import { analyzeHeaderLevels, HeaderLevelAnalysis } from './core';
 
 export enum AutoNumberingMode {
 	OFF = "off",
@@ -78,9 +78,41 @@ export const DEFAULT_SETTINGS: HeaderEnhancerSettings = {
 	titleFontSize: "inherit",
 };
 
+class ResetSettingsConfirmModal extends Modal {
+	constructor(
+		app: App,
+		private readonly message: string,
+		private readonly onConfirm: () => Promise<void>
+	) {
+		super(app);
+	}
+
+	onOpen(): void {
+		const { contentEl } = this;
+		contentEl.empty();
+		contentEl.addClass("header-enhancer-reset-confirm");
+		contentEl.createEl("p", { text: this.message });
+		new Setting(contentEl)
+			.addButton((button) => {
+				button
+					.setButtonText("Cancel")
+					.onClick(() => this.close());
+			})
+			.addButton((button) => {
+				button
+					.setButtonText("Reset")
+					.setWarning()
+					.onClick(async () => {
+						await this.onConfirm();
+						this.close();
+					});
+			});
+	}
+}
+
 export class HeaderEnhancerSettingTab extends PluginSettingTab {
 	plugin: HeaderEnhancerPlugin;
-	private formatPreviewSetting: Setting | null = null;
+	private formatPreviewContainer: HTMLElement | null = null;
 	private autoDetectionPreviewContainer: HTMLElement | null = null;
 
 	constructor(app: App, plugin: HeaderEnhancerPlugin) {
@@ -94,7 +126,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 		// Reset format preview reference since empty() clears all elements
-		this.formatPreviewSetting = null;
+		this.formatPreviewContainer = null;
 		this.autoDetectionPreviewContainer = null;
 
 		containerEl.createEl("h1", { text: i18n.t("settings.title") });
@@ -164,23 +196,14 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			const globalDisabledInfo = containerEl.createDiv({
 				cls: "header-enhancer-global-disabled-info"
 			});
-			globalDisabledInfo.style.cssText = `
-				margin: 1.5em 0;
-				padding: 1.2em;
-				border: 2px solid var(--text-muted);
-				border-radius: 8px;
-				background: var(--background-secondary);
-				opacity: 0.8;
-			`;
-			
-			globalDisabledInfo.innerHTML = `
-				<div style="font-weight: 600; color: var(--text-muted); margin-bottom: 0.8em; display: flex; align-items: center;">
-					${i18n.t("settings.autoNumbering.globalDisabled.title")}
-				</div>
-				<div style="line-height: 1.6; color: var(--text-muted);">
-					${i18n.t("settings.autoNumbering.globalDisabled.description")}
-				</div>
-			`;
+			globalDisabledInfo.createDiv({
+				text: i18n.t("settings.autoNumbering.globalDisabled.title"),
+				cls: "header-enhancer-info-title"
+			});
+			globalDisabledInfo.createDiv({
+				text: i18n.t("settings.autoNumbering.globalDisabled.description"),
+				cls: "header-enhancer-info-description"
+			});
 			
 			return; // Exit early, don't render other auto numbering settings
 		}
@@ -267,23 +290,14 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			const offInfo = containerEl.createDiv({
 				cls: "header-enhancer-off-info"
 			});
-			offInfo.style.cssText = `
-				margin: 1.5em 0;
-				padding: 1.2em;
-				border: 2px solid var(--text-muted);
-				border-radius: 8px;
-				background: var(--background-secondary);
-				opacity: 0.8;
-			`;
-			
-			offInfo.innerHTML = `
-				<div style="font-weight: 600; color: var(--text-muted); margin-bottom: 0.8em; display: flex; align-items: center;">
-					${i18n.t("autoDetection.info.offMode.title")}
-				</div>
-				<div style="line-height: 1.6; color: var(--text-muted);">
-					${i18n.t("autoDetection.info.offMode.description")}
-				</div>
-			`;
+			offInfo.createDiv({
+				text: i18n.t("autoDetection.info.offMode.title"),
+				cls: "header-enhancer-info-title"
+			});
+			offInfo.createDiv({
+				text: i18n.t("autoDetection.info.offMode.description"),
+				cls: "header-enhancer-info-description"
+			});
 		}
 
 		// Header Font Settings Section
@@ -305,13 +319,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		// Header Font preview section - only show when separate font is enabled
 		if (this.plugin.settings.isSeparateHeaderFont) {
 			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-font-preview" });
-			previewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1em;
-				border: 1px solid var(--background-modifier-border);
-				border-radius: 6px;
-				background: var(--background-secondary);
-			`;
 			
 			previewContainer.createEl("div", { 
 				text: i18n.t("settings.headerFont.preview.title"),
@@ -354,13 +361,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		// Title Font preview section - only show when separate font is enabled
 		if (this.plugin.settings.isSeparateTitleFont) {
 			const previewContainer = containerEl.createDiv({ cls: "header-enhancer-title-font-preview" });
-			previewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1em;
-				border: 1px solid var(--background-modifier-border);
-				border-radius: 6px;
-				background: var(--background-secondary);
-			`;
 			
 			previewContainer.createEl("div", { 
 				text: i18n.t("settings.titleFont.preview.title"),
@@ -374,7 +374,6 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				text: i18n.t("settings.titleFont.preview.sample"),
 				cls: "header-enhancer-preview-title"
 			});
-			titleEl.style.cssText = "font-size: 1.5em; font-weight: bold; margin: 0.5em 0;";
 			
 			// Apply current font settings to preview
 			this.updateTitlePreviewStyles(titleEl);
@@ -387,15 +386,15 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.addButton((button) => {
 				button.setButtonText(i18n.t("settings.resetSettings.name")).onClick(async () => {
-					if (
-						confirm(
-							i18n.t("settings.resetSettings.confirm")
-						)
-					) {
-						this.plugin.settings = DEFAULT_SETTINGS;
-						await this.plugin.saveSettings();
-						this.display();
-					}
+					new ResetSettingsConfirmModal(
+						this.app,
+						i18n.t("settings.resetSettings.confirm"),
+						async () => {
+							this.plugin.settings = DEFAULT_SETTINGS;
+							await this.plugin.saveSettings();
+							this.display();
+						}
+					).open();
 				});
 			});
 
@@ -464,26 +463,12 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 			this.autoDetectionPreviewContainer = containerEl.createDiv({ 
 				cls: "header-enhancer-auto-detection-preview" 
 			});
-			this.autoDetectionPreviewContainer.style.cssText = `
-				margin: 1em 0;
-				padding: 1.2em;
-				border: 2px solid var(--color-green);
-				border-radius: 8px;
-				background: var(--background-secondary);
-				position: relative;
-			`;
 			
 			// 添加标题
-			const previewTitle = this.autoDetectionPreviewContainer.createDiv();
-			previewTitle.style.cssText = `
-				font-weight: 600;
-				font-size: 1em;
-				color: var(--color-green);
-				margin-bottom: 0.8em;
-				display: flex;
-				align-items: center;
-			`;
-			previewTitle.innerHTML = "🔧 智能检测结果";
+			this.autoDetectionPreviewContainer.createDiv({
+				text: "🔧 智能检测结果",
+				cls: "header-enhancer-auto-detection-title"
+			});
 			
 			this.updateAutoDetectionPreview();
 		} else {
@@ -616,37 +601,27 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		const formatPreviewContainer = containerEl.createDiv({ 
 			cls: "header-enhancer-format-preview-container" 
 		});
-		formatPreviewContainer.style.cssText = `
-			margin: 1.5em 0;
-		`;
 		
 		// 标题
-		const previewTitle = formatPreviewContainer.createDiv();
-		previewTitle.style.cssText = `
-			font-weight: 600;
-			font-size: 1.1em;
-			color: var(--text-accent);
-			margin-bottom: 1em;
-			display: flex;
-			align-items: center;
-			gap: 0.5em;
-		`;
-		previewTitle.innerHTML = `<span style="color: var(--color-accent);">🎯</span> ${i18n.t("settings.autoNumbering.format.name")}`;
+		const previewTitle = formatPreviewContainer.createDiv({
+			cls: "header-enhancer-format-preview-title"
+		});
+		previewTitle.createSpan({
+			text: "🎯",
+			cls: "header-enhancer-format-preview-icon"
+		});
+		previewTitle.createSpan({
+			text: i18n.t("settings.autoNumbering.format.name")
+		});
 		
 		// 格式预览内容容器
 		const previewContent = formatPreviewContainer.createDiv({
 			cls: "format-preview-content"
 		});
-		
-		// 存储预览内容元素的引用，用于后续更新
-		this.formatPreviewSetting = {
-			setDesc: (content: string) => {
-				previewContent.innerHTML = content;
-			}
-		} as Setting;
+		this.formatPreviewContainer = previewContent;
 		
 		// 初始化格式预览内容
-		previewContent.innerHTML = this.getFormatPreview();
+		this.renderFormatPreview(previewContent);
 	}
 
 	/**
@@ -810,9 +785,13 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 				cls: "preview-content"
 			});
 		}
+		contentContainer.empty();
 		
 		if (!activeView) {
-			contentContainer.innerHTML = `<div style="color: var(--text-muted); font-style: italic;">${i18n.t("autoDetection.noActiveDocument")}</div>`;
+			contentContainer.createDiv({
+				text: i18n.t("autoDetection.noActiveDocument"),
+				cls: "header-enhancer-muted-italic"
+			});
 			// 更新格式预览，即使没有活动文档
 			this.updateFormatPreview();
 			return;
@@ -820,88 +799,100 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		
 		const content = activeView.editor.getValue();
 		const analysis = analyzeHeaderLevels(content);
-		
-		contentContainer.innerHTML = `
-			<div style="line-height: 1.6;">
-				${this.formatAnalysisResult(analysis)}
-			</div>
-		`;
+		this.renderAnalysisResult(contentContainer, analysis);
 		
 		// 当自动检测预览更新时，同时更新格式预览
 		this.updateFormatPreview();
 	}
 
 	/**
-	 * Format analysis result for display
+	 * Render analysis result for display
 	 */
-	formatAnalysisResult(analysis: any): string {
+	renderAnalysisResult(containerEl: HTMLElement, analysis: HeaderLevelAnalysis): void {
 		const i18n = I18n.getInstance();
 		
 		if (analysis.isEmpty) {
-			return `<div style="color: var(--text-muted); text-align: center; padding: 1em;">
-				📝 ${i18n.t("autoDetection.noHeaders")}
-			</div>`;
+			containerEl.createDiv({
+				text: `📝 ${i18n.t("autoDetection.noHeaders")}`,
+				cls: "header-enhancer-empty-analysis"
+			});
+			return;
 		}
 		
-		const levelNames = analysis.usedLevels.map((level: number) => `<span style="background: var(--tag-background); color: var(--tag-color); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;">H${level}</span>`).join(' ');
-		const mappingInfo = analysis.usedLevels.map((level: number, index: number) => 
-			`<span style="background: var(--background-modifier-hover); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;">H${level}→${index + 1}级</span>`
-		).join(' ');
-		
-		return `
-			<div style="display: grid; gap: 0.8em;">
-				<div style="display: flex; align-items: center; gap: 0.8em;">
-					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.detected")}:</strong>
-					<div style="display: flex; gap: 0.4em; flex-wrap: wrap;">${levelNames}</div>
-				</div>
-				<div style="display: flex; align-items: center; gap: 0.8em;">
-					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.range")}:</strong>
-					<span style="background: var(--color-green-rgb); color: var(--text-on-accent); padding: 0.3em 0.6em; border-radius: 4px; font-weight: 500;">H${analysis.minLevel} - H${analysis.maxLevel}</span>
-				</div>
-				<div style="display: flex; align-items: flex-start; gap: 0.8em;">
-					<strong style="color: var(--text-normal); min-width: 70px; margin-top: 0.2em;">${i18n.t("autoDetection.mapping")}:</strong>
-					<div style="display: flex; gap: 0.4em; flex-wrap: wrap;">${mappingInfo}</div>
-				</div>
-				<div style="display: flex; align-items: center; gap: 0.8em;">
-					<strong style="color: var(--text-normal); min-width: 70px;">${i18n.t("autoDetection.totalHeaders")}:</strong>
-					<span style="background: var(--color-blue-rgb); color: var(--text-on-accent); padding: 0.3em 0.6em; border-radius: 4px; font-weight: 500;">${analysis.headerCount}</span>
-				</div>
-			</div>
-		`;
+		const grid = containerEl.createDiv({
+			cls: "header-enhancer-analysis-grid"
+		});
+
+		const detectedRow = this.createAnalysisRow(grid, `${i18n.t("autoDetection.detected")}:`);
+		analysis.usedLevels.forEach((level) => {
+			detectedRow.createSpan({
+				text: `H${level}`,
+				cls: "header-enhancer-level-chip"
+			});
+		});
+
+		const rangeRow = this.createAnalysisRow(grid, `${i18n.t("autoDetection.range")}:`);
+		rangeRow.createSpan({
+			text: `H${analysis.minLevel} - H${analysis.maxLevel}`,
+			cls: "header-enhancer-range-badge"
+		});
+
+		const mappingRow = this.createAnalysisRow(grid, `${i18n.t("autoDetection.mapping")}:`, true);
+		analysis.usedLevels.forEach((level, index) => {
+			mappingRow.createSpan({
+				text: `H${level}→${index + 1}级`,
+				cls: "header-enhancer-mapping-chip"
+			});
+		});
+
+		const totalRow = this.createAnalysisRow(grid, `${i18n.t("autoDetection.totalHeaders")}:`);
+		totalRow.createSpan({
+			text: analysis.headerCount.toString(),
+			cls: "header-enhancer-total-badge"
+		});
 	}
 
 	/**
-	 * Get format preview string
+	 * Create an analysis row and return its value container.
 	 */
-	getFormatPreview(): string {
+	private createAnalysisRow(containerEl: HTMLElement, label: string, alignStart = false): HTMLElement {
+		const row = containerEl.createDiv({
+			cls: alignStart ? "header-enhancer-analysis-row header-enhancer-analysis-row-start" : "header-enhancer-analysis-row"
+		});
+		row.createEl("strong", {
+			text: label,
+			cls: "header-enhancer-analysis-label"
+		});
+		return row.createDiv({
+			cls: "header-enhancer-analysis-values"
+		});
+	}
+
+	/**
+	 * Render format preview
+	 */
+	renderFormatPreview(containerEl: HTMLElement): void {
 		const i18n = I18n.getInstance();
+		containerEl.empty();
 		
 		switch (this.plugin.settings.autoNumberingMode) {
 			case AutoNumberingMode.OFF:
-				return `<div style="
-					color: var(--text-muted); 
-					text-align: center; 
-					padding: 1.5em;
-					border: 2px dashed var(--background-modifier-border);
-					border-radius: 8px;
-					background: var(--background-modifier-hover);
-				">
-					<div style="font-size: 1.5em; margin-bottom: 0.5em;">⏹️</div>
-					<div style="font-size: 1em; font-weight: 500;">${i18n.t("settings.autoNumbering.format.disabled")}</div>
-				</div>`;
+				this.renderEmptyFormatState(
+					containerEl,
+					"⏹️",
+					i18n.t("settings.autoNumbering.format.disabled"),
+					"header-enhancer-format-state-muted"
+				);
+				return;
 			
 			case AutoNumberingMode.YAML_CONTROLLED:
-				return `<div style="
-					color: var(--text-accent); 
-					text-align: center; 
-					padding: 1.5em;
-					border: 2px dashed var(--color-blue);
-					border-radius: 8px;
-					background: var(--background-modifier-hover);
-				">
-					<div style="font-size: 1.5em; margin-bottom: 0.5em;">📄</div>
-					<div style="font-size: 1em; font-weight: 500;">${i18n.t("settings.autoNumbering.format.yamlControlled")}</div>
-				</div>`;
+				this.renderEmptyFormatState(
+					containerEl,
+					"📄",
+					i18n.t("settings.autoNumbering.format.yamlControlled"),
+					"header-enhancer-format-state-yaml"
+				);
+				return;
 			
 			case AutoNumberingMode.ON:
 			default:
@@ -913,7 +904,7 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 					"1";
 				
 				let levelInfo: string;
-				let statusBadge: string;
+				let statusClass: string;
 				
 				// 如果启用了自动检测，尝试获取当前文档的实际层级范围
 				if (this.plugin.settings.isAutoDetectHeaderLevel) {
@@ -924,98 +915,75 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 						
 						if (!analysis.isEmpty) {
 							levelInfo = `${i18n.t("settings.autoNumbering.format.fromLevel")} H${analysis.minLevel} ${i18n.t("settings.autoNumbering.format.toLevel")} H${analysis.maxLevel}`;
-							statusBadge = `<span style="
-								background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-								color: white;
-								padding: 0.3em 0.8em;
-								border-radius: 15px;
-								font-size: 0.85em;
-								font-weight: 600;
-								box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-							">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+							statusClass = "header-enhancer-status-auto";
 						} else {
 							levelInfo = i18n.t("autoDetection.noHeaders");
-							statusBadge = `<span style="
-								background: var(--color-orange);
-								color: white;
-								padding: 0.3em 0.8em;
-								border-radius: 15px;
-								font-size: 0.85em;
-								font-weight: 600;
-							">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+							statusClass = "header-enhancer-status-warning";
 						}
 					} else {
 						levelInfo = i18n.t("autoDetection.noActiveDocument");
-						statusBadge = `<span style="
-							background: var(--text-muted);
-							color: white;
-							padding: 0.3em 0.8em;
-							border-radius: 15px;
-							font-size: 0.85em;
-							font-weight: 600;
-						">${i18n.t("settings.autoNumbering.format.autoDetect")}</span>`;
+						statusClass = "header-enhancer-status-muted";
 					}
 				} else {
 					// 手动模式：使用设置的层级
 					levelInfo = `${i18n.t("settings.autoNumbering.format.fromLevel")} H${this.plugin.settings.startHeaderLevel} ${i18n.t("settings.autoNumbering.format.toLevel")} H${this.plugin.settings.endHeaderLevel}`;
-					statusBadge = `<span style="
-						background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-						color: white;
-						padding: 0.3em 0.8em;
-						border-radius: 15px;
-						font-size: 0.85em;
-						font-weight: 600;
-						box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-					">${i18n.t("settings.autoNumbering.format.manual")}</span>`;
+					statusClass = "header-enhancer-status-manual";
 				}
 				
-				return `
-					<div style="display: flex; flex-direction: column; gap: 1.5em;">
-						<!-- Format example -->
-						<div style="
-							text-align: center;
-						">
-							<div style="
-								font-family: monospace;
-								font-size: 1.8em;
-								font-weight: 700;
-								color: var(--color-accent);
-								background: var(--background-primary);
-								padding: 1em;
-								border-radius: 8px;
-								border: 2px solid var(--color-accent);
-							">${formatExample}</div>
-						</div>
-						
-						<!-- Level range and status -->
-						<div style="
-							display: flex;
-							justify-content: space-between;
-							align-items: center;
-						">
-							<div style="
-								display: flex;
-								align-items: center;
-								gap: 0.5em;
-								font-weight: 500;
-								color: var(--text-normal);
-							">
-								<span style="color: var(--color-accent);">📏</span>
-								<span>${levelInfo}</span>
-							</div>
-							${statusBadge}
-						</div>
-					</div>
-				`;
+				const preview = containerEl.createDiv({
+					cls: "header-enhancer-format-preview"
+				});
+				const exampleWrapper = preview.createDiv({
+					cls: "header-enhancer-format-example-wrapper"
+				});
+				exampleWrapper.createDiv({
+					text: formatExample,
+					cls: "header-enhancer-format-example"
+				});
+
+				const details = preview.createDiv({
+					cls: "header-enhancer-format-details"
+				});
+				const levelInfoEl = details.createDiv({
+					cls: "header-enhancer-format-level-info"
+				});
+				levelInfoEl.createSpan({
+					text: "📏",
+					cls: "header-enhancer-format-preview-icon"
+				});
+				levelInfoEl.createSpan({
+					text: levelInfo
+				});
+				details.createSpan({
+					text: this.plugin.settings.isAutoDetectHeaderLevel ?
+						i18n.t("settings.autoNumbering.format.autoDetect") :
+						i18n.t("settings.autoNumbering.format.manual"),
+					cls: `header-enhancer-status-badge ${statusClass}`
+				});
+				return;
 		}
+	}
+
+	private renderEmptyFormatState(containerEl: HTMLElement, icon: string, text: string, stateClass: string): void {
+		const stateEl = containerEl.createDiv({
+			cls: `header-enhancer-format-state ${stateClass}`
+		});
+		stateEl.createDiv({
+			text: icon,
+			cls: "header-enhancer-format-state-icon"
+		});
+		stateEl.createDiv({
+			text,
+			cls: "header-enhancer-format-state-text"
+		});
 	}
 
 	/**
 	 * Update format preview
 	 */
 	updateFormatPreview(): void {
-		if (this.formatPreviewSetting) {
-			this.formatPreviewSetting.setDesc(this.getFormatPreview());
+		if (this.formatPreviewContainer) {
+			this.renderFormatPreview(this.formatPreviewContainer);
 		}
 	}
 
@@ -1118,28 +1086,23 @@ export class HeaderEnhancerSettingTab extends PluginSettingTab {
 		const yamlInfo = containerEl.createDiv({
 			cls: "header-enhancer-yaml-info"
 		});
-		yamlInfo.style.cssText = `
-			margin: 1.5em 0;
-			padding: 1.2em;
-			border: 2px solid var(--color-blue);
-			border-radius: 8px;
-			background: var(--background-secondary);
-		`;
-
-		yamlInfo.innerHTML = `
-			<div style="font-weight: 600; color: var(--color-blue); margin-bottom: 0.8em; display: flex; align-items: center;">
-				${i18n.t("autoDetection.info.yamlMode.title")}
-			</div>
-			<div style="line-height: 1.6; color: var(--text-normal);">
-				${i18n.t("autoDetection.info.yamlMode.description")}<br><br>
-				<code style="background: var(--code-background); padding: 0.5em; border-radius: 4px; display: block; font-family: monospace;">
----<br>
-header-auto-numbering: ${yamlExample}<br>
----
-				</code><br>
-				${i18n.t("autoDetection.info.yamlMode.usage")}
-			</div>
-		`;
+		yamlInfo.createDiv({
+			text: i18n.t("autoDetection.info.yamlMode.title"),
+			cls: "header-enhancer-yaml-title"
+		});
+		const yamlDescription = yamlInfo.createDiv({
+			cls: "header-enhancer-yaml-description"
+		});
+		yamlDescription.createDiv({
+			text: i18n.t("autoDetection.info.yamlMode.description")
+		});
+		yamlDescription.createEl("code", {
+			text: `---\nheader-auto-numbering: ${yamlExample}\n---`,
+			cls: "header-enhancer-yaml-example"
+		});
+		yamlDescription.createDiv({
+			text: i18n.t("autoDetection.info.yamlMode.usage")
+		});
 
 		// 没有 YAML 的文档操作选项
 		new Setting(containerEl)
