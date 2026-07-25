@@ -139,7 +139,7 @@ header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 
 
 **Daily Usage**
 - ✅ Press `Enter` on header line to auto-add/update numbering
-- ✅ After manually changing header level, move cursor to line and press `Enter` to refresh
+- ✅ After editing a header or changing its level, move the cursor to another line to refresh numbering
 - ✅ Click ribbon icon to quickly toggle current document numbering
 
 **Bulk Operations**
@@ -153,7 +153,6 @@ header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 
 - 🎯 Project docs: Start from H2, preserve H1 as document title
 
 ## 🐛 Known Issues
-- Manual refresh needed when changing header levels (press `Enter`)
 - Default separator uses tab character (`\t`)
 
 Report bugs at [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues)

@@ -1,4 +1,5 @@
 import { Editor, MarkdownView, Notice, Plugin, TFile } from "obsidian";
+import type { EditorChange } from "obsidian";
 
 import {
 	getHeaderLevel,
@@ -22,6 +23,7 @@ import { getAutoNumberingConfig } from "./config";
 import { I18n } from "./i18n";
 import { BacklinkManager } from "./backlinks";
 import { EditorHandlers } from "./editor/editor-handlers";
+import { HEADER_ENHANCER_USER_EVENT } from "./editor/heading-change";
 import { StyleManager } from "./styles/style-manager";
 
 export default class HeaderEnhancerPlugin extends Plugin {
@@ -87,6 +89,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Register editor extensions
 		const keyHandlers = this.editorHandlers.registerKeyHandlers();
 		keyHandlers.forEach(handler => this.registerEditorExtension(handler));
+		this.registerEditorExtension(this.editorHandlers.registerHeadingRefreshHandler());
 
 		// Register event listeners for document switching
 		this.registerEvent(
@@ -498,6 +501,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Get current file for backlink processing
 		const currentFile = view.file;
 		const headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}> = [];
+		const editorChanges: EditorChange[] = [];
 
 		if (config.state) {
 			let insertNumber: number[] = [Number(config.startNumber) - 1];
@@ -568,10 +572,20 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							originalHeading: originalHeading
 						});
 						
-						// Apply changes
-						editor.setLine(i, newLine);
+						editorChanges.push({
+							from: { line: i, ch: 0 },
+							to: { line: i, ch: line.length },
+							text: newLine,
+						});
 					}
 				}
+			}
+
+			if (editorChanges.length > 0) {
+				editor.transaction(
+					{ changes: editorChanges },
+					HEADER_ENHANCER_USER_EVENT
+				);
 			}
 
 			// Handle backlink updates
@@ -661,6 +675,7 @@ export default class HeaderEnhancerPlugin extends Plugin {
 		// Get current file for backlink processing
 		const currentFile = view.file;
 		const headerChanges: Array<{lineIndex: number, oldText: string, newText: string, originalHeading: string}> = [];
+		const editorChanges: EditorChange[] = [];
 
 		// Always attempt to remove numbering regardless of current state
 		// This allows cleanup even when auto numbering is disabled
@@ -694,9 +709,20 @@ export default class HeaderEnhancerPlugin extends Plugin {
 						});
 					}
 					
-					editor.setLine(i, newLine);
+					editorChanges.push({
+						from: { line: i, ch: 0 },
+						to: { line: i, ch: line.length },
+						text: newLine,
+					});
 				}
 			}
+		}
+
+		if (editorChanges.length > 0) {
+			editor.transaction(
+				{ changes: editorChanges },
+				HEADER_ENHANCER_USER_EVENT
+			);
 		}
 		
 		// Handle backlink updates - from numbered format back to original format
