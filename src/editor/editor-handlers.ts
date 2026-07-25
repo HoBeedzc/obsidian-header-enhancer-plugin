@@ -1,10 +1,17 @@
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { Prec, Extension } from "@codemirror/state";
-import { MarkdownView } from "obsidian";
+import { editorInfoField, MarkdownView } from "obsidian";
 import { isHeader } from "../core";
 import { getAutoNumberingConfig } from "../config";
 import { AutoNumberingMode } from "../setting";
 import type HeaderEnhancerPlugin from "../main";
+import {
+	HEADER_ENHANCER_USER_EVENT,
+	HeadingChangeTracker,
+	isTrackedDocumentChange,
+} from "./heading-change";
+
+const HEADING_REFRESH_DEBOUNCE_MS = 200;
 
 /**
  * 处理编辑器相关的操作，包括按键处理和 CodeMirror 集成
@@ -90,6 +97,13 @@ export class EditorHandlers {
 		];
 	}
 
+	registerHeadingRefreshHandler(): Extension {
+		const plugin = this.plugin;
+		return ViewPlugin.define(
+			(view) => new HeadingLeaveRefreshHandler(view, plugin)
+		);
+	}
+
 	/**
 	 * 处理 Enter 键按下事件
 	 */
@@ -139,7 +153,7 @@ export class EditorHandlers {
 		view.dispatch({
 			changes,
 			selection: { anchor: currentLine.from + textBeforeCursor.length + 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
+			userEvent: HEADER_ENHANCER_USER_EVENT,
 		});
 
 		// 在操作完成后更新标题编号
@@ -186,9 +200,112 @@ export class EditorHandlers {
 		view.dispatch({
 			changes,
 			selection: { anchor: pos - 1 },
-			userEvent: "HeaderEnhancer.changeAutoNumbering",
+			userEvent: "delete.backward",
 		});
 
 		return true;
+	}
+}
+
+class HeadingLeaveRefreshHandler {
+	private readonly tracker = new HeadingChangeTracker();
+	private refreshTimer: number | null = null;
+	private refreshRunning = false;
+	private refreshQueued = false;
+	private destroyed = false;
+
+	constructor(
+		private readonly view: EditorView,
+		private readonly plugin: HeaderEnhancerPlugin
+	) {}
+
+	update(update: ViewUpdate): void {
+		let trackedChange = false;
+		for (const transaction of update.transactions) {
+			if (isTrackedDocumentChange(transaction)) {
+				trackedChange = true;
+				this.tracker.applyChanges(
+					transaction.startState.doc,
+					transaction.state.doc,
+					transaction.changes
+				);
+			} else if (transaction.docChanged) {
+				this.tracker.clear();
+				this.pauseScheduledRefresh();
+			}
+		}
+
+		if (
+			trackedChange &&
+			this.tracker.hasSelectionOnDirtyLine(update.state.doc, update.state.selection)
+		) {
+			this.pauseScheduledRefresh();
+		}
+
+		const editorLostFocus = update.focusChanged && !update.view.hasFocus;
+		if (
+			(editorLostFocus && this.tracker.consume()) ||
+			this.tracker.consumeIfSelectionLeft(update.state.doc, update.state.selection)
+		) {
+			this.scheduleRefresh();
+		}
+	}
+
+	destroy(): void {
+		this.destroyed = true;
+		if (this.refreshTimer !== null) {
+			window.clearTimeout(this.refreshTimer);
+		}
+	}
+
+	private scheduleRefresh(): void {
+		this.pauseScheduledRefresh();
+
+		this.refreshTimer = window.setTimeout(() => {
+			this.refreshTimer = null;
+			void this.refresh();
+		}, HEADING_REFRESH_DEBOUNCE_MS);
+	}
+
+	private pauseScheduledRefresh(): void {
+		if (this.refreshTimer !== null) {
+			window.clearTimeout(this.refreshTimer);
+			this.refreshTimer = null;
+		}
+	}
+
+	private async refresh(): Promise<void> {
+		if (this.destroyed) {
+			return;
+		}
+
+		if (this.refreshRunning) {
+			this.refreshQueued = true;
+			return;
+		}
+
+		this.refreshRunning = true;
+		try {
+			const editorInfo = this.view.state.field(editorInfoField, false);
+			if (editorInfo instanceof MarkdownView) {
+				await this.plugin.handleAddHeaderNumber(editorInfo);
+				if (this.plugin.settings.isAutoDetectHeaderLevel) {
+					this.plugin.handleShowStateBarChange();
+				}
+			}
+		} finally {
+			this.refreshRunning = false;
+			if (this.refreshQueued && !this.destroyed) {
+				this.refreshQueued = false;
+				if (
+					!this.tracker.hasSelectionOnDirtyLine(
+						this.view.state.doc,
+						this.view.state.selection
+					)
+				) {
+					this.scheduleRefresh();
+				}
+			}
+		}
 	}
 }

@@ -139,7 +139,7 @@ header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 
 
 **日常使用**
 - ✅ 在标题行按 `Enter` 自动添加/更新编号
-- ✅ 手动修改标题级别后，光标移到该行按 `Enter` 刷新
+- ✅ 编辑标题或修改标题级别后，将光标移到其他行即可刷新编号
 - ✅ 点击功能区图标快速切换当前文档的编号状态
 
 **批量操作**
@@ -153,7 +153,6 @@ header-auto-numbering: ["state on", "start-level h2", "end-level h6", "start-at 
 - 🎯 项目文档：从 H2 开始编号，保留 H1 作为文档标题
 
 ## 🐛 已知问题
-- 更改标题级别需手动刷新（按 `Enter`）
 - 默认分隔符使用制表符（`\t`）
 
 在 [GitHub Issues](https://github.com/HoBeedzc/obsidian-header-enhancer-plugin/issues) 报告问题
