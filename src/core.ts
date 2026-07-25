@@ -24,6 +24,8 @@ export function getNextNumber(
 	return nextNums;
 }
 
+const HEADER_NUMBER_PATTERN = /^(\d+(?:[.,\-\/]\d+)*)\s+/;
+
 export function isNeedInsertNumber(text: string, splitor: string): boolean {
 	// '## header' true
 	// '## 1.1 splitor header' false
@@ -36,10 +38,10 @@ export function isNeedInsertNumber(text: string, splitor: string): boolean {
 	if (splitor == " ") {
 		// Check if content starts with a number pattern (e.g., "1.1 text" or "1 text")
 		// Should return false if numbering exists, true if it doesn't
-		return !/^\d+(?:\.\d+)*\s+/.test(contentAfterHash);
+		return !HEADER_NUMBER_PATTERN.test(contentAfterHash);
 	} else {
 		// For other splitors, check if the splitor exists in the content
-		return !contentAfterHash.contains(splitor);
+		return !contentAfterHash.includes(splitor);
 	}
 }
 
@@ -57,7 +59,7 @@ export function isNeedUpdateNumber(
 
 	if (splitor == " ") {
 		// Extract the number pattern at the start (e.g., "1.1" from "1.1 header text")
-		const numMatch = contentAfterHash.match(/^(\d+(?:\.\d+)*)\s+/);
+		const numMatch = contentAfterHash.match(HEADER_NUMBER_PATTERN);
 		if (!numMatch) return true; // No number found, needs update
 		cntNumsStr = numMatch[1];
 	} else {
@@ -80,15 +82,27 @@ export function removeHeaderNumber(text: string, splitor: string): string {
 
 	if (splitor == " ") {
 		// Remove number pattern at the start (e.g., "1.1 " from "1.1 header text")
-		const header = contentAfterHash.replace(/^\d+(?:\.\d+)*\s+/, '');
+		const header = contentAfterHash.replace(HEADER_NUMBER_PATTERN, '');
 		return sharp + " " + header;
 	} else {
 		// For other splitors, remove everything before and including the first splitor
-		if (!contentAfterHash.contains(splitor)) return text;
+		if (!contentAfterHash.includes(splitor)) return text;
 		const parts = contentAfterHash.split(splitor);
 		const header = parts.slice(1).join(splitor).trim();
 		return sharp + " " + header;
 	}
+}
+
+export function setHeaderNumber(
+	text: string,
+	number: string,
+	splitor: string
+): string {
+	const unnumberedText = removeHeaderNumber(text, splitor);
+	const match = unnumberedText.match(/^(#{1,6})\s+(.*)/);
+	if (!match) return text;
+
+	return `${match[1]} ${number}${splitor}${match[2]}`;
 }
 
 export function isHeader(text: string): boolean {
