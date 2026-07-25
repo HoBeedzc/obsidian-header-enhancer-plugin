@@ -6,6 +6,7 @@ import {
 	isNeedUpdateNumber,
 	isNeedInsertNumber,
 	removeHeaderNumber,
+	setHeaderNumber,
 	isHeader,
 	analyzeHeaderLevels,
 	updateCodeBlockState,
@@ -533,12 +534,11 @@ export default class HeaderEnhancerPlugin extends Plugin {
 					) {
 						// Add numbering to header - extract original title
 						originalHeading = line.substring(realHeaderLevel + 1).trim();
-						
-						newLine = "#".repeat(realHeaderLevel) +
-							" " +
-							insertNumberStr +
-							this.settings.autoNumberingHeaderSeparator +
-							line.substring(realHeaderLevel + 1);
+						newLine = setHeaderNumber(
+							line,
+							insertNumberStr,
+							this.settings.autoNumberingHeaderSeparator
+						);
 					} else if (
 						isNeedUpdateNumber(
 							insertNumberStr,
@@ -546,21 +546,17 @@ export default class HeaderEnhancerPlugin extends Plugin {
 							this.settings.autoNumberingHeaderSeparator
 						)
 					) {
-						// Update existing numbering - extract title after separator
-						const textAfterSeparator = line.split(this.settings.autoNumberingHeaderSeparator)[1];
-						originalHeading = textAfterSeparator ? textAfterSeparator.trim() : null;
-						
-						const originNumberLength = line
-							.split(
-								this.settings.autoNumberingHeaderSeparator
-							)[0]
-							.split(" ")[1].length;
-						newLine = "#".repeat(realHeaderLevel) +
-							" " +
-							insertNumberStr +
-							line.substring(
-								realHeaderLevel + originNumberLength + 1
-							);
+						// Update existing numbering while preserving the plain heading text.
+						const unnumberedLine = removeHeaderNumber(
+							line,
+							this.settings.autoNumberingHeaderSeparator
+						);
+						originalHeading = unnumberedLine.substring(realHeaderLevel + 1).trim();
+						newLine = setHeaderNumber(
+							line,
+							insertNumberStr,
+							this.settings.autoNumberingHeaderSeparator
+						);
 					}
 
 					// Record header changes for backlink updates
